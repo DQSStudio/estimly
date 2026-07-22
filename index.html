@@ -3,7 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DESEARQ — Preventivatore</title>
+<title>Estimly</title>
+<meta name="description" content="Il tuo preventivatore personale">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Estimly">
+<meta property="og:description" content="Il tuo preventivatore personale">
+<meta property="og:image" content="https://estimly.netlify.app/icons/icon-512.png">
+<meta property="og:url" content="https://estimly.netlify.app/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Estimly">
+<meta name="twitter:description" content="Il tuo preventivatore personale">
+<meta name="twitter:image" content="https://estimly.netlify.app/icons/icon-512.png">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -11,7 +21,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Preventivatore">
+<meta name="apple-mobile-web-app-title" content="Estimly">
 <link href="vendor/fonts/fonts.css" rel="stylesheet">
 <script src="vendor/xlsx.full.min.js"></script>
 <style>
@@ -423,9 +433,6 @@ header.top{
     </div>
     <div class="top-actions">
       <button id="settingsBtn">Impostazioni studio</button>
-      <label id="uploadLabel">Carica listino Excel
-        <input type="file" id="fileInput" accept=".xlsx,.xls">
-      </label>
       <button id="resetBtn">Nuovo preventivo</button>
     </div>
   </div>
@@ -692,6 +699,54 @@ async function saveStudioSettings(){
   }catch(e){ console.error('Errore salvataggio impostazioni studio', e); }
 }
 
+function getLicenseKey(){
+  return localStorage.getItem('desearq-license-key') || '';
+}
+
+async function loadCloudData(){
+  const key = getLicenseKey();
+  if(!key) return;
+  try{
+    const res = await fetch('/.netlify/functions/sync-data', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action: 'load' })
+    });
+    const data = await res.json();
+    if(data && data.found){
+      if(Array.isArray(data.catalog) && data.catalog.length){
+        catalog = data.catalog;
+      }
+      if(data.studioSettings){
+        studioSettings = Object.assign({}, studioSettings, data.studioSettings);
+      }
+      populateCategorySelect();
+      renderCatalog();
+      applyStudioSettings();
+    }
+  }catch(err){
+    console.error('Impossibile caricare i dati sincronizzati', err);
+  }
+}
+
+let cloudSaveTimer = null;
+function scheduleCloudSave(){
+  const key = getLicenseKey();
+  if(!key) return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(async ()=>{
+    try{
+      await fetch('/.netlify/functions/sync-data', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ key, action: 'save', catalog, studioSettings })
+      });
+    }catch(err){
+      console.error('Impossibile salvare i dati sincronizzati', err);
+    }
+  }, 800);
+}
+
 function applyStudioSettings(){
   document.documentElement.style.setProperty('--accent', studioSettings.colorPrimary);
   document.documentElement.style.setProperty('--accent-hover', shadeColor(studioSettings.colorPrimary, -18));
@@ -938,7 +993,10 @@ function renderCatalog(){
     <div class="category-block">
       <div class="category-head ${isOpen?'open':''}" data-cat="${cat}">
         <div class="category-title"><span class="chev">&#9656;</span> ${cat}</div>
-        <div class="category-count">${items.length} voci</div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="category-count">${items.length} voci</div>
+          <button class="icon-btn" data-rename-cat="${cat}" title="Rinomina categoria">&#9998;</button>
+        </div>
       </div>
       <div class="category-body ${isOpen?'open':''}">
         ${items.map(itemRow).join('')}
@@ -968,6 +1026,12 @@ function renderCatalog(){
     btn.addEventListener('click', (e)=>{
       e.stopPropagation();
       deleteCatalogItem(btn.getAttribute('data-delete'));
+    });
+  });
+  root.querySelectorAll('[data-rename-cat]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      renameCategory(btn.getAttribute('data-rename-cat'));
     });
   });
   if(editingCodice){
@@ -1004,13 +1068,45 @@ function itemRow(item){
   </div>`;
 }
 
+function getKnownCategories(){
+  const cats = [...new Set(catalog.map(i=>i.categoria))];
+  cats.sort((a,b)=>{
+    const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
+    return (ia<0?999:ia) - (ib<0?999:ib);
+  });
+  return cats;
+}
+
+function renameCategory(oldName){
+  const input = prompt('Rinomina la categoria', oldName);
+  if(input === null) return;
+  const newName = input.trim();
+  if(!newName || newName === oldName) return;
+  catalog.forEach(i=>{ if(i.categoria === oldName) i.categoria = newName; });
+  if(openCategories.has(oldName)){ openCategories.delete(oldName); openCategories.add(newName); }
+  if(activeCategory === oldName) activeCategory = newName;
+  populateCategorySelect();
+  renderCatalog();
+  scheduleCloudSave();
+}
+
 function editFormHtml(item){
   const it = item || {codice:'', categoria:activeCategory||'', sottocategoria:'', prestazione:'', descrizione:'', um:'cad', ore:0, prezzo:0, pacchetto:'Base'};
+  const knownCats = getKnownCategories();
+  const isCustomCat = it.categoria && !knownCats.includes(it.categoria);
+  const catOptions = knownCats.map(c=>`<option value="${c}" ${c===it.categoria?'selected':''}>${c}</option>`).join('');
   return `
   <div class="edit-form" id="editForm">
     <div class="edit-form-grid">
-      <div><label>Codice</label><input id="efCodice" value="${it.codice}" ${item?'readonly':''}></div>
-      <div><label>Categoria</label><input id="efCategoria" list="categoryDatalist" value="${it.categoria}"></div>
+      <div><label>Codice</label><input id="efCodice" value="${it.codice}"></div>
+      <div>
+        <label>Categoria</label>
+        <select id="efCategoriaSelect">
+          ${catOptions}
+          <option value="__new__" ${isCustomCat?'selected':''}>+ Nuova categoria...</option>
+        </select>
+        <input id="efCategoriaNew" placeholder="Nome nuova categoria" value="${isCustomCat?it.categoria:''}" style="margin-top:6px; display:${isCustomCat?'block':'none'};">
+      </div>
       <div><label>Sottocategoria</label><input id="efSottocategoria" value="${it.sottocategoria||''}"></div>
       <div class="full"><label>Prestazione</label><input id="efPrestazione" value="${it.prestazione}"></div>
       <div class="full"><label>Descrizione</label><input id="efDescrizione" value="${it.descrizione||''}"></div>
@@ -1038,6 +1134,13 @@ function bindEditFormEvents(){
   document.getElementById('efCancel').addEventListener('click', ()=>{
     editingCodice = null; editingNew = false; renderCatalog();
   });
+  const catSelect = document.getElementById('efCategoriaSelect');
+  const catNewInput = document.getElementById('efCategoriaNew');
+  catSelect.addEventListener('change', ()=>{
+    const isNew = catSelect.value === '__new__';
+    catNewInput.style.display = isNew ? 'block' : 'none';
+    if(isNew) catNewInput.focus();
+  });
 }
 
 function openEditForm(codice){
@@ -1049,7 +1152,10 @@ function openEditForm(codice){
 
 function saveEditForm(){
   const codice = document.getElementById('efCodice').value.trim();
-  const categoria = document.getElementById('efCategoria').value.trim() || 'Senza categoria';
+  const catSelectEl = document.getElementById('efCategoriaSelect');
+  const categoria = (catSelectEl.value === '__new__')
+    ? (document.getElementById('efCategoriaNew').value.trim() || 'Senza categoria')
+    : catSelectEl.value;
   const sottocategoria = document.getElementById('efSottocategoria').value.trim();
   const prestazione = document.getElementById('efPrestazione').value.trim();
   const descrizione = document.getElementById('efDescrizione').value.trim();
@@ -1064,15 +1170,17 @@ function saveEditForm(){
     if(catalog.find(i=>i.codice===codice)){ alert('Esiste già una voce con questo codice.'); return; }
     catalog.push({codice, categoria, sottocategoria, prestazione, descrizione, um, ore, prezzo, pacchetto, source:'custom'});
   } else {
+    if(catalog.find(i=>i.codice===codice && i.codice!==editingCodice)){ alert('Esiste già un\'altra voce con questo codice.'); return; }
     const it = catalog.find(i=>i.codice===editingCodice);
     if(it){
-      it.categoria = categoria; it.sottocategoria = sottocategoria; it.prestazione = prestazione;
+      it.codice = codice; it.categoria = categoria; it.sottocategoria = sottocategoria; it.prestazione = prestazione;
       it.descrizione = descrizione; it.um = um; it.ore = ore; it.prezzo = prezzo; it.pacchetto = pacchetto;
     }
   }
   editingCodice = null; editingNew = false;
   populateCategorySelect();
   renderCatalog();
+  scheduleCloudSave();
 }
 
 function deleteCatalogItem(codice){
@@ -1081,6 +1189,7 @@ function deleteCatalogItem(codice){
   if(editingCodice === codice){ editingCodice = null; }
   populateCategorySelect();
   renderCatalog();
+  scheduleCloudSave();
 }
 
 function addToCart(codice){
@@ -1592,58 +1701,6 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
   XLSX.writeFile(wb, `${numero}.xlsx`);
 });
 
-document.getElementById('fileInput').addEventListener('change', (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev)=>{
-    try{
-      const wb = XLSX.read(ev.target.result, {type:'array'});
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
-      let added = 0;
-      rows.forEach((r, idx)=>{
-        const keys = Object.keys(r);
-        const findKey = (needles)=>keys.find(k=>needles.some(n=>k.toLowerCase().includes(n)));
-        const kCod = findKey(['codice','cod']);
-        const kCat = findKey(['categoria']);
-        const kSub = findKey(['sottocategoria']);
-        const kPres = findKey(['prestazione','descrizione','voce','servizio']);
-        const kDesc = findKey(['descrizione']);
-        const kUm = findKey(['u.m','um','unit']);
-        const kOre = findKey(['ore','tempo','h']);
-        const kPrezzo = findKey(['prezzo']);
-        const kPacc = findKey(['pacchetto']);
-        const prezzo = parseFloat(String(r[kPrezzo]||'').replace(',','.'));
-        const ore = kOre ? parseFloat(String(r[kOre]||'').replace(',','.').replace('h','').trim()) : 0;
-        const nome = kPres ? String(r[kPres]) : '';
-        if(!nome || isNaN(prezzo)) return;
-        catalog.push({
-          codice: kCod ? String(r[kCod]) : ('CUSTOM-'+(idx+1)),
-          categoria: kCat ? String(r[kCat]) : 'Listino caricato',
-          sottocategoria: kSub ? String(r[kSub]) : '',
-          prestazione: nome,
-          descrizione: (kDesc && kDesc!==kPres) ? String(r[kDesc]) : '',
-          um: kUm ? String(r[kUm]) : 'cad',
-          ore: isNaN(ore) ? 0 : ore,
-          prezzo: prezzo,
-          pacchetto: kPacc ? String(r[kPacc]) : 'Base',
-          source: 'custom'
-        });
-        added++;
-      });
-      populateCategorySelect();
-      renderCatalog();
-      alert(added + ' voci importate dal file "' + file.name + '".');
-    }catch(err){
-      alert('Non sono riuscito a leggere il file. Controlla che sia un Excel valido con colonne come Codice, Categoria, Prestazione, Prezzo.');
-      console.error(err);
-    }
-  };
-  reader.readAsArrayBuffer(file);
-  e.target.value = '';
-});
-
 document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
 document.getElementById('settingsClose').addEventListener('click', closeSettingsModal);
 document.getElementById('settingsCancel').addEventListener('click', closeSettingsModal);
@@ -1695,6 +1752,7 @@ document.getElementById('settingsSave').addEventListener('click', async ()=>{
   }
   applyStudioSettings();
   await saveStudioSettings();
+  scheduleCloudSave();
   closeSettingsModal();
 });
 
@@ -1739,6 +1797,7 @@ if('serviceWorker' in navigator){
         localStorage.setItem(KEY_STORAGE, key);
         localStorage.setItem(VALIDATED_AT_STORAGE, Date.now().toString());
         hideGate();
+        loadCloudData();
         return true;
       }
       if(!opts.silent) showError('Chiave non valida o revocata.');
