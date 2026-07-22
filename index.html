@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DESEARQ — Preventivatore</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#4338CA">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Preventivatore">
+<link href="vendor/fonts/fonts.css" rel="stylesheet">
+<script src="vendor/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#FAFAFA;
+  --surface:#FFFFFF;
+  --surface-alt:#F4F4F5;
+  --border:#E6E6E9;
+  --border-soft:#F0F0F2;
+  --ink:#17181C;
+  --ink-soft:#7A7C85;
+  --ink-faint:#B4B6BE;
+  --accent:#4338CA;
+  --accent-hover:#362BA8;
+  --accent-soft:#EEEDFB;
+  --amber:#B45309;
+  --amber-soft:#FDF3E7;
+  --teal:#0F766E;
+  --teal-soft:#E9F5F3;
+  --danger:#DC2626;
+  --danger-soft:#FDECEC;
+  --radius:10px;
+  --radius-sm:6px;
+  --shadow-sm:0 1px 2px rgba(17,18,20,0.05);
+  --shadow-md:0 4px 16px rgba(17,18,20,0.06);
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'JetBrains Mono',monospace;}
+.display{font-family:'Space Grotesk',sans-serif;}
+
+header.top{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:20px 32px;
+}
+.brand-row{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+.brand-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; letter-spacing:-0.02em; color:var(--ink);}
+.brand-name span{color:var(--accent);}
+.brand-sub{font-size:11.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--ink-faint); margin-top:2px;}
+.top-actions{display:flex; gap:8px; flex-wrap:wrap;}
+.top-actions button, .top-actions label{
+  background:var(--surface); border:1px solid var(--border); color:var(--ink);
+  padding:8px 14px; border-radius:var(--radius-sm); font-size:12.5px; cursor:pointer;
+  font-family:'Inter',sans-serif; display:inline-flex; align-items:center; gap:6px; font-weight:500;
+}
+.top-actions button:hover, .top-actions label:hover{background:var(--surface-alt); border-color:var(--ink-faint);}
+.top-actions input[type=file]{display:none;}
+.brand-block{display:flex; align-items:center; gap:12px;}
+.brand-logo{max-height:44px; max-width:180px; object-fit:contain;}
+
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(23,24,28,0.45); display:flex; align-items:center;
+  justify-content:center; z-index:1000; padding:20px;
+}
+.modal-card{
+  background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow-md);
+  width:100%; max-width:600px; max-height:88vh; display:flex; flex-direction:column; overflow:hidden;
+}
+.modal-head{
+  display:flex; justify-content:space-between; align-items:center; padding:18px 22px;
+  border-bottom:1px solid var(--border); font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px;
+}
+.modal-close{background:none; border:none; font-size:20px; color:var(--ink-faint); cursor:pointer; line-height:1;}
+.modal-close:hover{color:var(--ink);}
+.modal-body{padding:20px 22px; overflow-y:auto;}
+.modal-body .field-section-label{margin-top:18px;}
+.modal-body .field-section-label:first-child{margin-top:0;}
+.modal-actions{display:flex; gap:8px; padding:16px 22px; border-top:1px solid var(--border);}
+.modal-actions button{flex:1; padding:10px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:500;}
+
+.logo-upload-row{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+.logo-preview{max-height:48px; max-width:160px; object-fit:contain; border:1px solid var(--border); border-radius:var(--radius-sm); padding:4px;}
+.logo-upload-btn{
+  border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 14px; font-size:12.5px;
+  cursor:pointer; background:var(--surface); color:var(--ink); font-weight:500;
+}
+.logo-upload-btn:hover{background:var(--surface-alt);}
+.logo-upload-btn input{display:none;}
+.logo-remove-btn{
+  border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 14px; font-size:12.5px;
+  cursor:pointer; background:var(--surface); color:var(--danger); font-weight:500;
+}
+.logo-remove-btn:hover{background:var(--danger-soft);}
+.field input[type=color]{padding:3px; height:34px; cursor:pointer;}
+
+.tier-row{
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  margin-top:16px; padding-top:16px; border-top:1px solid var(--border-soft);
+}
+.tier-row-label{font-size:11.5px; letter-spacing:0.8px; text-transform:uppercase; color:var(--ink-faint); font-weight:500;}
+.tier-btns{display:flex; gap:6px; background:var(--surface-alt); padding:3px; border-radius:999px;}
+.tier-btn{
+  border:none; background:transparent; color:var(--ink-soft);
+  padding:8px 18px; border-radius:999px; font-size:12px; letter-spacing:0.6px; font-weight:600;
+  cursor:pointer; font-family:'Inter',sans-serif;
+}
+.tier-btn:hover{background:var(--surface); color:var(--ink); box-shadow:var(--shadow-sm);}
+.tier-btn.tier-Signature:hover{color:var(--amber);}
+.tier-btn.tier-Premium:hover{color:var(--teal);}
+
+.layout{
+  display:grid;
+  grid-template-columns:1fr 380px;
+  gap:0;
+  align-items:start;
+  max-width:1300px;
+  margin:0 auto;
+}
+@media (max-width: 900px){
+  .layout{grid-template-columns:1fr;}
+}
+
+.catalog{padding:24px 28px 80px;}
+.toolbar{
+  display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+  margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--border);
+}
+.toolbar input[type=search]{
+  flex:1; min-width:180px; padding:9px 12px; border:1px solid var(--border);
+  border-radius:var(--radius-sm); background:var(--surface); font-size:13.5px; color:var(--ink);
+}
+.toolbar input[type=search]:focus{outline:none; border-color:var(--accent);}
+.toolbar select{
+  padding:9px 10px; border:1px solid var(--border); border-radius:var(--radius-sm);
+  background:var(--surface); font-size:13px; color:var(--ink);
+}
+.chip-group{display:flex; gap:6px;}
+.chip{
+  padding:7px 13px; border:1px solid var(--border); border-radius:999px; background:var(--surface);
+  font-size:12.5px; cursor:pointer; color:var(--ink-soft); white-space:nowrap; font-weight:500;
+}
+.chip:hover{border-color:var(--ink-faint);}
+.chip.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+
+.category-block{margin-bottom:8px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); overflow:hidden;}
+.category-head{
+  display:flex; align-items:center; justify-content:space-between; padding:13px 16px; cursor:pointer;
+}
+.category-head:hover{background:var(--surface-alt);}
+.category-head.open{border-bottom:1px solid var(--border);}
+.category-title{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; display:flex; align-items:center; gap:10px;}
+.category-count{font-size:11px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace;}
+.chev{transition:transform .15s ease; color:var(--ink-faint); font-size:11px;}
+.category-head.open .chev{transform:rotate(90deg);}
+.category-body{display:none;}
+.category-body.open{display:block;}
+
+.item-row{
+  display:grid; grid-template-columns:92px 1fr 110px auto; gap:12px; align-items:center;
+  padding:12px 16px; border-top:1px solid var(--border-soft);
+}
+.item-row:hover{background:var(--surface-alt);}
+.item-code{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint);}
+.item-name{font-weight:500; font-size:13.5px;}
+.item-desc{font-size:12px; color:var(--ink-soft); margin-top:1px;}
+.item-badge{
+  display:inline-block; font-size:9px; text-transform:uppercase; letter-spacing:0.6px; font-weight:600;
+  padding:2px 7px; border-radius:999px; margin-left:6px; vertical-align:1px;
+}
+.badge-Base{background:var(--surface-alt); color:var(--ink-soft);}
+.badge-Signature{background:var(--amber-soft); color:var(--amber);}
+.badge-Premium{background:var(--teal-soft); color:var(--teal);}
+.item-price{font-family:'JetBrains Mono',monospace; font-size:13px; text-align:right; font-weight:500;}
+.item-um{font-size:10.5px; color:var(--ink-faint); display:block; text-align:right;}
+.add-btn{
+  background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm);
+  padding:7px 13px; font-size:12px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:500;
+}
+.add-btn:hover{background:var(--accent-hover);}
+.item-row-actions{display:flex; align-items:center; gap:6px;}
+.icon-btn{
+  background:none; border:1px solid var(--border); border-radius:var(--radius-sm); width:26px; height:26px;
+  cursor:pointer; font-size:12px; color:var(--ink-faint); line-height:1;
+}
+.icon-btn:hover{background:var(--surface-alt); color:var(--ink);}
+.icon-btn.danger:hover{color:var(--danger); border-color:var(--danger);}
+.new-item-btn{
+  padding:9px 16px; border:1px solid var(--accent); border-radius:999px; background:var(--surface);
+  color:var(--accent); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+}
+.new-item-btn:hover{background:var(--accent); color:#fff;}
+.edit-form{padding:16px; border-top:1px solid var(--border); background:var(--surface-alt);}
+.edit-form-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
+.edit-form-grid .full{grid-column:1/-1;}
+.edit-form label{display:block; font-size:10px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-faint); margin-bottom:3px; font-weight:500;}
+.edit-form input, .edit-form select{
+  width:100%; padding:7px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12px;
+  font-family:'Inter',sans-serif; background:var(--surface); color:var(--ink);
+}
+.edit-form-actions{display:flex; gap:8px; margin-top:12px;}
+.edit-form-actions button{padding:8px 18px; border-radius:var(--radius-sm); font-size:12px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:500;}
+.btn-save{background:var(--accent); color:#fff; border:none;}
+.btn-save:hover{background:var(--accent-hover);}
+.btn-cancel{background:var(--surface); border:1px solid var(--border); color:var(--ink-soft);}
+.btn-cancel:hover{background:var(--surface-alt);}
+.empty-msg{padding:40px 20px; text-align:center; color:var(--ink-faint); font-size:13px;}
+
+.hour-calc{
+  border:1px solid var(--border); border-radius:var(--radius); background:var(--surface);
+  padding:18px 20px; margin-bottom:18px; position:relative; overflow:hidden; box-shadow:var(--shadow-sm);
+}
+.hour-calc::before{
+  content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent);
+}
+.hour-calc-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:4px;}
+.hour-calc-title{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px;}
+.hour-calc-hint{font-size:11px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace;}
+.hour-calc-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;}
+.hour-calc-grid select{
+  width:100%; padding:7px 8px; border:1px solid var(--border); border-radius:var(--radius-sm);
+  background:var(--surface); font-size:12.5px; color:var(--ink); font-family:'Inter',sans-serif;
+}
+.hour-calc-footer{display:flex; align-items:center; justify-content:space-between; margin-top:14px; gap:12px; flex-wrap:wrap;}
+.hour-calc-result{font-size:13px; color:var(--ink-soft);}
+.hour-calc-result span{font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:600; color:var(--accent); margin-left:8px;}
+#hcAddBtn{
+  background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); padding:9px 18px;
+  font-size:12.5px; font-weight:500; cursor:pointer; font-family:'Inter',sans-serif;
+}
+#hcAddBtn:hover{background:var(--accent-hover);}
+@media (max-width:640px){ .hour-calc-grid{grid-template-columns:1fr 1fr;} }
+
+.quote-panel{
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  min-height:100vh;
+  position:sticky; top:0;
+  display:flex; flex-direction:column;
+}
+.quote-scroll{padding:24px 22px; flex:1; overflow-y:auto;}
+.quote-header{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px; margin:0 0 16px; color:var(--ink);}
+
+.field-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;}
+.field-grid .full{grid-column:1/-1;}
+.field-section-label{
+  font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:var(--ink-faint);
+  font-weight:600; margin:0 0 8px; padding-bottom:6px; border-bottom:1px solid var(--border);
+}
+.field label{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-faint); margin-bottom:3px; font-weight:500;}
+.field input, .field select{
+  width:100%; padding:7px 8px; border:1px solid var(--border); border-radius:var(--radius-sm);
+  background:var(--surface); font-size:12.5px; color:var(--ink); font-family:'Inter',sans-serif;
+}
+.field input:focus, .field select:focus{outline:none; border-color:var(--accent);}
+
+.cart-empty{padding:26px 4px; text-align:center; color:var(--ink-faint); font-size:12.5px; border:1px dashed var(--border); border-radius:var(--radius);}
+.cart-group{margin-bottom:4px;}
+.cart-group-head{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12.5px; color:var(--accent);
+  padding:10px 0 4px; border-bottom:1px solid var(--border);
+}
+.cart-group-head span:last-child{font-family:'JetBrains Mono',monospace; font-weight:400; color:var(--ink-faint);}
+.cart-line{padding:11px 0; border-bottom:1px solid var(--border-soft);}
+.cart-line-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+.cart-line-name{font-size:12.5px; font-weight:500;}
+.cart-line-code{font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-faint);}
+.mode-toggle{display:flex; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; margin:7px 0;}
+.mode-toggle button{
+  flex:1; border:none; background:var(--surface); padding:5px 6px; font-size:11px; cursor:pointer;
+  color:var(--ink-soft); font-family:'Inter',sans-serif; border-right:1px solid var(--border);
+}
+.mode-toggle button:last-child{border-right:none;}
+.mode-toggle button.active{background:var(--accent); color:#fff;}
+.cart-line-fields{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:4px;}
+.cart-line-fields label{display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:0.3px; color:var(--ink-faint); margin-bottom:2px;}
+.cart-line-fields input{
+  width:100%; padding:5px 6px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12px;
+  font-family:'JetBrains Mono',monospace; color:var(--ink); background:var(--surface);
+}
+.cart-line-fields input:focus{outline:none; border-color:var(--accent);}
+.cart-line-total{display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+.cart-line-total span{font-family:'JetBrains Mono',monospace; font-weight:600; color:var(--ink);}
+.remove-x{background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:16px; padding:0 2px; line-height:1;}
+.remove-x:hover{color:var(--danger);}
+
+.custom-add{margin-top:12px; padding:12px; border:1px dashed var(--border); border-radius:var(--radius);}
+.custom-add-toggle{font-size:12px; color:var(--accent); cursor:pointer; font-weight:500;}
+.custom-form{display:none; gap:6px; margin-top:8px; grid-template-columns:1fr 70px;}
+.custom-form.open{display:grid;}
+.custom-form input{padding:6px 7px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12px;}
+.custom-form button{grid-column:1/-1; margin-top:4px; padding:7px; border:1px solid var(--border); background:var(--surface); border-radius:var(--radius-sm); font-size:11.5px; cursor:pointer; font-weight:500;}
+.custom-form button:hover{background:var(--surface-alt);}
+
+.totals{margin-top:16px; padding-top:12px; border-top:1px solid var(--border);}
+.total-row{display:flex; justify-content:space-between; font-size:12.5px; padding:3px 0; color:var(--ink-soft);}
+.total-row.grand{font-size:16px; font-weight:600; color:var(--ink); border-top:1px solid var(--border); margin-top:6px; padding-top:10px; font-family:'Space Grotesk',sans-serif;}
+.total-row.grand .val{font-family:'JetBrains Mono',monospace; color:var(--accent);}
+.regime-nota{font-size:10px; color:var(--ink-faint); margin-top:8px; line-height:1.4; font-style:italic;}
+.total-row .val{font-family:'JetBrains Mono',monospace;}
+.sconto-input{width:52px; text-align:right; border:1px solid var(--border); border-radius:var(--radius-sm); padding:3px 5px; font-family:'JetBrains Mono',monospace; font-size:12px;}
+
+.cartiglio{
+  border-top:1px solid var(--border);
+  padding:18px 22px 20px;
+  background:var(--surface-alt);
+  position:relative;
+}
+.cartiglio-grid{display:grid; grid-template-columns:1fr 1fr 1fr; font-size:10.5px; color:var(--ink-faint); gap:8px 12px; margin-bottom:14px;}
+.cartiglio-grid b{display:block; color:var(--ink); font-family:'Inter',sans-serif; font-weight:600; font-size:12px; margin-top:2px;}
+.cartiglio-grid .span2{grid-column:span 2;}
+.cartiglio-grid .span3{grid-column:span 3;}
+.payment-block{margin-bottom:14px; padding-top:12px; border-top:1px dashed var(--border);}
+.payment-block-label{font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:var(--ink-faint); font-weight:600; margin-bottom:6px;}
+.payment-block-grid{display:grid; grid-template-columns:1fr 1fr 1fr; font-size:10.5px; color:var(--ink-faint); gap:6px 12px;}
+.payment-block-grid b{display:block; color:var(--ink); font-weight:600; font-size:12px; margin-top:2px;}
+.payment-block-grid .span2{grid-column:span 2;}
+.payment-block-grid .span3{grid-column:span 3;}
+.stamp{
+  position:absolute; right:22px; top:18px; padding:4px 10px; border-radius:999px;
+  background:var(--accent-soft); color:var(--accent); font-family:'Space Grotesk',sans-serif;
+  font-size:10px; font-weight:600; letter-spacing:0.4px; text-align:center; line-height:1.3;
+}
+.action-btns{display:flex; gap:8px; flex-wrap:wrap;}
+.action-btns button{
+  flex:1; min-width:100px; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border);
+  background:var(--surface); color:var(--ink); font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:500;
+}
+.action-btns button:hover{background:var(--surface-alt);}
+#printBtn{background:var(--accent); color:#fff; border-color:var(--accent);}
+#printBtn:hover{background:var(--accent-hover);}
+.print-hint{font-size:10.5px; color:var(--ink-faint); text-align:center; margin-top:8px;}
+
+@page{ size:A4; margin:12mm; }
+
+#printDoc{ display:none; }
+
+@media print{
+  header.top, .catalog, .toolbar, .top-actions, .custom-add, .action-btns, .print-hint,
+  .mode-toggle, .remove-x, .icon-btn, .new-item-btn, .hour-calc, .modal-overlay,
+  .quote-header, .field-section-label, .field-grid, #cartList, #totalsBlock, .cartiglio{
+    display:none !important;
+  }
+
+  html, body{ background:#fff !important; font-size:11px; }
+  * { box-shadow:none !important; text-shadow:none !important; }
+
+  .layout{ display:block; max-width:760px; margin:0 auto; }
+  .quote-panel{ position:static; border:none; min-height:0; width:100%; }
+  .quote-scroll{ padding:0; overflow:visible; }
+
+  #printDoc{ display:block; color:#111; }
+
+  .pd-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding-bottom:10px; border-bottom:2px solid #111; margin-bottom:12px; }
+  .pd-brand{ display:flex; align-items:center; gap:10px; }
+  .pd-logo{ max-height:44px; max-width:150px; object-fit:contain; }
+  .pd-brand-name{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; }
+  .pd-brand-sub{ font-size:9px; color:#666; margin-top:2px; max-width:320px; }
+  .pd-meta{ text-align:right; }
+  .pd-doc-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#4338CA; margin-bottom:4px; }
+  .pd-meta-grid{ display:inline-grid; grid-template-columns:auto auto; gap:1px 8px; font-size:9.5px; color:#555; text-align:left; }
+  .pd-meta-grid b{ color:#111; font-weight:600; text-align:right; }
+
+  .pd-parties{ display:flex; gap:24px; padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid #ccc; }
+  .pd-party{ flex:1; }
+  .pd-party-label{ font-size:8.5px; text-transform:uppercase; letter-spacing:0.6px; color:#888; margin-bottom:2px; }
+  .pd-party-name{ font-weight:600; font-size:12px; }
+  .pd-party div{ font-size:10px; color:#444; }
+
+  .pd-table{ width:100%; border-collapse:collapse; font-size:10px; margin-bottom:10px; }
+  .pd-table thead{ display:table-header-group; }
+  .pd-table thead th{ text-align:left; font-size:8.5px; text-transform:uppercase; letter-spacing:0.5px; color:#666; border-bottom:1.5px solid #111; padding:3px 5px; }
+  .pd-table tr{ page-break-inside:avoid; }
+  .pd-table td{ padding:3px 5px; border-bottom:1px solid #eee; vertical-align:top; }
+  .pd-table .pd-cat-row td{ border-bottom:1px solid #bbb; border-top:1px solid #bbb; font-weight:600; font-size:9.5px; text-transform:uppercase; letter-spacing:0.4px; color:#333; padding-top:6px; padding-bottom:2px; }
+  .pd-code{ font-family:'JetBrains Mono',monospace; font-size:9px; color:#888; white-space:nowrap; }
+  .pd-num{ text-align:right; white-space:nowrap; font-family:'JetBrains Mono',monospace; }
+  .pd-strong{ font-weight:600; }
+  .pd-empty{ text-align:center; color:#999; padding:16px; }
+
+  .pd-totals{ max-width:260px; margin-left:auto; }
+  .pd-total-row{ display:flex; justify-content:space-between; font-size:10.5px; color:#555; padding:2px 0; }
+  .pd-total-row.pd-grand{ font-weight:700; font-size:13px; color:#111; border-top:1px solid #111; margin-top:4px; padding-top:5px; }
+  .pd-nota{ font-size:8.5px; color:#777; font-style:italic; margin-top:6px; text-align:right; }
+  .pd-payment{ font-size:9px; color:#444; margin-top:12px; padding-top:8px; border-top:1px dashed #999; }
+}
+
+</style>
+</head>
+<body>
+
+<div id="licenseGate" style="position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
+  <div style="max-width:360px; width:100%; padding:32px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-md);">
+    <div class="display" style="font-weight:700; font-size:20px; margin-bottom:6px;">DESEARQ — Preventivatore</div>
+    <div style="font-size:13px; color:var(--ink-soft); margin-bottom:20px;">Inserisci la chiave di licenza per continuare</div>
+    <input id="licenseKeyInput" placeholder="DQSS-XXXX-XXXX-XXXX" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-bottom:10px; background:var(--surface); color:var(--ink);">
+    <button id="licenseSubmitBtn" style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); cursor:pointer; font-weight:500; font-family:'Inter',sans-serif;">Sblocca</button>
+    <div id="licenseError" style="color:var(--danger); font-size:12px; margin-top:10px; display:none;"></div>
+  </div>
+</div>
+
+<header class="top">
+  <div class="brand-row">
+    <div class="brand-block">
+      <img id="brandLogo" class="brand-logo" style="display:none;" alt="Logo studio">
+      <div>
+        <div class="brand-name" id="brandName">DES<span>EARQ</span></div>
+        <div class="brand-sub" id="brandSub">Preventivatore di studio</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="settingsBtn">Impostazioni studio</button>
+      <label id="uploadLabel">Carica listino Excel
+        <input type="file" id="fileInput" accept=".xlsx,.xls">
+      </label>
+      <button id="resetBtn">Nuovo preventivo</button>
+    </div>
+  </div>
+  <div class="tier-row">
+    <span class="tier-row-label">Sviluppa preventivo per pacchetto</span>
+    <div class="tier-btns">
+      <button class="tier-btn tier-Base" data-tier="Base">BASE</button>
+      <button class="tier-btn tier-Signature" data-tier="Signature">SIGNATURE</button>
+      <button class="tier-btn tier-Premium" data-tier="Premium">PREMIUM</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="catalog">
+    <div class="toolbar">
+      <input type="search" id="searchInput" placeholder="Cerca per codice o prestazione...">
+      <select id="categorySelect"><option value="">Tutte le categorie</option></select>
+      <div class="chip-group" id="pkgChips">
+        <div class="chip active" data-pkg="all">Tutte le voci</div>
+        <div class="chip" data-pkg="Base">Base</div>
+        <div class="chip" data-pkg="Signature">Signature</div>
+        <div class="chip" data-pkg="Premium">Premium</div>
+      </div>
+      <button class="new-item-btn" id="newItemBtn">+ Nuova lavorazione</button>
+    </div>
+    <datalist id="categoryDatalist"></datalist>
+
+    <div class="hour-calc" id="hourCalc">
+      <div class="hour-calc-head">
+        <span class="hour-calc-title">Calcolatore lavorazione a ore</span>
+        <span class="hour-calc-hint">ore lavorate &times; costo orario</span>
+      </div>
+      <div class="hour-calc-grid">
+        <div class="field">
+          <label>Lavorazione dal catalogo</label>
+          <select id="hcItem"><option value="">— nessuna, voce libera —</option></select>
+        </div>
+        <div class="field">
+          <label>Nome voce (se libera)</label>
+          <input id="hcNome" placeholder="Es. Sopralluogo extra">
+        </div>
+        <div class="field">
+          <label>Ore lavorate</label>
+          <input id="hcOre" type="number" step="0.25" value="1">
+        </div>
+        <div class="field">
+          <label>Costo orario €/h</label>
+          <input id="hcTariffa" type="number" step="0.01" value="0">
+        </div>
+      </div>
+      <div class="hour-calc-footer">
+        <div class="hour-calc-result">Totale stimato <span id="hcTotale">€ 0,00</span></div>
+        <button id="hcAddBtn">+ Aggiungi al preventivo</button>
+      </div>
+    </div>
+
+    <div id="catalogRoot"></div>
+  </div>
+
+  <div class="quote-panel">
+    <div class="quote-scroll">
+      <div class="quote-header">Preventivo</div>
+      <div id="printDoc"></div>
+
+      <div class="field-section-label">Dati cliente</div>
+      <div class="field-grid">
+        <div class="field full"><label>Cliente / Ragione sociale</label><input id="fCliente" placeholder="Nome cliente"></div>
+        <div class="field">
+          <label>Tipo cliente</label>
+          <select id="fTipoCliente">
+            <option value="Privato">Privato</option>
+            <option value="Azienda">Azienda</option>
+          </select>
+        </div>
+        <div class="field"><label>Codice fiscale</label><input id="fCF" placeholder="RSSMRA80A01H501U"></div>
+        <div class="field full"><label>Indirizzo / Via di residenza o sede</label><input id="fIndirizzo" placeholder="Via, civico, città, CAP"></div>
+        <div class="field full"><label>Partita IVA</label><input id="fPiva" placeholder="IT00000000000"></div>
+      </div>
+
+      <div class="field-section-label">Dati preventivo</div>
+      <div class="field-grid">
+        <div class="field full"><label>Progetto / Immobile</label><input id="fProgetto" placeholder="Es. Appartamento Milano centro"></div>
+        <div class="field"><label>Data</label><input id="fData" type="date"></div>
+        <div class="field"><label>N. preventivo</label><input id="fNumero"></div>
+        <div class="field"><label>Revisione</label><input id="fRevisione" placeholder="Rev. 0"></div>
+        <div class="field"><label>Validità (giorni)</label><input id="fValidita" type="number" min="1" value="30"></div>
+        <div class="field"><label>Sconto %</label><input id="fSconto" type="number" min="0" max="100" value="0"></div>
+        <div class="field"><label>Etichetta contributo (cassa/INPS)</label><input id="fContributoLabel" placeholder="Es. Contributo integrativo Cassa 4%"></div>
+        <div class="field"><label>Contributo %</label><input id="fContributoPct" type="number" min="0" max="100" step="0.1" value="0"></div>
+        <div class="field">
+          <label>Regime fiscale / IVA</label>
+          <select id="fRegime">
+            <option value="ord22">IVA ordinaria 22%</option>
+            <option value="rid10">IVA ridotta 10%</option>
+            <option value="rid4">IVA ridotta 4%</option>
+            <option value="esente">Esente IVA (art. 10 DPR 633/72)</option>
+            <option value="forfettario">Regime forfettario (no IVA)</option>
+            <option value="reverse">Reverse charge (inversione contabile)</option>
+            <option value="custom">Aliquota personalizzata</option>
+          </select>
+        </div>
+        <div class="field" id="regimeCustomField" style="display:none;"><label>Aliquota personalizzata %</label><input id="fAliquotaCustom" type="number" min="0" max="100" step="0.1" value="22"></div>
+        <div class="field full"><label>Note di pagamento (per questo preventivo)</label><input id="fNotePagamento" placeholder="Es. Acconto 30% all'ordine, saldo a consegna"></div>
+      </div>
+
+      <div id="cartList"></div>
+
+      <div class="custom-add">
+        <div class="custom-add-toggle" id="customToggle">+ Aggiungi voce libera</div>
+        <div class="custom-form" id="customForm">
+          <input id="customDesc" placeholder="Descrizione">
+          <input id="customPrice" type="number" placeholder="Prezzo €">
+          <button id="customAddBtn">Aggiungi al preventivo</button>
+        </div>
+      </div>
+
+      <div class="totals" id="totalsBlock"></div>
+    </div>
+
+    <div class="cartiglio">
+      <div class="cartiglio-grid">
+        <div>Studio<br><b id="cStudioNome">DESEARQ</b></div>
+        <div>Tavola<br><b id="cNumero2">—</b></div>
+        <div>Revisione<br><b id="cRevisione">—</b></div>
+        <div>Cliente<br><b id="cCliente">—</b></div>
+        <div>Tipo<br><b id="cTipoCliente">—</b></div>
+        <div>Data<br><b id="cData">—</b></div>
+        <div class="span2">Indirizzo<br><b id="cIndirizzo">—</b></div>
+        <div>Validità fino al<br><b id="cValidita">—</b></div>
+        <div class="span3">CF / P.IVA<br><b id="cFiscale">—</b></div>
+      </div>
+      <div class="payment-block" id="paymentBlock" style="display:none;">
+        <div class="payment-block-label">Coordinate di pagamento</div>
+        <div class="payment-block-grid" id="paymentBlockGrid"></div>
+      </div>
+      <div class="stamp">CONFORME<br>PREVENTIVO</div>
+      <div class="action-btns">
+        <button id="printBtn">Stampa / Salva PDF</button>
+        <button id="exportBtn" class="secondary">Esporta Excel</button>
+      </div>
+      <div class="print-hint">Nella finestra di stampa scegli "Salva come PDF" come destinazione.</div>
+    </div>
+  </div>
+</div>
+
+<div id="settingsModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-head">
+      <span>Impostazioni studio</span>
+      <button id="settingsClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="field-section-label">Logo e colori</div>
+      <div class="field-grid">
+        <div class="field full">
+          <label>Logo studio</label>
+          <div class="logo-upload-row">
+            <img id="logoPreview" class="logo-preview" style="display:none;" alt="Anteprima logo">
+            <label class="logo-upload-btn">Carica logo
+              <input type="file" id="logoInput" accept="image/*">
+            </label>
+            <button id="logoRemoveBtn" class="logo-remove-btn" style="display:none;">Rimuovi</button>
+          </div>
+        </div>
+        <div class="field"><label>Colore primario</label><input type="color" id="sColorPrimary" value="#4338CA"></div>
+        <div class="field"><label>Colore marchio / testo</label><input type="color" id="sColorInk" value="#17181C"></div>
+      </div>
+
+      <div class="field-section-label">Intestazione studio</div>
+      <div class="field-grid">
+        <div class="field full"><label>Nome studio</label><input id="sNome" placeholder="Es. DESEARQ Studio"></div>
+        <div class="field full"><label>Sottotitolo (mostrato in intestazione)</label><input id="sTagline" placeholder="Es. Studio di architettura e interior design"></div>
+        <div class="field full"><label>Indirizzo / via sede</label><input id="sIndirizzo" placeholder="Via, civico, città, CAP"></div>
+        <div class="field"><label>Partita IVA</label><input id="sPiva" placeholder="IT00000000000"></div>
+        <div class="field"><label>Codice fiscale</label><input id="sCf" placeholder="Codice fiscale studio"></div>
+        <div class="field"><label>Telefono</label><input id="sTelefono" placeholder="+39 ..."></div>
+        <div class="field"><label>Email</label><input id="sEmail" placeholder="info@studio.it"></div>
+        <div class="field full"><label>PEC</label><input id="sPec" placeholder="studio@pec.it"></div>
+      </div>
+
+      <div class="field-section-label">Coordinate di pagamento</div>
+      <div class="field-grid">
+        <div class="field full"><label>IBAN</label><input id="sIban" placeholder="IT00 A000 0000 0000 0000 0000 000"></div>
+        <div class="field"><label>Intestatario conto</label><input id="sIntestatario" placeholder="Nome intestatario"></div>
+        <div class="field"><label>Banca</label><input id="sBanca" placeholder="Nome istituto"></div>
+        <div class="field"><label>Codice univoco SDI</label><input id="sSdi" placeholder="Es. A1B2C3D"></div>
+      </div>
+
+    </div>
+    <div class="modal-actions">
+      <button id="settingsSave" class="btn-save">Salva impostazioni</button>
+      <button id="settingsCancel" class="btn-cancel">Annulla</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+if(!window.storage){
+  window.storage = {
+    get: (key) => Promise.resolve({ value: localStorage.getItem(key) }),
+    set: (key, value) => { localStorage.setItem(key, value); return Promise.resolve(); }
+  };
+}
+
+const BASE_ITEMS = [{"codice": "DES-CS-001", "categoria": "Consulenze", "sottocategoria": "", "prestazione": "Call conoscitiva 30 min", "descrizione": "", "um": "cad", "ore": 0.5, "prezzo": 90.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-CS-002", "categoria": "Consulenze", "sottocategoria": "", "prestazione": "Consulenza online 1 h", "descrizione": "", "um": "cad", "ore": 1.0, "prezzo": 180.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-CS-003", "categoria": "Consulenze", "sottocategoria": "", "prestazione": "Consulenza in studio", "descrizione": "", "um": "cad", "ore": 1.0, "prezzo": 180.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-CS-004", "categoria": "Consulenze", "sottocategoria": "", "prestazione": "Consulenza presso immobile Milano", "descrizione": "", "um": "cad", "ore": 2.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-CS-005", "categoria": "Consulenze", "sottocategoria": "", "prestazione": "Consulenza fuori Milano", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 480.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-CS-006", "categoria": "Consulenze", "sottocategoria": "", "prestazione": "Consulenza Svizzera", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 650.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-CS-007", "categoria": "Consulenze", "sottocategoria": "", "prestazione": "Second opinion progetto", "descrizione": "", "um": "cad", "ore": 2.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-CS-008", "categoria": "Consulenze", "sottocategoria": "", "prestazione": "Analisi immobile pre-acquisto", "descrizione": "", "um": "cad", "ore": 4.0, "prezzo": 650.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-CS-009", "categoria": "Consulenze", "sottocategoria": "", "prestazione": "Due diligence tecnica", "descrizione": "", "um": "cad", "ore": 8.0, "prezzo": 1200.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-CS-010", "categoria": "Consulenze", "sottocategoria": "", "prestazione": "Studio di fattibilità", "descrizione": "", "um": "cad", "ore": 12.0, "prezzo": 1500.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RL-001", "categoria": "Rilievi", "sottocategoria": "", "prestazione": "Monolocale", "descrizione": "", "um": "cad", "ore": 2.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RL-002", "categoria": "Rilievi", "sottocategoria": "", "prestazione": "Bilocale", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 450.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RL-003", "categoria": "Rilievi", "sottocategoria": "", "prestazione": "Trilocale", "descrizione": "", "um": "cad", "ore": 4.0, "prezzo": 550.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RL-004", "categoria": "Rilievi", "sottocategoria": "", "prestazione": "Quadrilocale", "descrizione": "", "um": "cad", "ore": 5.0, "prezzo": 650.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RL-005", "categoria": "Rilievi", "sottocategoria": "", "prestazione": "Villa fino a 250 mq", "descrizione": "", "um": "cad", "ore": 8.0, "prezzo": 950.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RL-006", "categoria": "Rilievi", "sottocategoria": "", "prestazione": "Villa oltre 250 mq", "descrizione": "", "um": "cad", "ore": 12.0, "prezzo": 1400.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RL-007", "categoria": "Rilievi", "sottocategoria": "", "prestazione": "Locale commerciale", "descrizione": "", "um": "cad", "ore": 6.0, "prezzo": 750.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RL-008", "categoria": "Rilievi", "sottocategoria": "", "prestazione": "Ufficio", "descrizione": "", "um": "cad", "ore": 6.0, "prezzo": 750.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RL-009", "categoria": "Rilievi", "sottocategoria": "", "prestazione": "Rilievo fotografico", "descrizione": "", "um": "cad", "ore": 1.0, "prezzo": 180.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RL-010", "categoria": "Rilievi", "sottocategoria": "", "prestazione": "Restituzione CAD", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 280.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PP-001", "categoria": "Progetto preliminare", "sottocategoria": "", "prestazione": "Analisi esigenze", "descrizione": "", "um": "cad", "ore": 2.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PP-002", "categoria": "Progetto preliminare", "sottocategoria": "", "prestazione": "Restituzione stato di fatto", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PP-003", "categoria": "Progetto preliminare", "sottocategoria": "", "prestazione": "Layout distributivo", "descrizione": "", "um": "cad", "ore": 8.0, "prezzo": 900.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PP-004", "categoria": "Progetto preliminare", "sottocategoria": "", "prestazione": "Layout aggiuntivo", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PP-005", "categoria": "Progetto preliminare", "sottocategoria": "", "prestazione": "Moodboard", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 400.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PP-006", "categoria": "Progetto preliminare", "sottocategoria": "", "prestazione": "Riunione progettuale", "descrizione": "", "um": "cad", "ore": 1.5, "prezzo": 250.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PP-007", "categoria": "Progetto preliminare", "sottocategoria": "", "prestazione": "Revisione progetto", "descrizione": "", "um": "cad", "ore": 1.0, "prezzo": 180.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PP-008", "categoria": "Progetto preliminare", "sottocategoria": "", "prestazione": "Computo preliminare", "descrizione": "", "um": "cad", "ore": 5.0, "prezzo": 600.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PP-009", "categoria": "Progetto preliminare", "sottocategoria": "", "prestazione": "Consegna tavole", "descrizione": "", "um": "cad", "ore": 1.0, "prezzo": 150.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PP-010", "categoria": "Progetto preliminare", "sottocategoria": "", "prestazione": "Assistenza cliente", "descrizione": "", "um": "cad", "ore": 2.0, "prezzo": 250.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-001", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Materialboard", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 500.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-002", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Scelta pavimenti", "descrizione": "", "um": "cad", "ore": 2.0, "prezzo": 450.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-003", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Scelta rivestimenti", "descrizione": "", "um": "cad", "ore": 2.0, "prezzo": 450.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-004", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Porte", "descrizione": "", "um": "cad", "ore": 1.0, "prezzo": 250.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-005", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Serramenti", "descrizione": "", "um": "cad", "ore": 2.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-006", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Sanitari", "descrizione": "", "um": "cad", "ore": 2.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-007", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Rubinetterie", "descrizione": "", "um": "cad", "ore": 1.5, "prezzo": 300.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-008", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Illuminazione", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 500.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-009", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Colori", "descrizione": "", "um": "cad", "ore": 1.5, "prezzo": 250.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-010", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Carta da parati", "descrizione": "", "um": "cad", "ore": 1.5, "prezzo": 250.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-011", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Computo estimativo", "descrizione": "", "um": "cad", "ore": 8.0, "prezzo": 1200.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-PD-012", "categoria": "Progetto definitivo", "sottocategoria": "", "prestazione": "Capitolato", "descrizione": "", "um": "cad", "ore": 6.0, "prezzo": 900.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-3D-001", "categoria": "Modellazione 3D", "sottocategoria": "", "prestazione": "Ambiente singolo", "descrizione": "", "um": "cad", "ore": 6.0, "prezzo": 600.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-3D-002", "categoria": "Modellazione 3D", "sottocategoria": "", "prestazione": "Zona giorno", "descrizione": "", "um": "cad", "ore": 8.0, "prezzo": 900.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-3D-003", "categoria": "Modellazione 3D", "sottocategoria": "", "prestazione": "Appartamento completo", "descrizione": "", "um": "cad", "ore": 18.0, "prezzo": 1800.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-3D-004", "categoria": "Modellazione 3D", "sottocategoria": "", "prestazione": "Villa", "descrizione": "", "um": "cad", "ore": 32.0, "prezzo": 3200.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-3D-005", "categoria": "Modellazione 3D", "sottocategoria": "", "prestazione": "Aggiornamento modello", "descrizione": "", "um": "cad", "ore": 2.0, "prezzo": 250.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RD-001", "categoria": "Render", "sottocategoria": "", "prestazione": "Render interno", "descrizione": "", "um": "cad", "ore": 8.0, "prezzo": 450.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RD-002", "categoria": "Render", "sottocategoria": "", "prestazione": "Render esterno", "descrizione": "", "um": "cad", "ore": 10.0, "prezzo": 650.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RD-003", "categoria": "Render", "sottocategoria": "", "prestazione": "Vista aggiuntiva", "descrizione": "", "um": "cad", "ore": 4.0, "prezzo": 250.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RD-004", "categoria": "Render", "sottocategoria": "", "prestazione": "Render notturno", "descrizione": "", "um": "cad", "ore": 5.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RD-005", "categoria": "Render", "sottocategoria": "", "prestazione": "Animazione", "descrizione": "", "um": "cad", "ore": 24.0, "prezzo": 1500.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-RD-006", "categoria": "Render", "sottocategoria": "", "prestazione": "Virtual Tour", "descrizione": "", "um": "cad", "ore": 16.0, "prezzo": 900.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-TE-001", "categoria": "Tavole esecutive", "sottocategoria": "", "prestazione": "Demolizioni", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-TE-002", "categoria": "Tavole esecutive", "sottocategoria": "", "prestazione": "Costruzioni", "descrizione": "", "um": "cad", "ore": 3.0, "prezzo": 350.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-TE-003", "categoria": "Tavole esecutive", "sottocategoria": "", "prestazione": "Impianto elettrico", "descrizione": "", "um": "cad", "ore": 8.0, "prezzo": 900.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-TE-004", "categoria": "Tavole esecutive", "sottocategoria": "", "prestazione": "Illuminotecnico", "descrizione": "", "um": "cad", "ore": 6.0, "prezzo": 700.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-TE-005", "categoria": "Tavole esecutive", "sottocategoria": "", "prestazione": "Controsoffitti", "descrizione": "", "um": "cad", "ore": 4.0, "prezzo": 500.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-TE-006", "categoria": "Tavole esecutive", "sottocategoria": "", "prestazione": "Bagni", "descrizione": "", "um": "cad", "ore": 6.0, "prezzo": 750.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-TE-007", "categoria": "Tavole esecutive", "sottocategoria": "", "prestazione": "Cucina", "descrizione": "", "um": "cad", "ore": 5.0, "prezzo": 650.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-TE-008", "categoria": "Tavole esecutive", "sottocategoria": "", "prestazione": "Rivestimenti", "descrizione": "", "um": "cad", "ore": 6.0, "prezzo": 700.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-TE-009", "categoria": "Tavole esecutive", "sottocategoria": "", "prestazione": "Falegnameria", "descrizione": "", "um": "cad", "ore": 8.0, "prezzo": 900.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-TE-010", "categoria": "Tavole esecutive", "sottocategoria": "", "prestazione": "Serramenti", "descrizione": "", "um": "cad", "ore": 4.0, "prezzo": 450.0, "pacchetto": "Base", "source": "v1"}, {"codice": "DES-DL-001", "categoria": "Direzione Lavori", "sottocategoria": "Cantiere", "prestazione": "Apertura cantiere", "descrizione": "Riunione iniziale e verbale", "um": "cad", "ore": 2.0, "prezzo": 350.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-DL-002", "categoria": "Direzione Lavori", "sottocategoria": "Cantiere", "prestazione": "Sopralluogo programmato", "descrizione": "Verifica avanzamento", "um": "cad", "ore": 2.0, "prezzo": 180.0, "pacchetto": "Premium", "source": "v2"}, {"codice": "DES-DL-003", "categoria": "Direzione Lavori", "sottocategoria": "Cantiere", "prestazione": "Riunione coordinamento", "descrizione": "Impresa e fornitori", "um": "cad", "ore": 2.0, "prezzo": 250.0, "pacchetto": "Premium", "source": "v2"}, {"codice": "DES-DL-004", "categoria": "Direzione Lavori", "sottocategoria": "Cantiere", "prestazione": "SAL", "descrizione": "Emissione stato avanzamento", "um": "cad", "ore": 3.0, "prezzo": 450.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-DL-005", "categoria": "Direzione Lavori", "sottocategoria": "Cantiere", "prestazione": "Collaudo finale", "descrizione": "Verifica conclusiva", "um": "cad", "ore": 4.0, "prezzo": 600.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-PM-001", "categoria": "Project Management", "sottocategoria": "Gestione", "prestazione": "Cronoprogramma", "descrizione": "Programmazione lavori", "um": "cad", "ore": 4.0, "prezzo": 650.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-PM-002", "categoria": "Project Management", "sottocategoria": "Gestione", "prestazione": "Gestione ordini", "descrizione": "Ordini fornitori", "um": "cad", "ore": 3.0, "prezzo": 500.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-PM-003", "categoria": "Project Management", "sottocategoria": "Gestione", "prestazione": "Controllo consegne", "descrizione": "Monitoraggio forniture", "um": "cad", "ore": 2.0, "prezzo": 350.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-PM-004", "categoria": "Project Management", "sottocategoria": "Gestione", "prestazione": "Report cliente", "descrizione": "Report periodico", "um": "cad", "ore": 1.5, "prezzo": 250.0, "pacchetto": "Premium", "source": "v2"}, {"codice": "DES-PE-001", "categoria": "Pratiche Edilizie", "sottocategoria": "Urbanistica", "prestazione": "Pratica CILA", "descrizione": "Redazione e deposito", "um": "cad", "ore": 10.0, "prezzo": 1200.0, "pacchetto": "Premium", "source": "v2"}, {"codice": "DES-PE-002", "categoria": "Pratiche Edilizie", "sottocategoria": "Urbanistica", "prestazione": "SCIA", "descrizione": "Redazione pratica", "um": "cad", "ore": 16.0, "prezzo": 2000.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-PE-003", "categoria": "Pratiche Edilizie", "sottocategoria": "Catasto", "prestazione": "Aggiornamento catastale", "descrizione": "DOCFA", "um": "cad", "ore": 4.0, "prezzo": 500.0, "pacchetto": "Premium", "source": "v2"}, {"codice": "DES-PE-004", "categoria": "Pratiche Edilizie", "sottocategoria": "Urbanistica", "prestazione": "Accesso agli atti", "descrizione": "Richiesta documenti", "um": "cad", "ore": 5.0, "prezzo": 800.0, "pacchetto": "Premium", "source": "v2"}, {"codice": "DES-ID-001", "categoria": "Interior Design", "sottocategoria": "Zona Giorno", "prestazione": "Progetto Living", "descrizione": "Concept e arredi", "um": "amb", "ore": 8.0, "prezzo": 1400.0, "pacchetto": "Premium", "source": "v2"}, {"codice": "DES-ID-002", "categoria": "Interior Design", "sottocategoria": "Zona Notte", "prestazione": "Progetto Camera", "descrizione": "Concept completo", "um": "amb", "ore": 6.0, "prezzo": 950.0, "pacchetto": "Premium", "source": "v2"}, {"codice": "DES-ID-003", "categoria": "Interior Design", "sottocategoria": "Bagni", "prestazione": "Progetto Bagno", "descrizione": "Layout e materiali", "um": "amb", "ore": 6.0, "prezzo": 1100.0, "pacchetto": "Premium", "source": "v2"}, {"codice": "DES-PR-001", "categoria": "Procurement", "sottocategoria": "Fornitori", "prestazione": "Ricerca fornitori", "descrizione": "Selezione partner", "um": "cad", "ore": 3.0, "prezzo": 450.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-PR-002", "categoria": "Procurement", "sottocategoria": "Fornitori", "prestazione": "Richiesta preventivi", "descrizione": "Comparazione offerte", "um": "cad", "ore": 2.0, "prezzo": 300.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-PR-003", "categoria": "Procurement", "sottocategoria": "Montaggi", "prestazione": "Coordinamento montaggi", "descrizione": "Assistenza consegna", "um": "cad", "ore": 4.0, "prezzo": 650.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-HS-001", "categoria": "Home Styling", "sottocategoria": "Styling", "prestazione": "Styling finale", "descrizione": "Allestimento finale", "um": "cad", "ore": 5.0, "prezzo": 900.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-PH-001", "categoria": "Fotografia", "sottocategoria": "Marketing", "prestazione": "Servizio fotografico", "descrizione": "Shooting professionale", "um": "cad", "ore": 6.0, "prezzo": 1200.0, "pacchetto": "Signature", "source": "v2"}, {"codice": "DES-EX-001", "categoria": "Extra", "sottocategoria": "Varianti", "prestazione": "Revisione extra", "descrizione": "Oltre 4 revisioni", "um": "cad", "ore": 1.0, "prezzo": 180.0, "pacchetto": "Base", "source": "v2"}, {"codice": "DES-EX-002", "categoria": "Extra", "sottocategoria": "Urgenze", "prestazione": "Maggiorazione urgenza", "descrizione": "Applicazione coefficiente", "um": "+%", "ore": 0.0, "prezzo": 20.0, "pacchetto": "Base", "source": "v2"}];
+
+const CATEGORY_ORDER = ['Consulenze','Rilievi','Progetto preliminare','Progetto definitivo','Modellazione 3D','Render','Tavole esecutive','Direzione Lavori','Project Management','Pratiche Edilizie','Interior Design','Procurement','Home Styling','Fotografia','Extra'];
+
+const REGIMI_FISCALI = {
+  ord22:   { label:'IVA ordinaria 22%', rate:0.22, nota:'' },
+  rid10:   { label:'IVA ridotta 10%', rate:0.10, nota:'' },
+  rid4:    { label:'IVA ridotta 4%', rate:0.04, nota:'' },
+  esente:  { label:'Esente IVA', rate:0, nota:'Operazione esente IVA ai sensi dell\'art. 10 DPR 633/72' },
+  forfettario: { label:'Regime forfettario', rate:0, nota:'Operazione senza applicazione dell\'IVA ai sensi dell\'art. 1, commi 54-89, L. 190/2014 (regime forfettario)' },
+  reverse: { label:'Reverse charge', rate:0, nota:'Operazione soggetta a inversione contabile (reverse charge) ai sensi dell\'art. 17, comma 6, DPR 633/72 — IVA a carico del committente' },
+  custom:  { label:'Aliquota personalizzata', rate:null, nota:'' }
+};
+
+let catalog = [];
+let cart = [];
+let openCategories = new Set();
+let activePkg = 'all';
+let searchTerm = '';
+let activeCategory = '';
+let idCounter = 1;
+let editingCodice = null;
+let editingNew = false;
+
+let studioSettings = {
+  nome:'DESEARQ', tagline:'Preventivatore di studio', indirizzo:'', piva:'', cf:'',
+  telefono:'', email:'', pec:'', logo:'', colorPrimary:'#4338CA', colorInk:'#17181C',
+  iban:'', intestatario:'', banca:'', sdi:''
+};
+
+function fmt(n){
+  return new Intl.NumberFormat('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}).format(n);
+}
+function lineTotal(l){
+  return l.modalita === 'orario' ? (l.ore||0)*(l.tariffa||0) : (l.qty||0)*(l.prezzo||0);
+}
+
+function loadDraft(){
+  try{
+    return window.storage && window.storage.get ? window.storage.get('preventivo-draft', false) : null;
+  }catch(e){ return null; }
+}
+
+async function loadStudioSettings(){
+  try{
+    const res = await window.storage.get('studio-settings', false);
+    if(res && res.value){
+      studioSettings = Object.assign({}, studioSettings, JSON.parse(res.value));
+    }
+  }catch(e){ /* nessuna impostazione salvata ancora */ }
+  applyStudioSettings();
+}
+
+async function saveStudioSettings(){
+  try{
+    await window.storage.set('studio-settings', JSON.stringify(studioSettings), false);
+  }catch(e){ console.error('Errore salvataggio impostazioni studio', e); }
+}
+
+function applyStudioSettings(){
+  document.documentElement.style.setProperty('--accent', studioSettings.colorPrimary);
+  document.documentElement.style.setProperty('--accent-hover', shadeColor(studioSettings.colorPrimary, -18));
+  document.documentElement.style.setProperty('--accent-soft', hexToSoft(studioSettings.colorPrimary));
+  document.documentElement.style.setProperty('--ink', studioSettings.colorInk);
+
+  document.getElementById('brandName').textContent = studioSettings.nome || 'Studio';
+  document.getElementById('brandSub').textContent = studioSettings.tagline || '';
+
+  const logoEl = document.getElementById('brandLogo');
+  if(studioSettings.logo){ logoEl.src = studioSettings.logo; logoEl.style.display = 'block'; }
+  else{ logoEl.style.display = 'none'; }
+
+  const cStudio = document.getElementById('cStudioNome');
+  if(cStudio) cStudio.textContent = studioSettings.nome || 'Studio';
+
+  renderPaymentBlock();
+}
+
+function hexToSoft(hex){
+  try{
+    const h = hex.replace('#','');
+    const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+    return `rgba(${r}, ${g}, ${b}, 0.1)`;
+  }catch(e){ return '#EEEDFB'; }
+}
+
+function shadeColor(hex, percent){
+  try{
+    const h = hex.replace('#','');
+    let r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+    r = Math.max(0, Math.min(255, Math.round(r + (percent/100)*255)));
+    g = Math.max(0, Math.min(255, Math.round(g + (percent/100)*255)));
+    b = Math.max(0, Math.min(255, Math.round(b + (percent/100)*255)));
+    return `rgb(${r}, ${g}, ${b})`;
+  }catch(e){ return hex; }
+}
+
+function renderPaymentBlock(){
+  const s = studioSettings;
+  const notePagamento = document.getElementById('fNotePagamento').value.trim();
+  const hasPayment = s.iban || s.intestatario || s.banca || s.sdi || notePagamento;
+  const block = document.getElementById('paymentBlock');
+  const grid = document.getElementById('paymentBlockGrid');
+  if(!hasPayment){ block.style.display = 'none'; return; }
+  block.style.display = 'block';
+  let cells = '';
+  if(s.iban) cells += `<div class="span2">IBAN<br><b>${s.iban}</b></div>`;
+  if(s.intestatario) cells += `<div>Intestatario<br><b>${s.intestatario}</b></div>`;
+  if(s.banca) cells += `<div>Banca<br><b>${s.banca}</b></div>`;
+  if(s.sdi) cells += `<div>Cod. univoco SDI<br><b>${s.sdi}</b></div>`;
+  if(notePagamento) cells += `<div class="span3">Note<br><b>${notePagamento}</b></div>`;
+  grid.innerHTML = cells;
+}
+
+function openSettingsModal(){
+  const s = studioSettings;
+  document.getElementById('sNome').value = s.nome || '';
+  document.getElementById('sTagline').value = s.tagline || '';
+  document.getElementById('sIndirizzo').value = s.indirizzo || '';
+  document.getElementById('sPiva').value = s.piva || '';
+  document.getElementById('sCf').value = s.cf || '';
+  document.getElementById('sTelefono').value = s.telefono || '';
+  document.getElementById('sEmail').value = s.email || '';
+  document.getElementById('sPec').value = s.pec || '';
+  document.getElementById('sIban').value = s.iban || '';
+  document.getElementById('sIntestatario').value = s.intestatario || '';
+  document.getElementById('sBanca').value = s.banca || '';
+  document.getElementById('sSdi').value = s.sdi || '';
+  document.getElementById('sColorPrimary').value = s.colorPrimary || '#4338CA';
+  document.getElementById('sColorInk').value = s.colorInk || '#17181C';
+  const logoPreview = document.getElementById('logoPreview');
+  const removeBtn = document.getElementById('logoRemoveBtn');
+  if(s.logo){ logoPreview.src = s.logo; logoPreview.style.display='inline-block'; removeBtn.style.display='inline-block'; }
+  else{ logoPreview.style.display='none'; removeBtn.style.display='none'; }
+  document.getElementById('settingsModal').style.display = 'flex';
+}
+
+function closeSettingsModal(){
+  document.getElementById('settingsModal').style.display = 'none';
+}
+
+async function initStorage(){
+  try{
+    const res = await window.storage.get('preventivo-draft', false);
+    if(res && res.value){
+      const d = JSON.parse(res.value);
+      cart = d.cart || [];
+      idCounter = d.idCounter || (cart.length+1);
+      document.getElementById('fCliente').value = d.client?.cliente || '';
+      document.getElementById('fTipoCliente').value = d.client?.tipoCliente || 'Privato';
+      document.getElementById('fIndirizzo').value = d.client?.indirizzo || '';
+      document.getElementById('fCF').value = d.client?.cf || '';
+      document.getElementById('fPiva').value = d.client?.piva || '';
+      document.getElementById('fProgetto').value = d.client?.progetto || '';
+      document.getElementById('fData').value = d.client?.data || todayStr();
+      document.getElementById('fNumero').value = d.client?.numero || defaultNumero();
+      document.getElementById('fRevisione').value = d.client?.revisione || 'Rev. 0';
+      document.getElementById('fValidita').value = d.client?.validita ?? 30;
+      document.getElementById('fSconto').value = d.client?.sconto ?? 0;
+      document.getElementById('fNotePagamento').value = d.client?.notePagamento || '';
+      document.getElementById('fContributoLabel').value = d.client?.contributoLabel || '';
+      document.getElementById('fContributoPct').value = d.client?.contributoPct ?? 0;
+      document.getElementById('fRegime').value = d.client?.regime || 'ord22';
+      document.getElementById('fAliquotaCustom').value = d.client?.aliquotaCustom ?? 22;
+      document.getElementById('regimeCustomField').style.display = document.getElementById('fRegime').value === 'custom' ? 'block' : 'none';
+    } else {
+      setDefaults();
+    }
+  }catch(e){
+    setDefaults();
+  }
+  renderCart();
+  renderCartiglio();
+}
+
+function setDefaults(){
+  document.getElementById('fData').value = todayStr();
+  document.getElementById('fNumero').value = defaultNumero();
+  document.getElementById('fTipoCliente').value = 'Privato';
+  document.getElementById('fRevisione').value = 'Rev. 0';
+  document.getElementById('fValidita').value = 30;
+  document.getElementById('fRegime').value = 'ord22';
+  document.getElementById('fAliquotaCustom').value = 22;
+}
+
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+function defaultNumero(){
+  const d = new Date();
+  const rnd = Math.floor(Math.random()*90+10);
+  return 'PREV-' + d.getFullYear() + '-' + rnd;
+}
+function addDays(dateStr, days){
+  if(!dateStr) return '—';
+  const d = new Date(dateStr + 'T00:00:00');
+  if(isNaN(d.getTime())) return '—';
+  d.setDate(d.getDate() + (parseInt(days,10)||0));
+  return d.toLocaleDateString('it-IT');
+}
+
+let saveTimer = null;
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveDraft, 400);
+}
+async function saveDraft(){
+  const state = {
+    cart, idCounter,
+    client:{
+      cliente: document.getElementById('fCliente').value,
+      tipoCliente: document.getElementById('fTipoCliente').value,
+      indirizzo: document.getElementById('fIndirizzo').value,
+      cf: document.getElementById('fCF').value,
+      piva: document.getElementById('fPiva').value,
+      progetto: document.getElementById('fProgetto').value,
+      data: document.getElementById('fData').value,
+      numero: document.getElementById('fNumero').value,
+      revisione: document.getElementById('fRevisione').value,
+      validita: parseInt(document.getElementById('fValidita').value,10) || 30,
+      sconto: parseFloat(document.getElementById('fSconto').value)||0,
+      notePagamento: document.getElementById('fNotePagamento').value,
+      contributoLabel: document.getElementById('fContributoLabel').value,
+      contributoPct: parseFloat(document.getElementById('fContributoPct').value) || 0,
+      regime: document.getElementById('fRegime').value,
+      aliquotaCustom: parseFloat(document.getElementById('fAliquotaCustom').value) || 22
+    }
+  };
+  try{
+    await window.storage.set('preventivo-draft', JSON.stringify(state), false);
+  }catch(e){ console.error('Errore salvataggio bozza', e); }
+}
+
+function populateCategorySelect(){
+  const sel = document.getElementById('categorySelect');
+  const cats = [...new Set(catalog.map(i=>i.categoria))];
+  cats.sort((a,b)=>{
+    const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
+    return (ia<0?999:ia) - (ib<0?999:ib);
+  });
+  sel.innerHTML = '<option value="">Tutte le categorie</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  const dl = document.getElementById('categoryDatalist');
+  if(dl) dl.innerHTML = cats.map(c=>`<option value="${c}">`).join('');
+  populateHourCalcSelect();
+}
+
+function populateHourCalcSelect(){
+  const sel = document.getElementById('hcItem');
+  if(!sel) return;
+  const current = sel.value;
+  const byCat = {};
+  catalog.forEach(i=>{ byCat[i.categoria] = byCat[i.categoria] || []; byCat[i.categoria].push(i); });
+  let cats = Object.keys(byCat);
+  cats.sort((a,b)=>{
+    const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
+    return (ia<0?999:ia) - (ib<0?999:ib);
+  });
+  sel.innerHTML = '<option value="">— nessuna, voce libera —</option>' +
+    cats.map(cat=>`<optgroup label="${cat}">${byCat[cat].map(i=>`<option value="${i.codice}">${i.codice} — ${i.prestazione}</option>`).join('')}</optgroup>`).join('');
+  if(catalog.find(i=>i.codice===current)) sel.value = current;
+}
+
+function tierRank(p){
+  if(p === 'Premium') return 2;
+  if(p === 'Signature') return 1;
+  return 0;
+}
+
+function matchesFilters(item){
+  if(activeCategory && item.categoria !== activeCategory) return false;
+  if(activePkg !== 'all' && tierRank(item.pacchetto) > tierRank(activePkg)) return false;
+  if(searchTerm){
+    const t = searchTerm.toLowerCase();
+    const hay = (item.codice+' '+item.prestazione+' '+item.descrizione).toLowerCase();
+    if(!hay.includes(t)) return false;
+  }
+  return true;
+}
+
+function renderCatalog(){
+  const root = document.getElementById('catalogRoot');
+  const filtered = catalog.filter(matchesFilters);
+  if(filtered.length === 0){
+    root.innerHTML = '<div class="empty-msg">Nessuna voce trovata con questi filtri.</div>';
+    return;
+  }
+  const byCat = {};
+  filtered.forEach(i=>{
+    byCat[i.categoria] = byCat[i.categoria] || [];
+    byCat[i.categoria].push(i);
+  });
+  let cats = Object.keys(byCat);
+  cats.sort((a,b)=>{
+    const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
+    return (ia<0?999:ia) - (ib<0?999:ib);
+  });
+
+  root.innerHTML = cats.map(cat=>{
+    const items = byCat[cat];
+    const isOpen = openCategories.has(cat) || searchTerm || activeCategory;
+    return `
+    <div class="category-block">
+      <div class="category-head ${isOpen?'open':''}" data-cat="${cat}">
+        <div class="category-title"><span class="chev">&#9656;</span> ${cat}</div>
+        <div class="category-count">${items.length} voci</div>
+      </div>
+      <div class="category-body ${isOpen?'open':''}">
+        ${items.map(itemRow).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  root.querySelectorAll('.category-head').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const cat = el.getAttribute('data-cat');
+      if(openCategories.has(cat)) openCategories.delete(cat); else openCategories.add(cat);
+      renderCatalog();
+    });
+  });
+  root.querySelectorAll('[data-add]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      addToCart(btn.getAttribute('data-add'));
+    });
+  });
+  root.querySelectorAll('[data-edit]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openEditForm(btn.getAttribute('data-edit'));
+    });
+  });
+  root.querySelectorAll('[data-delete]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      deleteCatalogItem(btn.getAttribute('data-delete'));
+    });
+  });
+  if(editingCodice){
+    const anchor = root.querySelector(`[data-row-for="${editingCodice}"]`);
+    if(anchor) anchor.insertAdjacentHTML('afterend', editFormHtml(catalog.find(i=>i.codice===editingCodice)));
+    bindEditFormEvents();
+  }
+  if(editingNew){
+    root.insertAdjacentHTML('afterbegin', editFormHtml(null));
+    bindEditFormEvents();
+  }
+}
+
+function itemRow(item){
+  const badge = `<span class="item-badge badge-${item.pacchetto||'Base'}">${item.pacchetto||'Base'}</span>`;
+  const oreInfo = item.ore ? `<span class="item-um">${item.ore} h stimate</span>` : '';
+  return `
+  <div class="item-row" data-row-for="${item.codice}">
+    <div class="item-code">${item.codice}</div>
+    <div>
+      <div class="item-name">${item.prestazione}${badge}</div>
+      ${item.descrizione ? `<div class="item-desc">${item.descrizione}</div>` : ''}
+    </div>
+    <div>
+      <div class="item-price">€ ${fmt(item.prezzo)}</div>
+      <div class="item-um">${item.um}</div>
+      ${oreInfo}
+    </div>
+    <div class="item-row-actions">
+      <button class="icon-btn" data-edit="${item.codice}" title="Modifica">&#9998;</button>
+      <button class="icon-btn danger" data-delete="${item.codice}" title="Elimina">&#10005;</button>
+      <button class="add-btn" data-add="${item.codice}">+ Aggiungi</button>
+    </div>
+  </div>`;
+}
+
+function editFormHtml(item){
+  const it = item || {codice:'', categoria:activeCategory||'', sottocategoria:'', prestazione:'', descrizione:'', um:'cad', ore:0, prezzo:0, pacchetto:'Base'};
+  return `
+  <div class="edit-form" id="editForm">
+    <div class="edit-form-grid">
+      <div><label>Codice</label><input id="efCodice" value="${it.codice}" ${item?'readonly':''}></div>
+      <div><label>Categoria</label><input id="efCategoria" list="categoryDatalist" value="${it.categoria}"></div>
+      <div><label>Sottocategoria</label><input id="efSottocategoria" value="${it.sottocategoria||''}"></div>
+      <div class="full"><label>Prestazione</label><input id="efPrestazione" value="${it.prestazione}"></div>
+      <div class="full"><label>Descrizione</label><input id="efDescrizione" value="${it.descrizione||''}"></div>
+      <div><label>U.M.</label><input id="efUm" value="${it.um}"></div>
+      <div><label>Ore stimate</label><input id="efOre" type="number" step="0.5" value="${it.ore||0}"></div>
+      <div><label>Prezzo €</label><input id="efPrezzo" type="number" step="0.01" value="${it.prezzo}"></div>
+      <div>
+        <label>Livello pacchetto</label>
+        <select id="efPacchetto">
+          <option value="Base" ${it.pacchetto==='Base'?'selected':''}>Base</option>
+          <option value="Signature" ${it.pacchetto==='Signature'?'selected':''}>Signature</option>
+          <option value="Premium" ${it.pacchetto==='Premium'?'selected':''}>Premium</option>
+        </select>
+      </div>
+    </div>
+    <div class="edit-form-actions">
+      <button class="btn-save" id="efSave">Salva lavorazione</button>
+      <button class="btn-cancel" id="efCancel">Annulla</button>
+    </div>
+  </div>`;
+}
+
+function bindEditFormEvents(){
+  document.getElementById('efSave').addEventListener('click', saveEditForm);
+  document.getElementById('efCancel').addEventListener('click', ()=>{
+    editingCodice = null; editingNew = false; renderCatalog();
+  });
+}
+
+function openEditForm(codice){
+  editingNew = false;
+  editingCodice = codice;
+  renderCatalog();
+  document.getElementById('editForm')?.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function saveEditForm(){
+  const codice = document.getElementById('efCodice').value.trim();
+  const categoria = document.getElementById('efCategoria').value.trim() || 'Senza categoria';
+  const sottocategoria = document.getElementById('efSottocategoria').value.trim();
+  const prestazione = document.getElementById('efPrestazione').value.trim();
+  const descrizione = document.getElementById('efDescrizione').value.trim();
+  const um = document.getElementById('efUm').value.trim() || 'cad';
+  const ore = parseFloat(document.getElementById('efOre').value) || 0;
+  const prezzo = parseFloat(document.getElementById('efPrezzo').value) || 0;
+  const pacchetto = document.getElementById('efPacchetto').value;
+
+  if(!codice || !prestazione){ alert('Codice e Prestazione sono obbligatori.'); return; }
+
+  if(editingNew){
+    if(catalog.find(i=>i.codice===codice)){ alert('Esiste già una voce con questo codice.'); return; }
+    catalog.push({codice, categoria, sottocategoria, prestazione, descrizione, um, ore, prezzo, pacchetto, source:'custom'});
+  } else {
+    const it = catalog.find(i=>i.codice===editingCodice);
+    if(it){
+      it.categoria = categoria; it.sottocategoria = sottocategoria; it.prestazione = prestazione;
+      it.descrizione = descrizione; it.um = um; it.ore = ore; it.prezzo = prezzo; it.pacchetto = pacchetto;
+    }
+  }
+  editingCodice = null; editingNew = false;
+  populateCategorySelect();
+  renderCatalog();
+}
+
+function deleteCatalogItem(codice){
+  if(!confirm('Eliminare questa lavorazione dal catalogo? Le voci già inserite nel preventivo corrente non verranno rimosse.')) return;
+  catalog = catalog.filter(i=>i.codice!==codice);
+  if(editingCodice === codice){ editingCodice = null; }
+  populateCategorySelect();
+  renderCatalog();
+}
+
+function addToCart(codice){
+  const item = catalog.find(i=>i.codice===codice);
+  if(!item) return;
+  cart.push({
+    id:idCounter++, codice:item.codice, nome:item.prestazione, um:item.um,
+    modalita:'fisso', qty:1, prezzo:item.prezzo, ore:item.ore||1, tariffa:item.ore ? +(item.prezzo/item.ore).toFixed(2) : item.prezzo,
+    custom:false, categoria:item.categoria
+  });
+  renderCart(); scheduleSave();
+}
+
+function renderCart(){
+  const root = document.getElementById('cartList');
+  if(cart.length === 0){
+    root.innerHTML = '<div class="cart-empty">Nessuna voce selezionata.<br>Aggiungi prestazioni dal catalogo a sinistra.</div>';
+  } else {
+    const byCat = {};
+    cart.forEach(l=>{
+      const cat = l.categoria || 'Altro';
+      byCat[cat] = byCat[cat] || [];
+      byCat[cat].push(l);
+    });
+    let cats = Object.keys(byCat);
+    cats.sort((a,b)=>{
+      if(a==='Voci libere') return 1;
+      if(b==='Voci libere') return -1;
+      const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
+      return (ia<0?999:ia) - (ib<0?999:ib);
+    });
+    root.innerHTML = cats.map(cat=>{
+      const lines = byCat[cat];
+      const subtotal = lines.reduce((s,l)=>s+lineTotal(l),0);
+      return `
+      <div class="cart-group">
+        <div class="cart-group-head"><span>${cat}</span><span>€ ${fmt(subtotal)}</span></div>
+        ${lines.map(l=>cartLineHtml(l)).join('')}
+      </div>`;
+    }).join('');
+  }
+  bindCartLineEvents();
+  renderTotals();
+  renderCartiglio();
+}
+
+function cartLineHtml(l){
+  const isOrario = l.modalita === 'orario';
+  return `
+  <div class="cart-line">
+    <div class="cart-line-top">
+      <div>
+        <div class="cart-line-name">${l.nome}</div>
+        <div class="cart-line-code">${l.custom ? 'voce libera' : l.codice}</div>
+      </div>
+      <button class="remove-x" data-remove="${l.id}">&times;</button>
+    </div>
+    <div class="cart-line-mode">
+      <div class="mode-toggle">
+        <button class="${!isOrario?'active':''}" data-mode="fisso" data-id="${l.id}">Importo fisso</button>
+        <button class="${isOrario?'active':''}" data-mode="orario" data-id="${l.id}">A ore</button>
+      </div>
+    </div>
+    ${isOrario ? `
+    <div class="cart-line-fields">
+      <div><label>Tariffa €/ora</label><input type="number" step="0.01" data-field="tariffa" data-id="${l.id}" value="${l.tariffa}"></div>
+      <div><label>Ore</label><input type="number" step="0.25" data-field="ore" data-id="${l.id}" value="${l.ore}"></div>
+    </div>` : `
+    <div class="cart-line-fields">
+      <div><label>Prezzo unit. €</label><input type="number" step="0.01" data-field="prezzo" data-id="${l.id}" value="${l.prezzo}"></div>
+      <div><label>Qtà (${l.um||'cad'})</label><input type="number" step="1" data-field="qty" data-id="${l.id}" value="${l.qty}"></div>
+    </div>`}
+    <div class="cart-line-total">Totale riga <span>€ ${fmt(lineTotal(l))}</span></div>
+  </div>`;
+}
+
+function bindCartLineEvents(){
+  const root = document.getElementById('cartList');
+  root.querySelectorAll('[data-remove]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = parseFloat(btn.getAttribute('data-remove'));
+      cart = cart.filter(l=>l.id!==id);
+      renderCart(); scheduleSave();
+    });
+  });
+  root.querySelectorAll('[data-mode]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = parseFloat(btn.getAttribute('data-id'));
+      const mode = btn.getAttribute('data-mode');
+      const line = cart.find(l=>l.id===id);
+      if(line){ line.modalita = mode; renderCart(); scheduleSave(); }
+    });
+  });
+  root.querySelectorAll('[data-field]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const id = parseFloat(inp.getAttribute('data-id'));
+      const field = inp.getAttribute('data-field');
+      const line = cart.find(l=>l.id===id);
+      if(line){
+        line[field] = parseFloat(inp.value) || 0;
+        const cartLineEl = inp.closest('.cart-line');
+        cartLineEl.querySelector('.cart-line-total span').textContent = '€ ' + fmt(lineTotal(line));
+        renderTotals();
+        scheduleSave();
+      }
+    });
+  });
+}
+
+function getRegimeAttivo(){
+  const key = document.getElementById('fRegime').value;
+  const regime = REGIMI_FISCALI[key] || REGIMI_FISCALI.ord22;
+  if(key === 'custom'){
+    const rate = (parseFloat(document.getElementById('fAliquotaCustom').value) || 0) / 100;
+    return { label: `IVA ${fmt(rate*100)}%`, rate, nota:'' };
+  }
+  return regime;
+}
+
+function renderTotals(){
+  const imponibile = cart.reduce((s,l)=>s+lineTotal(l),0);
+  const scontoPct = parseFloat(document.getElementById('fSconto').value)||0;
+  const sconto = imponibile*scontoPct/100;
+  const netto = imponibile - sconto;
+
+  const contributoPct = parseFloat(document.getElementById('fContributoPct').value) || 0;
+  const contributoLabel = document.getElementById('fContributoLabel').value.trim() || 'Contributo cassa/INPS';
+  const contributo = netto * contributoPct/100;
+  const baseIva = netto + contributo;
+
+  const regime = getRegimeAttivo();
+  const iva = baseIva*regime.rate;
+  const totale = baseIva + iva;
+  const ivaLabel = regime.label;
+
+  document.getElementById('totalsBlock').innerHTML = `
+    <div class="total-row"><span>Imponibile</span><span class="val">€ ${fmt(imponibile)}</span></div>
+    <div class="total-row"><span>Sconto</span><span class="val">− € ${fmt(sconto)}</span></div>
+    ${contributoPct > 0 ? `<div class="total-row"><span>${contributoLabel} (${fmt(contributoPct)}%)</span><span class="val">€ ${fmt(contributo)}</span></div>` : ''}
+    <div class="total-row"><span>${ivaLabel}</span><span class="val">€ ${fmt(iva)}</span></div>
+    <div class="total-row grand"><span>Totale</span><span class="val">€ ${fmt(totale)}</span></div>
+    ${regime.nota ? `<div class="regime-nota">${regime.nota}</div>` : ''}
+  `;
+}
+
+function renderCartiglio(){
+  const cf = document.getElementById('fCF').value.trim();
+  const piva = document.getElementById('fPiva').value.trim();
+  let fiscale = '—';
+  if(cf && piva) fiscale = `${cf} / ${piva}`;
+  else if(cf) fiscale = cf;
+  else if(piva) fiscale = piva;
+
+  document.getElementById('cNumero2').textContent = document.getElementById('fNumero').value || '—';
+  document.getElementById('cRevisione').textContent = document.getElementById('fRevisione').value || '—';
+  document.getElementById('cCliente').textContent = document.getElementById('fCliente').value || '—';
+  document.getElementById('cTipoCliente').textContent = document.getElementById('fTipoCliente').value || '—';
+  document.getElementById('cData').textContent = document.getElementById('fData').value ? new Date(document.getElementById('fData').value+'T00:00:00').toLocaleDateString('it-IT') : '—';
+  document.getElementById('cIndirizzo').textContent = document.getElementById('fIndirizzo').value || '—';
+  document.getElementById('cValidita').textContent = addDays(document.getElementById('fData').value, document.getElementById('fValidita').value);
+  document.getElementById('cFiscale').textContent = fiscale;
+  renderPaymentBlock();
+}
+
+document.getElementById('searchInput').addEventListener('input', e=>{ searchTerm = e.target.value; renderCatalog(); });
+document.getElementById('categorySelect').addEventListener('change', e=>{ activeCategory = e.target.value; renderCatalog(); });
+document.getElementById('newItemBtn').addEventListener('click', ()=>{
+  editingCodice = null;
+  editingNew = true;
+  searchTerm = ''; document.getElementById('searchInput').value = '';
+  renderCatalog();
+  document.getElementById('editForm')?.scrollIntoView({behavior:'smooth', block:'center'});
+});
+document.getElementById('pkgChips').addEventListener('click', e=>{
+  if(!e.target.classList.contains('chip')) return;
+  document.querySelectorAll('#pkgChips .chip').forEach(c=>c.classList.remove('active'));
+  e.target.classList.add('active');
+  activePkg = e.target.getAttribute('data-pkg');
+  renderCatalog();
+});
+
+function updateHourCalcTotal(){
+  const ore = parseFloat(document.getElementById('hcOre').value) || 0;
+  const tariffa = parseFloat(document.getElementById('hcTariffa').value) || 0;
+  document.getElementById('hcTotale').textContent = '€ ' + fmt(ore*tariffa);
+}
+document.getElementById('hcItem').addEventListener('change', (e)=>{
+  const item = catalog.find(i=>i.codice===e.target.value);
+  if(item){
+    document.getElementById('hcNome').value = '';
+    document.getElementById('hcNome').placeholder = item.prestazione;
+    document.getElementById('hcOre').value = item.ore || 1;
+    document.getElementById('hcTariffa').value = item.ore ? +(item.prezzo/item.ore).toFixed(2) : item.prezzo;
+  }
+  updateHourCalcTotal();
+});
+document.getElementById('hcOre').addEventListener('input', updateHourCalcTotal);
+document.getElementById('hcTariffa').addEventListener('input', updateHourCalcTotal);
+
+document.getElementById('hcAddBtn').addEventListener('click', ()=>{
+  const codice = document.getElementById('hcItem').value;
+  const item = catalog.find(i=>i.codice===codice);
+  const ore = parseFloat(document.getElementById('hcOre').value) || 0;
+  const tariffa = parseFloat(document.getElementById('hcTariffa').value) || 0;
+  const nomeLibero = document.getElementById('hcNome').value.trim();
+
+  if(ore <= 0 || tariffa <= 0){ alert('Inserisci ore lavorate e costo orario maggiori di zero.'); return; }
+  const nome = item ? item.prestazione : (nomeLibero || 'Lavorazione a ore');
+
+  cart.push({
+    id:idCounter++,
+    codice: item ? item.codice : 'CALC',
+    nome, um: item ? item.um : 'ore',
+    modalita:'orario', ore, tariffa,
+    qty:1, prezzo: tariffa,
+    custom: !item,
+    categoria: item ? item.categoria : 'Voci libere'
+  });
+
+  document.getElementById('hcItem').value = '';
+  document.getElementById('hcNome').value = '';
+  document.getElementById('hcNome').placeholder = 'Es. Sopralluogo extra';
+  document.getElementById('hcOre').value = 1;
+  document.getElementById('hcTariffa').value = 0;
+  updateHourCalcTotal();
+  renderCart(); scheduleSave();
+});
+
+['fCliente','fTipoCliente','fIndirizzo','fCF','fPiva','fProgetto','fData','fNumero','fRevisione','fValidita','fNotePagamento'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{ renderCartiglio(); scheduleSave(); });
+  document.getElementById(id).addEventListener('change', ()=>{ renderCartiglio(); scheduleSave(); });
+});
+document.getElementById('fSconto').addEventListener('input', ()=>{ renderTotals(); scheduleSave(); });
+document.getElementById('fRegime').addEventListener('change', ()=>{
+  document.getElementById('regimeCustomField').style.display = document.getElementById('fRegime').value === 'custom' ? 'block' : 'none';
+  renderTotals(); scheduleSave();
+});
+document.getElementById('fAliquotaCustom').addEventListener('input', ()=>{ renderTotals(); scheduleSave(); });
+document.getElementById('fContributoLabel').addEventListener('input', ()=>{ renderTotals(); scheduleSave(); });
+document.getElementById('fContributoPct').addEventListener('input', ()=>{ renderTotals(); scheduleSave(); });
+
+document.getElementById('customToggle').addEventListener('click', ()=>{
+  document.getElementById('customForm').classList.toggle('open');
+});
+document.getElementById('customAddBtn').addEventListener('click', ()=>{
+  const desc = document.getElementById('customDesc').value.trim();
+  const price = parseFloat(document.getElementById('customPrice').value);
+  if(!desc || isNaN(price)) return;
+  cart.push({id:idCounter++, codice:'LIBERA', nome:desc, prezzo:price, um:'cad', qty:1, ore:1, tariffa:price, modalita:'fisso', custom:true, categoria:'Voci libere'});
+  document.getElementById('customDesc').value='';
+  document.getElementById('customPrice').value='';
+  document.getElementById('customForm').classList.remove('open');
+  renderCart(); scheduleSave();
+});
+
+document.getElementById('resetBtn').addEventListener('click', async ()=>{
+  if(!confirm('Vuoi svuotare il preventivo corrente e iniziarne uno nuovo?')) return;
+  cart = [];
+  document.getElementById('fCliente').value='';
+  document.getElementById('fTipoCliente').value='Privato';
+  document.getElementById('fIndirizzo').value='';
+  document.getElementById('fCF').value='';
+  document.getElementById('fPiva').value='';
+  document.getElementById('fProgetto').value='';
+  document.getElementById('fData').value=todayStr();
+  document.getElementById('fNumero').value=defaultNumero();
+  document.getElementById('fRevisione').value='Rev. 0';
+  document.getElementById('fValidita').value=30;
+  document.getElementById('fSconto').value=0;
+  document.getElementById('fNotePagamento').value='';
+  document.getElementById('fContributoLabel').value='';
+  document.getElementById('fContributoPct').value=0;
+  document.getElementById('fRegime').value='ord22';
+  document.getElementById('fAliquotaCustom').value=22;
+  document.getElementById('regimeCustomField').style.display='none';
+  renderCart();
+  await saveDraft();
+});
+
+function escapeHtml(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function buildPrintDoc(){
+  const s = studioSettings;
+  const cliente = document.getElementById('fCliente').value || '—';
+  const tipoCliente = document.getElementById('fTipoCliente').value || '';
+  const indirizzoCliente = document.getElementById('fIndirizzo').value || '';
+  const cf = document.getElementById('fCF').value || '';
+  const piva = document.getElementById('fPiva').value || '';
+  const progetto = document.getElementById('fProgetto').value || '';
+  const dataRaw = document.getElementById('fData').value;
+  const dataFmt = dataRaw ? new Date(dataRaw+'T00:00:00').toLocaleDateString('it-IT') : '—';
+  const numero = document.getElementById('fNumero').value || '—';
+  const revisione = document.getElementById('fRevisione').value || '—';
+  const validita = addDays(dataRaw, document.getElementById('fValidita').value);
+  const notePagamento = document.getElementById('fNotePagamento').value.trim();
+  const fiscaleCliente = [cf, piva].filter(Boolean).join(' / ') || '—';
+
+  const byCat = {};
+  cart.forEach(l=>{
+    const cat = l.categoria || 'Altro';
+    byCat[cat] = byCat[cat] || [];
+    byCat[cat].push(l);
+  });
+  let cats = Object.keys(byCat);
+  cats.sort((a,b)=>{
+    if(a==='Voci libere') return 1;
+    if(b==='Voci libere') return -1;
+    const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
+    return (ia<0?999:ia) - (ib<0?999:ib);
+  });
+
+  let rowsHtml = '';
+  if(cart.length === 0){
+    rowsHtml = `<tr><td colspan="5" class="pd-empty">Nessuna voce inserita.</td></tr>`;
+  } else {
+    cats.forEach(cat=>{
+      rowsHtml += `<tr class="pd-cat-row"><td colspan="5">${escapeHtml(cat)}</td></tr>`;
+      byCat[cat].forEach(l=>{
+        const isOrario = l.modalita === 'orario';
+        const qty = isOrario ? `${fmt(l.ore)} h` : `${l.qty} ${l.um||'cad'}`;
+        const unit = isOrario ? l.tariffa : l.prezzo;
+        rowsHtml += `<tr>
+          <td class="pd-code">${escapeHtml(l.custom?'—':l.codice)}</td>
+          <td>${escapeHtml(l.nome)}</td>
+          <td class="pd-num">${qty}</td>
+          <td class="pd-num">€ ${fmt(unit)}</td>
+          <td class="pd-num pd-strong">€ ${fmt(lineTotal(l))}</td>
+        </tr>`;
+      });
+    });
+  }
+
+  const imponibile = cart.reduce((sum,l)=>sum+lineTotal(l),0);
+  const scontoPct = parseFloat(document.getElementById('fSconto').value)||0;
+  const sconto = imponibile*scontoPct/100;
+  const netto = imponibile - sconto;
+  const contributoPct = parseFloat(document.getElementById('fContributoPct').value) || 0;
+  const contributoLabel = document.getElementById('fContributoLabel').value.trim() || 'Contributo cassa/INPS';
+  const contributo = netto * contributoPct/100;
+  const baseIva = netto + contributo;
+  const regime = getRegimeAttivo();
+  const iva = baseIva*regime.rate;
+  const totale = baseIva + iva;
+
+  const totalsHtml = `
+    <div class="pd-total-row"><span>Imponibile</span><span>€ ${fmt(imponibile)}</span></div>
+    ${scontoPct>0 ? `<div class="pd-total-row"><span>Sconto (${fmt(scontoPct)}%)</span><span>− € ${fmt(sconto)}</span></div>` : ''}
+    ${contributoPct > 0 ? `<div class="pd-total-row"><span>${escapeHtml(contributoLabel)} (${fmt(contributoPct)}%)</span><span>€ ${fmt(contributo)}</span></div>` : ''}
+    <div class="pd-total-row"><span>${escapeHtml(regime.label)}</span><span>€ ${fmt(iva)}</span></div>
+    <div class="pd-total-row pd-grand"><span>Totale</span><span>€ ${fmt(totale)}</span></div>
+  `;
+
+  let paymentHtml = '';
+  const hasPayment = s.iban || s.intestatario || s.banca || s.sdi || notePagamento;
+  if(hasPayment){
+    const bits = [];
+    if(s.iban) bits.push(`IBAN <b>${escapeHtml(s.iban)}</b>`);
+    if(s.intestatario) bits.push(`Intestatario <b>${escapeHtml(s.intestatario)}</b>`);
+    if(s.banca) bits.push(`Banca <b>${escapeHtml(s.banca)}</b>`);
+    if(s.sdi) bits.push(`SDI <b>${escapeHtml(s.sdi)}</b>`);
+    paymentHtml = `<div class="pd-payment"><b>Pagamento</b> — ${bits.join(' &nbsp;&middot;&nbsp; ')}${notePagamento?`<br>${escapeHtml(notePagamento)}`:''}</div>`;
+  }
+
+  const studioBits = [s.indirizzo, s.piva?('P.IVA '+s.piva):'', s.cf?('CF '+s.cf):'', s.telefono, s.email].filter(Boolean).map(escapeHtml).join(' &middot; ');
+
+  document.getElementById('printDoc').innerHTML = `
+    <div class="pd-header">
+      <div class="pd-brand">
+        ${s.logo ? `<img src="${s.logo}" class="pd-logo">` : ''}
+        <div>
+          <div class="pd-brand-name">${escapeHtml(s.nome||'Studio')}</div>
+          <div class="pd-brand-sub">${studioBits}</div>
+        </div>
+      </div>
+      <div class="pd-meta">
+        <div class="pd-doc-title">Preventivo</div>
+        <div class="pd-meta-grid">
+          <span>N.</span><b>${escapeHtml(numero)}</b>
+          <span>Data</span><b>${dataFmt}</b>
+          <span>Rev.</span><b>${escapeHtml(revisione)}</b>
+          <span>Valido fino al</span><b>${validita}</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="pd-parties">
+      <div class="pd-party">
+        <div class="pd-party-label">Cliente</div>
+        <div class="pd-party-name">${escapeHtml(cliente)}</div>
+        <div>${escapeHtml(tipoCliente)}${indirizzoCliente?' &middot; '+escapeHtml(indirizzoCliente):''}</div>
+        <div>${escapeHtml(fiscaleCliente)}</div>
+      </div>
+      ${progetto ? `<div class="pd-party"><div class="pd-party-label">Progetto</div><div class="pd-party-name">${escapeHtml(progetto)}</div></div>` : ''}
+    </div>
+
+    <table class="pd-table">
+      <thead><tr><th>Codice</th><th>Descrizione</th><th>Qt&agrave;/Ore</th><th>Prezzo unit.</th><th>Totale</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+
+    <div class="pd-totals">${totalsHtml}</div>
+    ${regime.nota ? `<div class="pd-nota">${escapeHtml(regime.nota)}</div>` : ''}
+    ${paymentHtml}
+  `;
+}
+
+window.addEventListener('beforeprint', buildPrintDoc);
+document.getElementById('printBtn').addEventListener('click', ()=>{ buildPrintDoc(); window.print(); });
+
+function generatePackageQuote(tier){
+  const items = catalog.filter(i=>tierRank(i.pacchetto) <= tierRank(tier));
+  if(items.length === 0){ alert('Nessuna lavorazione trovata per questo pacchetto.'); return; }
+  if(cart.length > 0){
+    const ok = confirm(`Il preventivo corrente verrà sostituito con le ${items.length} lavorazioni del pacchetto ${tier.toUpperCase()} (livelli inclusi fino a ${tier}). Continuare?`);
+    if(!ok) return;
+  }
+  cart = items.map(item=>({
+    id:idCounter++, codice:item.codice, nome:item.prestazione, um:item.um,
+    modalita:'fisso', qty:1, prezzo:item.prezzo, ore:item.ore||1,
+    tariffa: item.ore ? +(item.prezzo/item.ore).toFixed(2) : item.prezzo,
+    custom:false, categoria:item.categoria
+  }));
+  activePkg = tier;
+  document.querySelectorAll('#pkgChips .chip').forEach(c=>{
+    c.classList.toggle('active', c.getAttribute('data-pkg')===tier);
+  });
+  renderCatalog();
+  renderCart();
+  scheduleSave();
+}
+
+document.querySelectorAll('.tier-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>generatePackageQuote(btn.getAttribute('data-tier')));
+});
+
+
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const dataRaw = document.getElementById('fData').value;
+  const s = studioSettings;
+  const headerRows = [
+    {Codice:'Studio', Descrizione: s.nome || ''},
+    {Codice:'Indirizzo studio', Descrizione: s.indirizzo || ''},
+    {Codice:'P.IVA studio', Descrizione: s.piva || ''},
+    {Codice:'CF studio', Descrizione: s.cf || ''},
+    {Codice:'Telefono', Descrizione: s.telefono || ''},
+    {Codice:'Email', Descrizione: s.email || ''},
+    {},
+    {Codice:'Cliente', Descrizione: document.getElementById('fCliente').value || ''},
+    {Codice:'Tipo cliente', Descrizione: document.getElementById('fTipoCliente').value || ''},
+    {Codice:'Indirizzo', Descrizione: document.getElementById('fIndirizzo').value || ''},
+    {Codice:'Codice fiscale', Descrizione: document.getElementById('fCF').value || ''},
+    {Codice:'Partita IVA', Descrizione: document.getElementById('fPiva').value || ''},
+    {Codice:'Progetto / Immobile', Descrizione: document.getElementById('fProgetto').value || ''},
+    {Codice:'N. preventivo', Descrizione: document.getElementById('fNumero').value || ''},
+    {Codice:'Revisione', Descrizione: document.getElementById('fRevisione').value || ''},
+    {Codice:'Data', Descrizione: dataRaw ? new Date(dataRaw+'T00:00:00').toLocaleDateString('it-IT') : ''},
+    {Codice:'Validità fino al', Descrizione: addDays(dataRaw, document.getElementById('fValidita').value)},
+    {}
+  ];
+  const rows = cart.map(l=>{
+    const isOrario = l.modalita === 'orario';
+    return {
+      Codice: l.custom ? 'LIBERA' : l.codice,
+      Categoria: l.categoria || '',
+      Descrizione: l.nome,
+      Modalità: isOrario ? 'A ore' : 'Importo fisso',
+      'Tariffa/Prezzo unit. €': isOrario ? l.tariffa : l.prezzo,
+      'Ore/Quantità': isOrario ? l.ore : l.qty,
+      'Totale €': +lineTotal(l).toFixed(2)
+    };
+  });
+  const imponibile = cart.reduce((s,l)=>s+lineTotal(l),0);
+  const scontoPct = parseFloat(document.getElementById('fSconto').value)||0;
+  const sconto = imponibile*scontoPct/100;
+  const netto = imponibile - sconto;
+  const contributoPct = parseFloat(document.getElementById('fContributoPct').value) || 0;
+  const contributoLabel = document.getElementById('fContributoLabel').value.trim() || 'Contributo cassa/INPS';
+  const contributo = netto * contributoPct/100;
+  const baseIva = netto + contributo;
+  const regime = getRegimeAttivo();
+  const iva = baseIva*regime.rate;
+  const totale = baseIva + iva;
+  rows.push({});
+  rows.push({Descrizione:'Imponibile', 'Totale €': +imponibile.toFixed(2)});
+  rows.push({Descrizione:'Sconto', 'Totale €': -(+sconto.toFixed(2))});
+  if(contributoPct > 0) rows.push({Descrizione: `${contributoLabel} (${contributoPct}%)`, 'Totale €': +contributo.toFixed(2)});
+  rows.push({Descrizione: regime.label, 'Totale €': +iva.toFixed(2)});
+  rows.push({Descrizione:'Totale', 'Totale €': +totale.toFixed(2)});
+  if(regime.nota) rows.push({Codice:'Regime fiscale', Descrizione: regime.nota});
+
+  const notePagamentoQuote = document.getElementById('fNotePagamento').value.trim();
+  if(s.iban || s.intestatario || s.banca || s.sdi || notePagamentoQuote){
+    rows.push({});
+    rows.push({Codice:'Coordinate di pagamento'});
+    if(s.iban) rows.push({Codice:'IBAN', Descrizione: s.iban});
+    if(s.intestatario) rows.push({Codice:'Intestatario', Descrizione: s.intestatario});
+    if(s.banca) rows.push({Codice:'Banca', Descrizione: s.banca});
+    if(s.sdi) rows.push({Codice:'Cod. univoco SDI', Descrizione: s.sdi});
+    if(notePagamentoQuote) rows.push({Codice:'Note', Descrizione: notePagamentoQuote});
+  }
+
+  const ws = XLSX.utils.json_to_sheet([...headerRows, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Preventivo');
+  const numero = document.getElementById('fNumero').value || 'preventivo';
+  XLSX.writeFile(wb, `${numero}.xlsx`);
+});
+
+document.getElementById('fileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const wb = XLSX.read(ev.target.result, {type:'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      let added = 0;
+      rows.forEach((r, idx)=>{
+        const keys = Object.keys(r);
+        const findKey = (needles)=>keys.find(k=>needles.some(n=>k.toLowerCase().includes(n)));
+        const kCod = findKey(['codice','cod']);
+        const kCat = findKey(['categoria']);
+        const kSub = findKey(['sottocategoria']);
+        const kPres = findKey(['prestazione','descrizione','voce','servizio']);
+        const kDesc = findKey(['descrizione']);
+        const kUm = findKey(['u.m','um','unit']);
+        const kOre = findKey(['ore','tempo','h']);
+        const kPrezzo = findKey(['prezzo']);
+        const kPacc = findKey(['pacchetto']);
+        const prezzo = parseFloat(String(r[kPrezzo]||'').replace(',','.'));
+        const ore = kOre ? parseFloat(String(r[kOre]||'').replace(',','.').replace('h','').trim()) : 0;
+        const nome = kPres ? String(r[kPres]) : '';
+        if(!nome || isNaN(prezzo)) return;
+        catalog.push({
+          codice: kCod ? String(r[kCod]) : ('CUSTOM-'+(idx+1)),
+          categoria: kCat ? String(r[kCat]) : 'Listino caricato',
+          sottocategoria: kSub ? String(r[kSub]) : '',
+          prestazione: nome,
+          descrizione: (kDesc && kDesc!==kPres) ? String(r[kDesc]) : '',
+          um: kUm ? String(r[kUm]) : 'cad',
+          ore: isNaN(ore) ? 0 : ore,
+          prezzo: prezzo,
+          pacchetto: kPacc ? String(r[kPacc]) : 'Base',
+          source: 'custom'
+        });
+        added++;
+      });
+      populateCategorySelect();
+      renderCatalog();
+      alert(added + ' voci importate dal file "' + file.name + '".');
+    }catch(err){
+      alert('Non sono riuscito a leggere il file. Controlla che sia un Excel valido con colonne come Codice, Categoria, Prestazione, Prezzo.');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value = '';
+});
+
+document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
+document.getElementById('settingsClose').addEventListener('click', closeSettingsModal);
+document.getElementById('settingsCancel').addEventListener('click', closeSettingsModal);
+document.getElementById('settingsModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'settingsModal') closeSettingsModal();
+});
+
+document.getElementById('logoInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(file.size > 1.5*1024*1024){ alert('Il logo è troppo grande. Usa un\'immagine sotto 1,5MB.'); e.target.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const dataUrl = ev.target.result;
+    document.getElementById('logoPreview').src = dataUrl;
+    document.getElementById('logoPreview').style.display = 'inline-block';
+    document.getElementById('logoRemoveBtn').style.display = 'inline-block';
+    studioSettings._pendingLogo = dataUrl;
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('logoRemoveBtn').addEventListener('click', ()=>{
+  document.getElementById('logoPreview').style.display = 'none';
+  document.getElementById('logoRemoveBtn').style.display = 'none';
+  document.getElementById('logoInput').value = '';
+  studioSettings._pendingLogo = '';
+});
+
+document.getElementById('settingsSave').addEventListener('click', async ()=>{
+  studioSettings = Object.assign({}, studioSettings, {
+    nome: document.getElementById('sNome').value.trim() || 'Studio',
+    tagline: document.getElementById('sTagline').value.trim(),
+    indirizzo: document.getElementById('sIndirizzo').value.trim(),
+    piva: document.getElementById('sPiva').value.trim(),
+    cf: document.getElementById('sCf').value.trim(),
+    telefono: document.getElementById('sTelefono').value.trim(),
+    email: document.getElementById('sEmail').value.trim(),
+    pec: document.getElementById('sPec').value.trim(),
+    iban: document.getElementById('sIban').value.trim(),
+    intestatario: document.getElementById('sIntestatario').value.trim(),
+    banca: document.getElementById('sBanca').value.trim(),
+    sdi: document.getElementById('sSdi').value.trim(),
+    colorPrimary: document.getElementById('sColorPrimary').value,
+    colorInk: document.getElementById('sColorInk').value
+  });
+  if(studioSettings._pendingLogo !== undefined){
+    studioSettings.logo = studioSettings._pendingLogo;
+    delete studioSettings._pendingLogo;
+  }
+  applyStudioSettings();
+  await saveStudioSettings();
+  closeSettingsModal();
+});
+
+catalog = BASE_ITEMS.slice();
+populateCategorySelect();
+renderCatalog();
+loadStudioSettings();
+initStorage();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.error('SW registration failed', err));
+  });
+}
+
+(function(){
+  const KEY_STORAGE = 'desearq-license-key';
+  const VALIDATED_AT_STORAGE = 'desearq-license-validated-at';
+  const GRACE_DAYS = 30;
+
+  function hideGate(){
+    const gate = document.getElementById('licenseGate');
+    if(gate) gate.style.display = 'none';
+  }
+
+  function showError(msg){
+    const el = document.getElementById('licenseError');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  async function validateKey(key, opts){
+    opts = opts || {};
+    try{
+      const res = await fetch('/.netlify/functions/validate-key', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ key: key })
+      });
+      const data = await res.json();
+      if(data.valid){
+        localStorage.setItem(KEY_STORAGE, key);
+        localStorage.setItem(VALIDATED_AT_STORAGE, Date.now().toString());
+        hideGate();
+        return true;
+      }
+      if(!opts.silent) showError('Chiave non valida o revocata.');
+      return false;
+    }catch(err){
+      if(!opts.silent) showError('Impossibile verificare la chiave: controlla la connessione.');
+      return false;
+    }
+  }
+
+  async function initLicenseGate(){
+    const storedKey = localStorage.getItem(KEY_STORAGE);
+    const validatedAt = parseInt(localStorage.getItem(VALIDATED_AT_STORAGE) || '0', 10);
+    const withinGrace = storedKey && (Date.now() - validatedAt) < GRACE_DAYS*24*60*60*1000;
+
+    if(storedKey){
+      document.getElementById('licenseKeyInput').value = storedKey;
+      const ok = await validateKey(storedKey, { silent: true });
+      if(!ok && withinGrace) hideGate();
+    }
+  }
+
+  document.getElementById('licenseSubmitBtn').addEventListener('click', () => {
+    const key = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
+    if(!key) return;
+    validateKey(key);
+  });
+  document.getElementById('licenseKeyInput').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') document.getElementById('licenseSubmitBtn').click();
+  });
+
+  initLicenseGate();
+})();
+</script>
+</body>
+</html>

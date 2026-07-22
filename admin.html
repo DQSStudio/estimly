@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>DESEARQ — Gestione licenze</title>
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:#FAFAFA; color:#17181C; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:14px; padding:32px 20px;
+  }
+  .wrap{max-width:720px; margin:0 auto;}
+  h1{font-size:20px; margin:0 0 4px;}
+  .sub{color:#7A7C85; font-size:13px; margin-bottom:24px;}
+  .card{background:#fff; border:1px solid #E6E6E9; border-radius:10px; padding:20px; margin-bottom:16px;}
+  input{
+    width:100%; padding:10px; border:1px solid #E6E6E9; border-radius:6px; font-size:13.5px;
+    font-family:inherit; margin-bottom:10px;
+  }
+  button{
+    padding:10px 16px; border:none; border-radius:6px; background:#4338CA; color:#fff;
+    font-size:13px; font-weight:500; cursor:pointer;
+  }
+  button:hover{background:#362BA8;}
+  button.secondary{background:#fff; color:#17181C; border:1px solid #E6E6E9;}
+  button.secondary:hover{background:#F4F4F5;}
+  button.danger{background:#fff; color:#DC2626; border:1px solid #E6E6E9;}
+  button.danger:hover{background:#FDECEC;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th,td{text-align:left; padding:8px 6px; border-bottom:1px solid #F0F0F2;}
+  th{font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#B4B6BE;}
+  .key-mono{font-family:'SF Mono',Consolas,monospace; font-size:12.5px;}
+  .badge{display:inline-block; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:600; text-transform:uppercase;}
+  .badge-active{background:#E9F5F3; color:#0F766E;}
+  .badge-revoked{background:#FDECEC; color:#DC2626;}
+  #loginCard input{margin-bottom:12px;}
+  #appArea{display:none;}
+  .error{color:#DC2626; font-size:12.5px; margin-top:6px;}
+  .row{display:flex; gap:8px; align-items:flex-end;}
+  .row > div{flex:1;}
+  .newkey-result{margin-top:12px; padding:12px; background:#EEEDFB; border-radius:6px; font-size:13px;}
+  .newkey-result .key-mono{font-size:15px; font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Gestione licenze — DESEARQ Preventivatore</h1>
+  <div class="sub">Pagina riservata: crea, controlla e revoca le chiavi di licenza dei clienti.</div>
+
+  <div class="card" id="loginCard">
+    <label>Password amministratore</label>
+    <input type="password" id="adminPassword" placeholder="Password">
+    <button id="loginBtn">Accedi</button>
+    <div class="error" id="loginError" style="display:none;"></div>
+  </div>
+
+  <div id="appArea">
+    <div class="card">
+      <label>Nome cliente</label>
+      <div class="row">
+        <div><input id="customerName" placeholder="Es. Studio Rossi Architettura"></div>
+        <div style="flex:0 0 auto;"><button id="addKeyBtn">+ Crea chiave</button></div>
+      </div>
+      <div id="newKeyResult" style="display:none;" class="newkey-result"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <b>Chiavi emesse</b>
+        <button class="secondary" id="refreshBtn">Aggiorna</button>
+      </div>
+      <table>
+        <thead><tr><th>Cliente</th><th>Chiave</th><th>Stato</th><th>Creata</th><th>Usi</th><th></th></tr></thead>
+        <tbody id="keysBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+let adminPassword = '';
+
+function fmtDate(iso){
+  if(!iso) return '—';
+  try{ return new Date(iso).toLocaleDateString('it-IT') + ' ' + new Date(iso).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}); }
+  catch(e){ return iso; }
+}
+
+async function callAdmin(action, extra){
+  const res = await fetch('/.netlify/functions/admin-keys', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+    body: JSON.stringify(Object.assign({ action }, extra || {}))
+  });
+  if(res.status === 401) throw new Error('unauthorized');
+  return res.json();
+}
+
+async function loadKeys(){
+  const data = await callAdmin('list');
+  const body = document.getElementById('keysBody');
+  if(!data.items || data.items.length === 0){
+    body.innerHTML = '<tr><td colspan="6" style="color:#B4B6BE; text-align:center; padding:20px;">Nessuna chiave ancora emessa.</td></tr>';
+    return;
+  }
+  body.innerHTML = data.items.map(it => `
+    <tr>
+      <td>${it.customer || '—'}</td>
+      <td class="key-mono">${it.key}</td>
+      <td><span class="badge badge-${it.status}">${it.status === 'active' ? 'Attiva' : 'Revocata'}</span></td>
+      <td>${fmtDate(it.createdAt)}</td>
+      <td>${it.validationCount || 0}</td>
+      <td>
+        ${it.status === 'active'
+          ? `<button class="danger" data-action="revoke" data-key="${it.key}">Revoca</button>`
+          : `<button class="secondary" data-action="activate" data-key="${it.key}">Riattiva</button>`}
+      </td>
+    </tr>
+  `).join('');
+
+  body.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      await callAdmin(btn.getAttribute('data-action'), { key: btn.getAttribute('data-key') });
+      loadKeys();
+    });
+  });
+}
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  adminPassword = document.getElementById('adminPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  try{
+    await loadKeys();
+    document.getElementById('loginCard').style.display = 'none';
+    document.getElementById('appArea').style.display = 'block';
+  }catch(err){
+    errEl.textContent = 'Password errata.';
+    errEl.style.display = 'block';
+  }
+});
+document.getElementById('adminPassword').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+document.getElementById('addKeyBtn').addEventListener('click', async () => {
+  const customer = document.getElementById('customerName').value.trim();
+  if(!customer) return;
+  const result = await callAdmin('add', { customer });
+  const box = document.getElementById('newKeyResult');
+  box.style.display = 'block';
+  box.innerHTML = `Chiave creata per <b>${result.customer}</b>:<br><span class="key-mono">${result.key}</span>`;
+  document.getElementById('customerName').value = '';
+  loadKeys();
+});
+
+document.getElementById('refreshBtn').addEventListener('click', loadKeys);
+</script>
+</body>
+</html>
