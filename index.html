@@ -166,6 +166,10 @@ header.top{
 .chip.active{background:var(--accent); color:#fff; border-color:var(--accent);}
 
 .category-block{margin-bottom:8px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); overflow:hidden;}
+.category-block.dragging{opacity:0.4;}
+.category-block.drag-over{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft);}
+.drag-handle{cursor:grab; color:var(--ink-faint); margin-right:6px; font-size:13px; letter-spacing:-1px;}
+.category-head[draggable="true"]:active .drag-handle{cursor:grabbing;}
 .category-head{
   display:flex; align-items:center; justify-content:space-between; padding:13px 16px; cursor:pointer;
 }
@@ -372,30 +376,38 @@ header.top{
   .quote-panel{ position:static; border:none; min-height:0; width:100%; }
   .quote-scroll{ padding:0; overflow:visible; }
 
-  #printDoc{ display:block; color:#111; }
+  #printDoc{
+    display:block; color:#111;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact; color-adjust:exact;
+  }
+  #printDoc .pd-accent-bar{ height:5px; background:var(--accent); border-radius:3px; margin-bottom:16px; }
 
-  .pd-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding-bottom:12px; border-bottom:2px solid #111; margin-bottom:14px; }
+  .pd-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding-bottom:12px; border-bottom:2px solid var(--accent); margin-bottom:14px; }
   .pd-brand{ display:flex; align-items:center; gap:10px; }
   .pd-logo{ max-height:50px; max-width:170px; object-fit:contain; }
-  .pd-brand-name{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; }
+  .pd-brand-name{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; color:#111; }
   .pd-brand-sub{ font-size:11px; color:#666; margin-top:2px; max-width:360px; }
   .pd-meta{ text-align:right; }
-  .pd-doc-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#4338CA; margin-bottom:5px; }
+  .pd-doc-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:5px; }
   .pd-meta-grid{ display:inline-grid; grid-template-columns:auto auto; gap:2px 10px; font-size:11.5px; color:#555; text-align:left; }
   .pd-meta-grid b{ color:#111; font-weight:600; text-align:right; }
 
-  .pd-parties{ display:flex; gap:24px; padding-bottom:12px; margin-bottom:12px; border-bottom:1px solid #ccc; }
+  .pd-parties{ display:flex; gap:24px; padding-bottom:12px; margin-bottom:12px; border-bottom:1px solid #ddd; }
   .pd-party{ flex:1; }
-  .pd-party-label{ font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:#888; margin-bottom:3px; }
+  .pd-party-label{ font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:var(--accent); font-weight:600; margin-bottom:3px; }
   .pd-party-name{ font-weight:600; font-size:14.5px; }
   .pd-party div{ font-size:12px; color:#444; }
 
   .pd-table{ width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:12px; }
   .pd-table thead{ display:table-header-group; }
-  .pd-table thead th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#666; border-bottom:1.5px solid #111; padding:5px 6px; }
+  .pd-table thead th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#666; border-bottom:2px solid var(--accent); padding:5px 6px; }
   .pd-table tr{ page-break-inside:avoid; }
   .pd-table td{ padding:5px 6px; border-bottom:1px solid #eee; vertical-align:top; }
-  .pd-table .pd-cat-row td{ border-bottom:1px solid #bbb; border-top:1px solid #bbb; font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.4px; color:#333; padding-top:8px; padding-bottom:3px; }
+  .pd-table .pd-cat-row td{
+    background:var(--accent-soft); border-left:3px solid var(--accent); border-bottom:1px solid #eee;
+    font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--accent);
+    padding:6px 8px;
+  }
   .pd-code{ font-family:'JetBrains Mono',monospace; font-size:11px; color:#888; white-space:nowrap; }
   .pd-num{ text-align:right; white-space:nowrap; font-family:'JetBrains Mono',monospace; }
   .pd-strong{ font-weight:600; }
@@ -403,9 +415,10 @@ header.top{
 
   .pd-totals{ max-width:300px; margin-left:auto; }
   .pd-total-row{ display:flex; justify-content:space-between; font-size:13px; color:#555; padding:3px 0; }
-  .pd-total-row.pd-grand{ font-weight:700; font-size:16px; color:#111; border-top:1px solid #111; margin-top:5px; padding-top:6px; }
+  .pd-total-row.pd-grand{ font-weight:700; font-size:17px; color:#111; border-top:2px solid var(--accent); margin-top:5px; padding-top:7px; }
+  .pd-total-row.pd-grand span:last-child{ color:var(--accent); }
   .pd-nota{ font-size:10px; color:#777; font-style:italic; margin-top:7px; text-align:right; }
-  .pd-payment{ font-size:11px; color:#444; margin-top:14px; padding-top:9px; border-top:1px dashed #999; }
+  .pd-payment{ font-size:11px; color:#444; margin-top:14px; padding-top:9px; border-top:1px dashed #ccc; }
 }
 
 </style>
@@ -644,6 +657,33 @@ const BASE_ITEMS = [{"codice": "DES-CS-001", "categoria": "Consulenze", "sottoca
 
 const CATEGORY_ORDER = ['Consulenze','Rilievi','Progetto preliminare','Progetto definitivo','Modellazione 3D','Render','Tavole esecutive','Direzione Lavori','Project Management','Pratiche Edilizie','Interior Design','Procurement','Home Styling','Fotografia','Extra'];
 
+let categoryOrder = CATEGORY_ORDER.slice();
+
+function categorySortIndex(cat){
+  const idx = categoryOrder.indexOf(cat);
+  return idx < 0 ? 999 : idx;
+}
+
+function ensureCategoryInOrder(cat){
+  if(cat && !categoryOrder.includes(cat)) categoryOrder.push(cat);
+}
+
+function syncCategoryOrderWithCatalog(){
+  const present = new Set(catalog.map(i=>i.categoria));
+  present.forEach(c=>ensureCategoryInOrder(c));
+}
+
+function reorderCategory(draggedCat, targetCat){
+  if(!draggedCat || !targetCat || draggedCat === targetCat) return;
+  const from = categoryOrder.indexOf(draggedCat);
+  if(from === -1) return;
+  categoryOrder.splice(from, 1);
+  const to = categoryOrder.indexOf(targetCat);
+  categoryOrder.splice(to === -1 ? from : to, 0, draggedCat);
+  renderCatalog();
+  scheduleCloudSave();
+}
+
 const REGIMI_FISCALI = {
   ord22:   { label:'IVA ordinaria 22%', rate:0.22, nota:'' },
   rid10:   { label:'IVA ridotta 10%', rate:0.10, nota:'' },
@@ -663,6 +703,7 @@ let activeCategory = '';
 let idCounter = 1;
 let editingCodice = null;
 let editingNew = false;
+let draggedCategory = null;
 
 let studioSettings = {
   nome:'DESEARQ', tagline:'Preventivatore di studio', indirizzo:'', piva:'', cf:'',
@@ -717,9 +758,13 @@ async function loadCloudData(){
       if(Array.isArray(data.catalog) && data.catalog.length){
         catalog = data.catalog;
       }
+      if(Array.isArray(data.categoryOrder) && data.categoryOrder.length){
+        categoryOrder = data.categoryOrder;
+      }
       if(data.studioSettings){
         studioSettings = Object.assign({}, studioSettings, data.studioSettings);
       }
+      syncCategoryOrderWithCatalog();
       populateCategorySelect();
       renderCatalog();
       applyStudioSettings();
@@ -739,7 +784,7 @@ function scheduleCloudSave(){
       await fetch('/.netlify/functions/sync-data', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ key, action: 'save', catalog, studioSettings })
+        body: JSON.stringify({ key, action: 'save', catalog, studioSettings, categoryOrder })
       });
     }catch(err){
       console.error('Impossibile salvare i dati sincronizzati', err);
@@ -926,8 +971,7 @@ function populateCategorySelect(){
   const sel = document.getElementById('categorySelect');
   const cats = [...new Set(catalog.map(i=>i.categoria))];
   cats.sort((a,b)=>{
-    const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
-    return (ia<0?999:ia) - (ib<0?999:ib);
+    return categorySortIndex(a) - categorySortIndex(b);
   });
   sel.innerHTML = '<option value="">Tutte le categorie</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
   const dl = document.getElementById('categoryDatalist');
@@ -943,8 +987,7 @@ function populateHourCalcSelect(){
   catalog.forEach(i=>{ byCat[i.categoria] = byCat[i.categoria] || []; byCat[i.categoria].push(i); });
   let cats = Object.keys(byCat);
   cats.sort((a,b)=>{
-    const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
-    return (ia<0?999:ia) - (ib<0?999:ib);
+    return categorySortIndex(a) - categorySortIndex(b);
   });
   sel.innerHTML = '<option value="">— nessuna, voce libera —</option>' +
     cats.map(cat=>`<optgroup label="${cat}">${byCat[cat].map(i=>`<option value="${i.codice}">${i.codice} — ${i.prestazione}</option>`).join('')}</optgroup>`).join('');
@@ -982,17 +1025,16 @@ function renderCatalog(){
   });
   let cats = Object.keys(byCat);
   cats.sort((a,b)=>{
-    const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
-    return (ia<0?999:ia) - (ib<0?999:ib);
+    return categorySortIndex(a) - categorySortIndex(b);
   });
 
   root.innerHTML = cats.map(cat=>{
     const items = byCat[cat];
     const isOpen = openCategories.has(cat) || searchTerm || activeCategory;
     return `
-    <div class="category-block">
-      <div class="category-head ${isOpen?'open':''}" data-cat="${cat}">
-        <div class="category-title"><span class="chev">&#9656;</span> ${cat}</div>
+    <div class="category-block" data-cat-block="${cat}">
+      <div class="category-head ${isOpen?'open':''}" data-cat="${cat}" draggable="true">
+        <div class="category-title"><span class="drag-handle" title="Trascina per riordinare">&#8942;&#8942;</span><span class="chev">&#9656;</span> ${cat}</div>
         <div style="display:flex; align-items:center; gap:8px;">
           <div class="category-count">${items.length} voci</div>
           <button class="icon-btn" data-rename-cat="${cat}" title="Rinomina categoria">&#9998;</button>
@@ -1009,6 +1051,34 @@ function renderCatalog(){
       const cat = el.getAttribute('data-cat');
       if(openCategories.has(cat)) openCategories.delete(cat); else openCategories.add(cat);
       renderCatalog();
+    });
+    el.addEventListener('dragstart', (e)=>{
+      draggedCategory = el.getAttribute('data-cat');
+      e.dataTransfer.effectAllowed = 'move';
+      try{ e.dataTransfer.setData('text/plain', draggedCategory); }catch(err){}
+      el.closest('.category-block')?.classList.add('dragging');
+    });
+    el.addEventListener('dragend', ()=>{
+      el.closest('.category-block')?.classList.remove('dragging');
+      root.querySelectorAll('.category-block.drag-over').forEach(b=>b.classList.remove('drag-over'));
+      draggedCategory = null;
+    });
+  });
+  root.querySelectorAll('.category-block').forEach(block=>{
+    block.addEventListener('dragover', (e)=>{
+      if(!draggedCategory) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      block.classList.add('drag-over');
+    });
+    block.addEventListener('dragleave', ()=>{
+      block.classList.remove('drag-over');
+    });
+    block.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      block.classList.remove('drag-over');
+      const targetCat = block.getAttribute('data-cat-block');
+      if(draggedCategory && targetCat) reorderCategory(draggedCategory, targetCat);
     });
   });
   root.querySelectorAll('[data-add]').forEach(btn=>{
@@ -1071,8 +1141,7 @@ function itemRow(item){
 function getKnownCategories(){
   const cats = [...new Set(catalog.map(i=>i.categoria))];
   cats.sort((a,b)=>{
-    const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
-    return (ia<0?999:ia) - (ib<0?999:ib);
+    return categorySortIndex(a) - categorySortIndex(b);
   });
   return cats;
 }
@@ -1083,6 +1152,8 @@ function renameCategory(oldName){
   const newName = input.trim();
   if(!newName || newName === oldName) return;
   catalog.forEach(i=>{ if(i.categoria === oldName) i.categoria = newName; });
+  const orderIdx = categoryOrder.indexOf(oldName);
+  if(orderIdx >= 0) categoryOrder[orderIdx] = newName; else ensureCategoryInOrder(newName);
   if(openCategories.has(oldName)){ openCategories.delete(oldName); openCategories.add(newName); }
   if(activeCategory === oldName) activeCategory = newName;
   populateCategorySelect();
@@ -1166,6 +1237,8 @@ function saveEditForm(){
 
   if(!codice || !prestazione){ alert('Codice e Prestazione sono obbligatori.'); return; }
 
+  ensureCategoryInOrder(categoria);
+
   if(editingNew){
     if(catalog.find(i=>i.codice===codice)){ alert('Esiste già una voce con questo codice.'); return; }
     catalog.push({codice, categoria, sottocategoria, prestazione, descrizione, um, ore, prezzo, pacchetto, source:'custom'});
@@ -1218,8 +1291,7 @@ function renderCart(){
     cats.sort((a,b)=>{
       if(a==='Voci libere') return 1;
       if(b==='Voci libere') return -1;
-      const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
-      return (ia<0?999:ia) - (ib<0?999:ib);
+      return categorySortIndex(a) - categorySortIndex(b);
     });
     root.innerHTML = cats.map(cat=>{
       const lines = byCat[cat];
@@ -1499,8 +1571,7 @@ function buildPrintDoc(){
   cats.sort((a,b)=>{
     if(a==='Voci libere') return 1;
     if(b==='Voci libere') return -1;
-    const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
-    return (ia<0?999:ia) - (ib<0?999:ib);
+    return categorySortIndex(a) - categorySortIndex(b);
   });
 
   let rowsHtml = '';
@@ -1558,6 +1629,7 @@ function buildPrintDoc(){
   const studioBits = [s.indirizzo, s.piva?('P.IVA '+s.piva):'', s.cf?('CF '+s.cf):'', s.telefono, s.email].filter(Boolean).map(escapeHtml).join(' &middot; ');
 
   document.getElementById('printDoc').innerHTML = `
+    <div class="pd-accent-bar"></div>
     <div class="pd-header">
       <div class="pd-brand">
         ${s.logo ? `<img src="${s.logo}" class="pd-logo">` : ''}
@@ -1757,6 +1829,7 @@ document.getElementById('settingsSave').addEventListener('click', async ()=>{
 });
 
 catalog = BASE_ITEMS.slice();
+syncCategoryOrderWithCatalog();
 populateCategorySelect();
 renderCatalog();
 loadStudioSettings();
