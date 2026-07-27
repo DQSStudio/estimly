@@ -33,7 +33,8 @@ export default async (req) => {
     return new Response(JSON.stringify({
       found: true,
       catalog: record.catalog,
-      studioSettings: record.studioSettings
+      studioSettings: record.studioSettings,
+      categoryOrder: record.categoryOrder
     }), { status: 200 });
   }
 
@@ -41,6 +42,7 @@ export default async (req) => {
     const record = {
       catalog: Array.isArray(body.catalog) ? body.catalog : [],
       studioSettings: body.studioSettings || {},
+      categoryOrder: Array.isArray(body.categoryOrder) ? body.categoryOrder : [],
       updatedAt: new Date().toISOString()
     };
     await dataStore.setJSON(key, record);
