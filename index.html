@@ -429,8 +429,19 @@ header.top{
   <div style="max-width:360px; width:100%; padding:32px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-md);">
     <div class="display" style="font-weight:700; font-size:20px; margin-bottom:6px;">DESEARQ — Preventivatore</div>
     <div style="font-size:13px; color:var(--ink-soft); margin-bottom:20px;">Inserisci la chiave di licenza per continuare</div>
-    <input id="licenseKeyInput" placeholder="DQSS-XXXX-XXXX-XXXX" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-bottom:10px; background:var(--surface); color:var(--ink);">
-    <button id="licenseSubmitBtn" style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); cursor:pointer; font-weight:500; font-family:'Inter',sans-serif;">Sblocca</button>
+    <input id="licenseKeyInput" placeholder="DQSS-XXXX-XXXX-XXXX" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-bottom:14px; background:var(--surface); color:var(--ink);">
+    <div style="font-size:12px; color:var(--ink-soft); margin-bottom:12px; line-height:1.5;">
+      Proseguendo dichiari di aver preso visione dell'<a href="privacy.html" target="_blank" rel="noopener">Informativa Privacy</a>.
+    </div>
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:10px; cursor:pointer; line-height:1.4;">
+      <input type="checkbox" id="acceptTos" style="margin-top:2px;">
+      <span>Ho letto e accetto i <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
+    </label>
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:16px; cursor:pointer; line-height:1.4;">
+      <input type="checkbox" id="acceptVessatorie" style="margin-top:2px;">
+      <span>Approvo specificamente, ai sensi degli artt. 1341-1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
+    </label>
+    <button id="licenseSubmitBtn" disabled style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); cursor:not-allowed; opacity:0.5; font-weight:500; font-family:'Inter',sans-serif;">Sblocca</button>
     <div id="licenseError" style="color:var(--danger); font-size:12px; margin-top:10px; display:none;"></div>
   </div>
 </div>
@@ -446,6 +457,8 @@ header.top{
     </div>
     <div class="top-actions">
       <button id="settingsBtn">Impostazioni studio</button>
+      <button id="savedQuotesBtn">Preventivi salvati</button>
+      <button id="saveQuoteBtn">Salva preventivo</button>
       <button id="resetBtn">Nuovo preventivo</button>
     </div>
   </div>
@@ -644,6 +657,23 @@ header.top{
   </div>
 </div>
 
+<div id="savedQuotesModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Preventivi salvati</div>
+      <button id="savedQuotesClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Puoi tenere in archivio fino a 10 preventivi recenti. Salvandone uno oltre il limite, il più vecchio viene rimosso automaticamente.</div>
+      <div id="savedQuotesList"></div>
+      <div id="savedQuotesEmpty" style="display:none; font-size:13px; color:var(--ink-soft); padding:20px 0; text-align:center;">Nessun preventivo salvato.</div>
+    </div>
+    <div class="modal-actions">
+      <button id="savedQuotesCloseBtn" class="btn-cancel">Chiudi</button>
+    </div>
+  </div>
+</div>
+
 
 <script>
 if(!window.storage){
@@ -790,6 +820,186 @@ function scheduleCloudSave(){
       console.error('Impossibile salvare i dati sincronizzati', err);
     }
   }, 800);
+}
+
+let savedQuotes = [];
+const SAVED_QUOTES_LOCAL_KEY = 'preventivi-salvati';
+const MAX_SAVED_QUOTES = 10;
+
+function currentQuoteState(){
+  return {
+    cart, idCounter,
+    client:{
+      cliente: document.getElementById('fCliente').value,
+      tipoCliente: document.getElementById('fTipoCliente').value,
+      indirizzo: document.getElementById('fIndirizzo').value,
+      cf: document.getElementById('fCF').value,
+      piva: document.getElementById('fPiva').value,
+      progetto: document.getElementById('fProgetto').value,
+      data: document.getElementById('fData').value,
+      numero: document.getElementById('fNumero').value,
+      revisione: document.getElementById('fRevisione').value,
+      validita: parseInt(document.getElementById('fValidita').value,10) || 30,
+      sconto: parseFloat(document.getElementById('fSconto').value)||0,
+      notePagamento: document.getElementById('fNotePagamento').value,
+      contributoLabel: document.getElementById('fContributoLabel').value,
+      contributoPct: parseFloat(document.getElementById('fContributoPct').value) || 0,
+      regime: document.getElementById('fRegime').value,
+      aliquotaCustom: parseFloat(document.getElementById('fAliquotaCustom').value) || 22
+    }
+  };
+}
+
+async function loadSavedQuotesLocal(){
+  try{
+    const res = await window.storage.get(SAVED_QUOTES_LOCAL_KEY, false);
+    if(res && res.value){
+      savedQuotes = JSON.parse(res.value) || [];
+    }
+  }catch(e){ savedQuotes = []; }
+}
+
+async function persistSavedQuotesLocal(){
+  try{
+    await window.storage.set(SAVED_QUOTES_LOCAL_KEY, JSON.stringify(savedQuotes), false);
+  }catch(e){ console.error('Errore salvataggio locale preventivi', e); }
+}
+
+async function loadSavedQuotesCloud(){
+  const key = getLicenseKey();
+  if(!key) return;
+  try{
+    const res = await fetch('/.netlify/functions/sync-data', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action: 'load' })
+    });
+    const data = await res.json();
+    if(data && Array.isArray(data.savedQuotes)){
+      savedQuotes = data.savedQuotes;
+      persistSavedQuotesLocal();
+      renderSavedQuotesList();
+    }
+  }catch(err){
+    console.error('Impossibile caricare i preventivi salvati', err);
+  }
+}
+
+function renderSavedQuotesList(){
+  const list = document.getElementById('savedQuotesList');
+  const empty = document.getElementById('savedQuotesEmpty');
+  if(!list) return;
+  if(!savedQuotes.length){
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = savedQuotes.map(q=>{
+    const totale = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
+    let dataLabel = '—';
+    if(q.client && q.client.data){
+      const d = new Date(q.client.data + 'T00:00:00');
+      if(!isNaN(d.getTime())) dataLabel = d.toLocaleDateString('it-IT');
+    }
+    const numero = (q.client && q.client.numero) ? q.client.numero : 'Senza numero';
+    const cliente = (q.client && q.client.cliente) ? q.client.cliente : 'Cliente non specificato';
+    return `
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-weight:600; font-size:13px;">${numero} — ${cliente}</div>
+          <div style="font-size:12px; color:var(--ink-soft);">${dataLabel} · € ${fmt(totale)}</div>
+        </div>
+        <div style="display:flex; gap:6px; flex-shrink:0;">
+          <button data-open-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;">Apri</button>
+          <button data-delete-quote="${q.id}" class="btn-cancel" style="padding:6px 10px; color:var(--danger);">Elimina</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function saveCurrentQuote(){
+  const state = currentQuoteState();
+  const entry = {
+    id: 'q_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8),
+    savedAt: new Date().toISOString(),
+    cart: state.cart,
+    idCounter: state.idCounter,
+    client: state.client
+  };
+  savedQuotes = [entry, ...savedQuotes].slice(0, MAX_SAVED_QUOTES);
+  await persistSavedQuotesLocal();
+  const key = getLicenseKey();
+  if(key){
+    try{
+      const res = await fetch('/.netlify/functions/sync-data', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ key, action:'saveQuote', quote: state })
+      });
+      const data = await res.json();
+      if(data && Array.isArray(data.savedQuotes)){
+        savedQuotes = data.savedQuotes;
+        await persistSavedQuotesLocal();
+      }
+    }catch(err){ console.error('Impossibile salvare il preventivo nel cloud', err); }
+  }
+  renderSavedQuotesList();
+  alert('Preventivo salvato nell\'elenco.');
+}
+
+function loadQuoteById(id){
+  const q = savedQuotes.find(x=>x.id===id);
+  if(!q) return;
+  cart = q.cart || [];
+  idCounter = q.idCounter || (cart.length+1);
+  const c = q.client || {};
+  document.getElementById('fCliente').value = c.cliente || '';
+  document.getElementById('fTipoCliente').value = c.tipoCliente || 'Privato';
+  document.getElementById('fIndirizzo').value = c.indirizzo || '';
+  document.getElementById('fCF').value = c.cf || '';
+  document.getElementById('fPiva').value = c.piva || '';
+  document.getElementById('fProgetto').value = c.progetto || '';
+  document.getElementById('fData').value = c.data || todayStr();
+  document.getElementById('fNumero').value = c.numero || defaultNumero();
+  document.getElementById('fRevisione').value = c.revisione || 'Rev. 0';
+  document.getElementById('fValidita').value = c.validita ?? 30;
+  document.getElementById('fSconto').value = c.sconto ?? 0;
+  document.getElementById('fNotePagamento').value = c.notePagamento || '';
+  document.getElementById('fContributoLabel').value = c.contributoLabel || '';
+  document.getElementById('fContributoPct').value = c.contributoPct ?? 0;
+  document.getElementById('fRegime').value = c.regime || 'ord22';
+  document.getElementById('fAliquotaCustom').value = c.aliquotaCustom ?? 22;
+  document.getElementById('regimeCustomField').style.display = document.getElementById('fRegime').value === 'custom' ? 'block' : 'none';
+  renderCart();
+  renderCartiglio();
+  scheduleSave();
+  closeSavedQuotesModal();
+}
+
+async function deleteQuoteById(id){
+  if(!confirm('Eliminare questo preventivo salvato?')) return;
+  savedQuotes = savedQuotes.filter(q=>q.id!==id);
+  await persistSavedQuotesLocal();
+  renderSavedQuotesList();
+  const key = getLicenseKey();
+  if(key){
+    try{
+      await fetch('/.netlify/functions/sync-data', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ key, action:'deleteQuote', id })
+      });
+    }catch(err){ console.error('Impossibile eliminare il preventivo dal cloud', err); }
+  }
+}
+
+function openSavedQuotesModal(){
+  renderSavedQuotesList();
+  document.getElementById('savedQuotesModal').style.display = 'flex';
+}
+function closeSavedQuotesModal(){
+  document.getElementById('savedQuotesModal').style.display = 'none';
 }
 
 function applyStudioSettings(){
@@ -1773,6 +1983,20 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
   XLSX.writeFile(wb, `${numero}.xlsx`);
 });
 
+document.getElementById('savedQuotesBtn').addEventListener('click', openSavedQuotesModal);
+document.getElementById('saveQuoteBtn').addEventListener('click', saveCurrentQuote);
+document.getElementById('savedQuotesClose').addEventListener('click', closeSavedQuotesModal);
+document.getElementById('savedQuotesCloseBtn').addEventListener('click', closeSavedQuotesModal);
+document.getElementById('savedQuotesModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'savedQuotesModal') closeSavedQuotesModal();
+});
+document.getElementById('savedQuotesList').addEventListener('click', (e)=>{
+  const openId = e.target.getAttribute('data-open-quote');
+  const delId = e.target.getAttribute('data-delete-quote');
+  if(openId) loadQuoteById(openId);
+  if(delId) deleteQuoteById(delId);
+});
+
 document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
 document.getElementById('settingsClose').addEventListener('click', closeSettingsModal);
 document.getElementById('settingsCancel').addEventListener('click', closeSettingsModal);
@@ -1834,6 +2058,7 @@ populateCategorySelect();
 renderCatalog();
 loadStudioSettings();
 initStorage();
+loadSavedQuotesLocal();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
@@ -1845,6 +2070,8 @@ if('serviceWorker' in navigator){
   const KEY_STORAGE = 'desearq-license-key';
   const VALIDATED_AT_STORAGE = 'desearq-license-validated-at';
   const GRACE_DAYS = 30;
+  const TERMS_VERSION = 'v1';
+  const TERMS_ACCEPTED_STORAGE = 'desearq-terms-accepted-version';
 
   function hideGate(){
     const gate = document.getElementById('licenseGate');
@@ -1855,6 +2082,20 @@ if('serviceWorker' in navigator){
     const el = document.getElementById('licenseError');
     el.textContent = msg;
     el.style.display = 'block';
+  }
+
+  function termsAccepted(){
+    return localStorage.getItem(TERMS_ACCEPTED_STORAGE) === TERMS_VERSION;
+  }
+
+  function updateSubmitState(){
+    const tos = document.getElementById('acceptTos');
+    const vex = document.getElementById('acceptVessatorie');
+    const btn = document.getElementById('licenseSubmitBtn');
+    const ok = tos && vex && tos.checked && vex.checked;
+    btn.disabled = !ok;
+    btn.style.opacity = ok ? '1' : '0.5';
+    btn.style.cursor = ok ? 'pointer' : 'not-allowed';
   }
 
   async function validateKey(key, opts){
@@ -1869,8 +2110,10 @@ if('serviceWorker' in navigator){
       if(data.valid){
         localStorage.setItem(KEY_STORAGE, key);
         localStorage.setItem(VALIDATED_AT_STORAGE, Date.now().toString());
+        if(!opts.silent) localStorage.setItem(TERMS_ACCEPTED_STORAGE, TERMS_VERSION);
         hideGate();
         loadCloudData();
+        loadSavedQuotesCloud();
         return true;
       }
       if(!opts.silent) showError('Chiave non valida o revocata.');
@@ -1888,12 +2131,28 @@ if('serviceWorker' in navigator){
 
     if(storedKey){
       document.getElementById('licenseKeyInput').value = storedKey;
-      const ok = await validateKey(storedKey, { silent: true });
-      if(!ok && withinGrace) hideGate();
+      if(termsAccepted()){
+        const ok = await validateKey(storedKey, { silent: true });
+        if(!ok && withinGrace) hideGate();
+      }
+    }
+
+    const tos = document.getElementById('acceptTos');
+    const vex = document.getElementById('acceptVessatorie');
+    if(tos && vex){
+      tos.addEventListener('change', updateSubmitState);
+      vex.addEventListener('change', updateSubmitState);
+      updateSubmitState();
     }
   }
 
   document.getElementById('licenseSubmitBtn').addEventListener('click', () => {
+    const tos = document.getElementById('acceptTos');
+    const vex = document.getElementById('acceptVessatorie');
+    if(!tos.checked || !vex.checked){
+      showError('Devi accettare i Termini di Servizio per continuare.');
+      return;
+    }
     const key = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
     if(!key) return;
     validateKey(key);
