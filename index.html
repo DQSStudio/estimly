@@ -419,6 +419,35 @@ header.top{
   .pd-total-row.pd-grand span:last-child{ color:var(--accent); }
   .pd-nota{ font-size:10px; color:#777; font-style:italic; margin-top:7px; text-align:right; }
   .pd-payment{ font-size:11px; color:#444; margin-top:14px; padding-top:9px; border-top:1px dashed #ccc; }
+
+  .pd-letterhead-header{ display:block; width:100%; max-height:160px; object-fit:contain; margin-bottom:14px; }
+  .pd-letterhead-footer{ display:block; width:100%; max-height:120px; object-fit:contain; margin-top:18px; }
+  .pd-meta-standalone{ text-align:left; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #ddd; }
+
+  /* Combinazioni font */
+  #printDoc[data-font="minimale"] .pd-brand-name,
+  #printDoc[data-font="minimale"] .pd-doc-title{ font-family:'Inter',sans-serif; }
+  #printDoc[data-font="minimale"] .pd-code,
+  #printDoc[data-font="minimale"] .pd-num{ font-family:'Inter',sans-serif; }
+
+  #printDoc[data-font="tecnico"] .pd-brand-name,
+  #printDoc[data-font="tecnico"] .pd-doc-title,
+  #printDoc[data-font="tecnico"] .pd-party-label{ font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.5px; }
+
+  /* Layout minimale: niente riempimenti colorati, bordi sottili */
+  #printDoc[data-layout="minimale"] .pd-accent-bar{ display:none; }
+  #printDoc[data-layout="minimale"] .pd-header{ border-bottom:1px solid #ddd; }
+  #printDoc[data-layout="minimale"] .pd-table thead th{ border-bottom:1px solid #ccc; color:#888; }
+  #printDoc[data-layout="minimale"] .pd-table .pd-cat-row td{ background:transparent; border-left:none; color:#333; }
+  #printDoc[data-layout="minimale"] .pd-total-row.pd-grand{ border-top:1px solid #ccc; color:#111; }
+  #printDoc[data-layout="minimale"] .pd-total-row.pd-grand span:last-child{ color:#111; }
+
+  /* Layout a banner: intestazione racchiusa in un riquadro con contorno colore */
+  #printDoc[data-layout="banner"] .pd-accent-bar{ display:none; }
+  #printDoc[data-layout="banner"] .pd-header{
+    background:transparent; border:2px solid var(--accent); border-bottom:2px solid var(--accent);
+    border-radius:8px; padding:16px 20px; margin-bottom:18px;
+  }
 }
 
 </style>
@@ -649,6 +678,58 @@ header.top{
         <div class="field"><label>Codice univoco SDI</label><input id="sSdi" placeholder="Es. A1B2C3D"></div>
       </div>
 
+      <div class="field-section-label">Carta intestata &amp; layout PDF</div>
+      <div class="field-grid">
+        <div class="field full">
+          <label>Intestazione del documento</label>
+          <select id="sLetterheadMode" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:'Inter',sans-serif;">
+            <option value="standard">Standard (generata da Estimly con logo e colori)</option>
+            <option value="custom">Carta intestata personalizzata (carico le mie immagini)</option>
+          </select>
+        </div>
+        <div id="letterheadCustomFields" class="field full" style="display:none;">
+          <div class="field-grid" style="padding:0;">
+            <div class="field full">
+              <label>Immagine intestazione (in cima al documento)</label>
+              <div class="logo-upload-row">
+                <img id="letterheadHeaderPreview" class="logo-preview" style="display:none;" alt="Anteprima intestazione">
+                <label class="logo-upload-btn">Carica intestazione
+                  <input type="file" id="letterheadHeaderInput" accept="image/*">
+                </label>
+                <button id="letterheadHeaderRemoveBtn" class="logo-remove-btn" style="display:none;">Rimuovi</button>
+              </div>
+            </div>
+            <div class="field full">
+              <label>Immagine piè di pagina (opzionale, in fondo al documento)</label>
+              <div class="logo-upload-row">
+                <img id="letterheadFooterPreview" class="logo-preview" style="display:none;" alt="Anteprima piè di pagina">
+                <label class="logo-upload-btn">Carica piè di pagina
+                  <input type="file" id="letterheadFooterInput" accept="image/*">
+                </label>
+                <button id="letterheadFooterRemoveBtn" class="logo-remove-btn" style="display:none;">Rimuovi</button>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:11px; color:var(--ink-soft); margin-top:4px;">Con la carta intestata personalizzata, logo/nome/indirizzo generati automaticamente vengono nascosti: usa direttamente la tua immagine gi&agrave; pronta.</div>
+        </div>
+        <div class="field full">
+          <label>Combinazione font del PDF</label>
+          <select id="sFontPairing" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:'Inter',sans-serif;">
+            <option value="moderno">Moderno — titoli in Space Grotesk, testo in Inter</option>
+            <option value="minimale">Minimale — tutto in Inter, look pulito e corporate</option>
+            <option value="tecnico">Tecnico — titoli in monospace, stile "da studio tecnico"</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Impaginazione PDF</label>
+          <select id="sPdfLayout" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:'Inter',sans-serif;">
+            <option value="classico">Classico — barra colore in alto, tabella evidenziata</option>
+            <option value="minimale">Minimale — bordi sottili, nessun riempimento colorato</option>
+            <option value="banner">Riquadro — intestazione racchiusa in un bordo colorato</option>
+          </select>
+        </div>
+      </div>
+
     </div>
     <div class="modal-actions">
       <button id="settingsSave" class="btn-save">Salva impostazioni</button>
@@ -738,7 +819,9 @@ let draggedCategory = null;
 let studioSettings = {
   nome:'DESEARQ', tagline:'Preventivatore di studio', indirizzo:'', piva:'', cf:'',
   telefono:'', email:'', pec:'', logo:'', colorPrimary:'#4338CA', colorInk:'#17181C',
-  iban:'', intestatario:'', banca:'', sdi:''
+  iban:'', intestatario:'', banca:'', sdi:'',
+  letterheadMode:'standard', letterheadHeader:'', letterheadFooter:'',
+  fontPairing:'moderno', pdfLayout:'classico'
 };
 
 function fmt(n){
@@ -1073,6 +1156,18 @@ function openSettingsModal(){
   document.getElementById('sSdi').value = s.sdi || '';
   document.getElementById('sColorPrimary').value = s.colorPrimary || '#4338CA';
   document.getElementById('sColorInk').value = s.colorInk || '#17181C';
+  document.getElementById('sLetterheadMode').value = s.letterheadMode || 'standard';
+  document.getElementById('sFontPairing').value = s.fontPairing || 'moderno';
+  document.getElementById('sPdfLayout').value = s.pdfLayout || 'classico';
+  document.getElementById('letterheadCustomFields').style.display = (s.letterheadMode === 'custom') ? 'block' : 'none';
+  const hPreview = document.getElementById('letterheadHeaderPreview');
+  const hRemove = document.getElementById('letterheadHeaderRemoveBtn');
+  if(s.letterheadHeader){ hPreview.src = s.letterheadHeader; hPreview.style.display='inline-block'; hRemove.style.display='inline-block'; }
+  else{ hPreview.style.display='none'; hRemove.style.display='none'; }
+  const fPreview = document.getElementById('letterheadFooterPreview');
+  const fRemove = document.getElementById('letterheadFooterRemoveBtn');
+  if(s.letterheadFooter){ fPreview.src = s.letterheadFooter; fPreview.style.display='inline-block'; fRemove.style.display='inline-block'; }
+  else{ fPreview.style.display='none'; fRemove.style.display='none'; }
   const logoPreview = document.getElementById('logoPreview');
   const removeBtn = document.getElementById('logoRemoveBtn');
   if(s.logo){ logoPreview.src = s.logo; logoPreview.style.display='inline-block'; removeBtn.style.display='inline-block'; }
@@ -1838,7 +1933,20 @@ function buildPrintDoc(){
 
   const studioBits = [s.indirizzo, s.piva?('P.IVA '+s.piva):'', s.cf?('CF '+s.cf):'', s.telefono, s.email].filter(Boolean).map(escapeHtml).join(' &middot; ');
 
-  document.getElementById('printDoc').innerHTML = `
+  const useCustomLetterhead = s.letterheadMode === 'custom' && s.letterheadHeader;
+
+  const headerHtml = useCustomLetterhead ? `
+    <img src="${s.letterheadHeader}" class="pd-letterhead-header">
+    <div class="pd-meta pd-meta-standalone">
+      <div class="pd-doc-title">Preventivo</div>
+      <div class="pd-meta-grid">
+        <span>N.</span><b>${escapeHtml(numero)}</b>
+        <span>Data</span><b>${dataFmt}</b>
+        <span>Rev.</span><b>${escapeHtml(revisione)}</b>
+        <span>Valido fino al</span><b>${validita}</b>
+      </div>
+    </div>
+  ` : `
     <div class="pd-accent-bar"></div>
     <div class="pd-header">
       <div class="pd-brand">
@@ -1858,6 +1966,13 @@ function buildPrintDoc(){
         </div>
       </div>
     </div>
+  `;
+
+  document.getElementById('printDoc').setAttribute('data-font', s.fontPairing || 'moderno');
+  document.getElementById('printDoc').setAttribute('data-layout', s.pdfLayout || 'classico');
+
+  document.getElementById('printDoc').innerHTML = `
+    ${headerHtml}
 
     <div class="pd-parties">
       <div class="pd-party">
@@ -1877,6 +1992,7 @@ function buildPrintDoc(){
     <div class="pd-totals">${totalsHtml}</div>
     ${regime.nota ? `<div class="pd-nota">${escapeHtml(regime.nota)}</div>` : ''}
     ${paymentHtml}
+    ${useCustomLetterhead && s.letterheadFooter ? `<img src="${s.letterheadFooter}" class="pd-letterhead-footer">` : ''}
   `;
 }
 
@@ -2025,6 +2141,35 @@ document.getElementById('logoRemoveBtn').addEventListener('click', ()=>{
   studioSettings._pendingLogo = '';
 });
 
+document.getElementById('sLetterheadMode').addEventListener('change', (e)=>{
+  document.getElementById('letterheadCustomFields').style.display = (e.target.value === 'custom') ? 'block' : 'none';
+});
+
+function wireImageUpload(inputId, previewId, removeBtnId, pendingKey, maxMb){
+  document.getElementById(inputId).addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    if(file.size > maxMb*1024*1024){ alert('Immagine troppo grande. Usa un file sotto '+maxMb+'MB.'); e.target.value=''; return; }
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      const dataUrl = ev.target.result;
+      document.getElementById(previewId).src = dataUrl;
+      document.getElementById(previewId).style.display = 'inline-block';
+      document.getElementById(removeBtnId).style.display = 'inline-block';
+      studioSettings[pendingKey] = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById(removeBtnId).addEventListener('click', ()=>{
+    document.getElementById(previewId).style.display = 'none';
+    document.getElementById(removeBtnId).style.display = 'none';
+    document.getElementById(inputId).value = '';
+    studioSettings[pendingKey] = '';
+  });
+}
+wireImageUpload('letterheadHeaderInput', 'letterheadHeaderPreview', 'letterheadHeaderRemoveBtn', '_pendingLetterheadHeader', 2);
+wireImageUpload('letterheadFooterInput', 'letterheadFooterPreview', 'letterheadFooterRemoveBtn', '_pendingLetterheadFooter', 2);
+
 document.getElementById('settingsSave').addEventListener('click', async ()=>{
   studioSettings = Object.assign({}, studioSettings, {
     nome: document.getElementById('sNome').value.trim() || 'Studio',
@@ -2040,11 +2185,22 @@ document.getElementById('settingsSave').addEventListener('click', async ()=>{
     banca: document.getElementById('sBanca').value.trim(),
     sdi: document.getElementById('sSdi').value.trim(),
     colorPrimary: document.getElementById('sColorPrimary').value,
-    colorInk: document.getElementById('sColorInk').value
+    colorInk: document.getElementById('sColorInk').value,
+    letterheadMode: document.getElementById('sLetterheadMode').value,
+    fontPairing: document.getElementById('sFontPairing').value,
+    pdfLayout: document.getElementById('sPdfLayout').value
   });
   if(studioSettings._pendingLogo !== undefined){
     studioSettings.logo = studioSettings._pendingLogo;
     delete studioSettings._pendingLogo;
+  }
+  if(studioSettings._pendingLetterheadHeader !== undefined){
+    studioSettings.letterheadHeader = studioSettings._pendingLetterheadHeader;
+    delete studioSettings._pendingLetterheadHeader;
+  }
+  if(studioSettings._pendingLetterheadFooter !== undefined){
+    studioSettings.letterheadFooter = studioSettings._pendingLetterheadFooter;
+    delete studioSettings._pendingLetterheadFooter;
   }
   applyStudioSettings();
   await saveStudioSettings();
