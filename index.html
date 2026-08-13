@@ -26,40 +26,41 @@
 <script src="vendor/xlsx.full.min.js"></script>
 <style>
 :root{
-  --bg:#FAFAFA;
+  --bg:#F6F4EF;
   --surface:#FFFFFF;
-  --surface-alt:#F4F4F5;
-  --border:#E6E6E9;
-  --border-soft:#F0F0F2;
-  --ink:#17181C;
-  --ink-soft:#7A7C85;
-  --ink-faint:#B4B6BE;
-  --accent:#4338CA;
-  --accent-hover:#362BA8;
-  --accent-soft:#EEEDFB;
-  --amber:#B45309;
-  --amber-soft:#FDF3E7;
+  --surface-alt:#EFEBE2;
+  --border:#E7E4DC;
+  --border-soft:#EFEBE2;
+  --ink:#171717;
+  --ink-soft:#6B6B6B;
+  --ink-faint:#A0A0A0;
+  --accent:#801430;
+  --accent-hover:#630F24;
+  --accent-soft:#F3DCE1;
+  --amber:#B8860B;
+  --amber-soft:#F7EDD6;
   --teal:#0F766E;
   --teal-soft:#E9F5F3;
-  --danger:#DC2626;
-  --danger-soft:#FDECEC;
-  --radius:10px;
-  --radius-sm:6px;
-  --shadow-sm:0 1px 2px rgba(17,18,20,0.05);
-  --shadow-md:0 4px 16px rgba(17,18,20,0.06);
+  --danger:#B3261E;
+  --danger-soft:#F7E2E0;
+  --sage:#5B6B4F;
+  --radius:16px;
+  --radius-sm:8px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-md:0 8px 24px rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box;}
 body{
   margin:0;
   background:var(--bg);
   color:var(--ink);
-  font-family:'Inter',sans-serif;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   font-size:14px;
   line-height:1.5;
   -webkit-font-smoothing:antialiased;
 }
 .mono{font-family:'JetBrains Mono',monospace;}
-.display{font-family:'Space Grotesk',sans-serif;}
+.display{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;}
 
 header.top{
   background:var(--surface);
@@ -67,17 +68,19 @@ header.top{
   padding:20px 32px;
 }
 .brand-row{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;}
-.brand-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; letter-spacing:-0.02em; color:var(--ink);}
+.brand-name{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:700; font-size:22px; letter-spacing:-0.02em; color:var(--ink);}
 .brand-name span{color:var(--accent);}
 .brand-sub{font-size:11.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--ink-faint); margin-top:2px;}
 .top-actions{display:flex; gap:8px; flex-wrap:wrap;}
 .top-actions button, .top-actions label{
   background:var(--surface); border:1px solid var(--border); color:var(--ink);
-  padding:8px 14px; border-radius:var(--radius-sm); font-size:12.5px; cursor:pointer;
-  font-family:'Inter',sans-serif; display:inline-flex; align-items:center; gap:6px; font-weight:500;
+  padding:9px 16px; border-radius:999px; font-size:12.5px; cursor:pointer;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; display:inline-flex; align-items:center; gap:7px; font-weight:500;
 }
 .top-actions button:hover, .top-actions label:hover{background:var(--surface-alt); border-color:var(--ink-faint);}
 .top-actions input[type=file]{display:none;}
+.top-actions .btn-pill-primary{ background:#0D0D0D; border-color:#0D0D0D; color:#fff; }
+.top-actions .btn-pill-primary:hover{ background:#1C1C1C; border-color:#1C1C1C; }
 .brand-block{display:flex; align-items:center; gap:12px;}
 .brand-logo{max-height:44px; max-width:180px; object-fit:contain;}
 
@@ -91,7 +94,7 @@ header.top{
 }
 .modal-head{
   display:flex; justify-content:space-between; align-items:center; padding:18px 22px;
-  border-bottom:1px solid var(--border); font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px;
+  border-bottom:1px solid var(--border); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:600; font-size:16px;
 }
 .modal-close{background:none; border:none; font-size:20px; color:var(--ink-faint); cursor:pointer; line-height:1;}
 .modal-close:hover{color:var(--ink);}
@@ -99,7 +102,7 @@ header.top{
 .modal-body .field-section-label{margin-top:18px;}
 .modal-body .field-section-label:first-child{margin-top:0;}
 .modal-actions{display:flex; gap:8px; padding:16px 22px; border-top:1px solid var(--border);}
-.modal-actions button{flex:1; padding:10px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:500;}
+.modal-actions button{flex:1; padding:10px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:500;}
 
 .logo-upload-row{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
 .logo-preview{max-height:48px; max-width:160px; object-fit:contain; border:1px solid var(--border); border-radius:var(--radius-sm); padding:4px;}
@@ -125,7 +128,7 @@ header.top{
 .tier-btn{
   border:none; background:transparent; color:var(--ink-soft);
   padding:8px 18px; border-radius:999px; font-size:12px; letter-spacing:0.6px; font-weight:600;
-  cursor:pointer; font-family:'Inter',sans-serif;
+  cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 .tier-btn:hover{background:var(--surface); color:var(--ink); box-shadow:var(--shadow-sm);}
 .tier-btn.tier-Signature:hover{color:var(--amber);}
@@ -175,7 +178,7 @@ header.top{
 }
 .category-head:hover{background:var(--surface-alt);}
 .category-head.open{border-bottom:1px solid var(--border);}
-.category-title{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; display:flex; align-items:center; gap:10px;}
+.category-title{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:600; font-size:15px; display:flex; align-items:center; gap:10px;}
 .category-count{font-size:11px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace;}
 .chev{transition:transform .15s ease; color:var(--ink-faint); font-size:11px;}
 .category-head.open .chev{transform:rotate(90deg);}
@@ -201,7 +204,7 @@ header.top{
 .item-um{font-size:10.5px; color:var(--ink-faint); display:block; text-align:right;}
 .add-btn{
   background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm);
-  padding:7px 13px; font-size:12px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:500;
+  padding:7px 13px; font-size:12px; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:500;
 }
 .add-btn:hover{background:var(--accent-hover);}
 .item-row-actions{display:flex; align-items:center; gap:6px;}
@@ -213,7 +216,7 @@ header.top{
 .icon-btn.danger:hover{color:var(--danger); border-color:var(--danger);}
 .new-item-btn{
   padding:9px 16px; border:1px solid var(--accent); border-radius:999px; background:var(--surface);
-  color:var(--accent); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+  color:var(--accent); font-size:12.5px; font-weight:600; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 .new-item-btn:hover{background:var(--accent); color:#fff;}
 .edit-form{padding:16px; border-top:1px solid var(--border); background:var(--surface-alt);}
@@ -222,10 +225,10 @@ header.top{
 .edit-form label{display:block; font-size:10px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-faint); margin-bottom:3px; font-weight:500;}
 .edit-form input, .edit-form select{
   width:100%; padding:7px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12px;
-  font-family:'Inter',sans-serif; background:var(--surface); color:var(--ink);
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; background:var(--surface); color:var(--ink);
 }
 .edit-form-actions{display:flex; gap:8px; margin-top:12px;}
-.edit-form-actions button{padding:8px 18px; border-radius:var(--radius-sm); font-size:12px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:500;}
+.edit-form-actions button{padding:8px 18px; border-radius:var(--radius-sm); font-size:12px; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:500;}
 .btn-save{background:var(--accent); color:#fff; border:none;}
 .btn-save:hover{background:var(--accent-hover);}
 .btn-cancel{background:var(--surface); border:1px solid var(--border); color:var(--ink-soft);}
@@ -240,19 +243,19 @@ header.top{
   content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent);
 }
 .hour-calc-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:4px;}
-.hour-calc-title{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px;}
+.hour-calc-title{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:600; font-size:15px;}
 .hour-calc-hint{font-size:11px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace;}
 .hour-calc-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;}
 .hour-calc-grid select{
   width:100%; padding:7px 8px; border:1px solid var(--border); border-radius:var(--radius-sm);
-  background:var(--surface); font-size:12.5px; color:var(--ink); font-family:'Inter',sans-serif;
+  background:var(--surface); font-size:12.5px; color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 .hour-calc-footer{display:flex; align-items:center; justify-content:space-between; margin-top:14px; gap:12px; flex-wrap:wrap;}
 .hour-calc-result{font-size:13px; color:var(--ink-soft);}
 .hour-calc-result span{font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:600; color:var(--accent); margin-left:8px;}
 #hcAddBtn{
   background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); padding:9px 18px;
-  font-size:12.5px; font-weight:500; cursor:pointer; font-family:'Inter',sans-serif;
+  font-size:12.5px; font-weight:500; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 #hcAddBtn:hover{background:var(--accent-hover);}
 @media (max-width:640px){ .hour-calc-grid{grid-template-columns:1fr 1fr;} }
@@ -265,18 +268,18 @@ header.top{
   display:flex; flex-direction:column;
 }
 .quote-scroll{padding:24px 22px; flex:1; overflow-y:auto;}
-.quote-header{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px; margin:0 0 16px; color:var(--ink);}
+.quote-header{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:600; font-size:16px; margin:0 0 16px; color:var(--ink);}
 
 .field-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;}
 .field-grid .full{grid-column:1/-1;}
 .field-section-label{
-  font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:var(--ink-faint);
+  font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:var(--sage);
   font-weight:600; margin:0 0 8px; padding-bottom:6px; border-bottom:1px solid var(--border);
 }
 .field label{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-faint); margin-bottom:3px; font-weight:500;}
 .field input, .field select{
   width:100%; padding:7px 8px; border:1px solid var(--border); border-radius:var(--radius-sm);
-  background:var(--surface); font-size:12.5px; color:var(--ink); font-family:'Inter',sans-serif;
+  background:var(--surface); font-size:12.5px; color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 .field input:focus, .field select:focus{outline:none; border-color:var(--accent);}
 
@@ -284,7 +287,7 @@ header.top{
 .cart-group{margin-bottom:4px;}
 .cart-group-head{
   display:flex; justify-content:space-between; align-items:baseline;
-  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12.5px; color:var(--accent);
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:600; font-size:12.5px; color:var(--accent);
   padding:10px 0 4px; border-bottom:1px solid var(--border);
 }
 .cart-group-head span:last-child{font-family:'JetBrains Mono',monospace; font-weight:400; color:var(--ink-faint);}
@@ -295,7 +298,7 @@ header.top{
 .mode-toggle{display:flex; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; margin:7px 0;}
 .mode-toggle button{
   flex:1; border:none; background:var(--surface); padding:5px 6px; font-size:11px; cursor:pointer;
-  color:var(--ink-soft); font-family:'Inter',sans-serif; border-right:1px solid var(--border);
+  color:var(--ink-soft); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; border-right:1px solid var(--border);
 }
 .mode-toggle button:last-child{border-right:none;}
 .mode-toggle button.active{background:var(--accent); color:#fff;}
@@ -321,7 +324,7 @@ header.top{
 
 .totals{margin-top:16px; padding-top:12px; border-top:1px solid var(--border);}
 .total-row{display:flex; justify-content:space-between; font-size:12.5px; padding:3px 0; color:var(--ink-soft);}
-.total-row.grand{font-size:16px; font-weight:600; color:var(--ink); border-top:1px solid var(--border); margin-top:6px; padding-top:10px; font-family:'Space Grotesk',sans-serif;}
+.total-row.grand{font-size:16px; font-weight:600; color:var(--ink); border-top:1px solid var(--border); margin-top:6px; padding-top:10px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;}
 .total-row.grand .val{font-family:'JetBrains Mono',monospace; color:var(--accent);}
 .regime-nota{font-size:10px; color:var(--ink-faint); margin-top:8px; line-height:1.4; font-style:italic;}
 .total-row .val{font-family:'JetBrains Mono',monospace;}
@@ -334,7 +337,7 @@ header.top{
   position:relative;
 }
 .cartiglio-grid{display:grid; grid-template-columns:1fr 1fr 1fr; font-size:10.5px; color:var(--ink-faint); gap:8px 12px; margin-bottom:14px;}
-.cartiglio-grid b{display:block; color:var(--ink); font-family:'Inter',sans-serif; font-weight:600; font-size:12px; margin-top:2px;}
+.cartiglio-grid b{display:block; color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:600; font-size:12px; margin-top:2px;}
 .cartiglio-grid .span2{grid-column:span 2;}
 .cartiglio-grid .span3{grid-column:span 3;}
 .payment-block{margin-bottom:14px; padding-top:12px; border-top:1px dashed var(--border);}
@@ -345,13 +348,13 @@ header.top{
 .payment-block-grid .span3{grid-column:span 3;}
 .stamp{
   position:absolute; right:22px; top:18px; padding:4px 10px; border-radius:999px;
-  background:var(--accent-soft); color:var(--accent); font-family:'Space Grotesk',sans-serif;
+  background:var(--accent-soft); color:var(--accent); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   font-size:10px; font-weight:600; letter-spacing:0.4px; text-align:center; line-height:1.3;
 }
 .action-btns{display:flex; gap:8px; flex-wrap:wrap;}
 .action-btns button{
   flex:1; min-width:100px; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border);
-  background:var(--surface); color:var(--ink); font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif; font-weight:500;
+  background:var(--surface); color:var(--ink); font-size:12.5px; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:500;
 }
 .action-btns button:hover{background:var(--surface-alt);}
 #printBtn{background:var(--accent); color:#fff; border-color:var(--accent);}
@@ -385,10 +388,10 @@ header.top{
   .pd-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding-bottom:12px; border-bottom:2px solid var(--accent); margin-bottom:14px; }
   .pd-brand{ display:flex; align-items:center; gap:10px; }
   .pd-logo{ max-height:50px; max-width:170px; object-fit:contain; }
-  .pd-brand-name{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; color:#111; }
+  .pd-brand-name{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:700; font-size:18px; color:#111; }
   .pd-brand-sub{ font-size:11px; color:#666; margin-top:2px; max-width:360px; }
   .pd-meta{ text-align:right; }
-  .pd-doc-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:5px; }
+  .pd-doc-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:5px; }
   .pd-meta-grid{ display:inline-grid; grid-template-columns:auto auto; gap:2px 10px; font-size:11.5px; color:#555; text-align:left; }
   .pd-meta-grid b{ color:#111; font-weight:600; text-align:right; }
 
@@ -426,9 +429,9 @@ header.top{
 
   /* Combinazioni font */
   #printDoc[data-font="minimale"] .pd-brand-name,
-  #printDoc[data-font="minimale"] .pd-doc-title{ font-family:'Inter',sans-serif; }
+  #printDoc[data-font="minimale"] .pd-doc-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
   #printDoc[data-font="minimale"] .pd-code,
-  #printDoc[data-font="minimale"] .pd-num{ font-family:'Inter',sans-serif; }
+  #printDoc[data-font="minimale"] .pd-num{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
 
   #printDoc[data-font="tecnico"] .pd-brand-name,
   #printDoc[data-font="tecnico"] .pd-doc-title,
@@ -470,7 +473,7 @@ header.top{
       <input type="checkbox" id="acceptVessatorie" style="margin-top:2px;">
       <span>Approvo specificamente, ai sensi degli artt. 1341-1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
     </label>
-    <button id="licenseSubmitBtn" disabled style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); cursor:not-allowed; opacity:0.5; font-weight:500; font-family:'Inter',sans-serif;">Sblocca</button>
+    <button id="licenseSubmitBtn" disabled style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); cursor:not-allowed; opacity:0.5; font-weight:500; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;">Sblocca</button>
     <div id="licenseError" style="color:var(--danger); font-size:12px; margin-top:10px; display:none;"></div>
   </div>
 </div>
@@ -485,10 +488,10 @@ header.top{
       </div>
     </div>
     <div class="top-actions">
-      <button id="settingsBtn">Impostazioni studio</button>
-      <button id="savedQuotesBtn">Preventivi salvati</button>
-      <button id="saveQuoteBtn">Salva preventivo</button>
-      <button id="resetBtn">Nuovo preventivo</button>
+      <button id="settingsBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="14" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="8" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="16" cy="18" r="2"/></svg>Impostazioni studio</button>
+      <button id="savedQuotesBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Preventivi salvati</button>
+      <button id="saveQuoteBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salva preventivo</button>
+      <button id="resetBtn" class="btn-pill-primary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nuovo preventivo</button>
     </div>
   </div>
   <div class="tier-row">
@@ -682,7 +685,7 @@ header.top{
       <div class="field-grid">
         <div class="field full">
           <label>Intestazione del documento</label>
-          <select id="sLetterheadMode" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:'Inter',sans-serif;">
+          <select id="sLetterheadMode" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;">
             <option value="standard">Standard (generata da Estimly con logo e colori)</option>
             <option value="custom">Carta intestata personalizzata (carico le mie immagini)</option>
           </select>
@@ -714,7 +717,7 @@ header.top{
         </div>
         <div class="field full">
           <label>Combinazione font del PDF</label>
-          <select id="sFontPairing" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:'Inter',sans-serif;">
+          <select id="sFontPairing" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;">
             <option value="moderno">Moderno — titoli in Space Grotesk, testo in Inter</option>
             <option value="minimale">Minimale — tutto in Inter, look pulito e corporate</option>
             <option value="tecnico">Tecnico — titoli in monospace, stile "da studio tecnico"</option>
@@ -722,7 +725,7 @@ header.top{
         </div>
         <div class="field full">
           <label>Impaginazione PDF</label>
-          <select id="sPdfLayout" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:'Inter',sans-serif;">
+          <select id="sPdfLayout" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;">
             <option value="classico">Classico — barra colore in alto, tabella evidenziata</option>
             <option value="minimale">Minimale — bordi sottili, nessun riempimento colorato</option>
             <option value="banner">Riquadro — intestazione racchiusa in un bordo colorato</option>
