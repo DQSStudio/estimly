@@ -43,6 +43,25 @@ export default async (req) => {
     if (!customer) {
       return new Response(JSON.stringify({ error: 'customer required' }), { status: 400 });
     }
+
+    // Se viene passata una chiave manuale, usa quella invece di generarne una nuova
+    const manualKey = (body.key || '').trim().toUpperCase();
+
+    if (manualKey) {
+      const existing = await store.get(manualKey, { type: 'json' });
+      if (existing) {
+        return new Response(JSON.stringify({ error: 'key already exists' }), { status: 409 });
+      }
+      const record = {
+        customer,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        validationCount: 0
+      };
+      await store.setJSON(manualKey, record);
+      return new Response(JSON.stringify({ key: manualKey, ...record }), { status: 200 });
+    }
+
     const key = generateKey('DQSS');
     const record = {
       customer,
