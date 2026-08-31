@@ -19,6 +19,7 @@
     width:100%; padding:10px; border:1px solid #E6E6E9; border-radius:6px; font-size:13.5px;
     font-family:inherit; margin-bottom:10px;
   }
+  label{font-size:12px; color:#7A7C85; display:block; margin-bottom:4px;}
   button{
     padding:10px 16px; border:none; border-radius:6px; background:#4338CA; color:#fff;
     font-size:13px; font-weight:500; cursor:pointer;
@@ -38,6 +39,7 @@
   #loginCard input{margin-bottom:12px;}
   #appArea{display:none;}
   .error{color:#DC2626; font-size:12.5px; margin-top:6px;}
+  .field-error{color:#DC2626; font-size:12.5px; margin:-4px 0 10px;}
   .row{display:flex; gap:8px; align-items:flex-end;}
   .row > div{flex:1;}
   .newkey-result{margin-top:12px; padding:12px; background:#EEEDFB; border-radius:6px; font-size:13px;}
@@ -59,10 +61,13 @@
   <div id="appArea">
     <div class="card">
       <label>Nome cliente</label>
-      <div class="row">
-        <div><input id="customerName" placeholder="Es. Studio Rossi Architettura"></div>
-        <div style="flex:0 0 auto;"><button id="addKeyBtn">+ Crea chiave</button></div>
-      </div>
+      <input id="customerName" placeholder="Es. Studio Rossi Architettura">
+
+      <label>Chiave (opzionale — lascia vuoto per generarne una nuova)</label>
+      <input id="manualKey" placeholder="Es. DQSS-XXXX-XXXX-XXXX" style="text-transform:uppercase;">
+
+      <button id="addKeyBtn">+ Crea chiave</button>
+      <div class="field-error" id="addKeyError" style="display:none;"></div>
       <div id="newKeyResult" style="display:none;" class="newkey-result"></div>
     </div>
 
@@ -95,11 +100,12 @@ async function callAdmin(action, extra){
     body: JSON.stringify(Object.assign({ action }, extra || {}))
   });
   if(res.status === 401) throw new Error('unauthorized');
-  return res.json();
+  return res;
 }
 
 async function loadKeys(){
-  const data = await callAdmin('list');
+  const res = await callAdmin('list');
+  const data = await res.json();
   const body = document.getElementById('keysBody');
   if(!data.items || data.items.length === 0){
     body.innerHTML = '<tr><td colspan="6" style="color:#B4B6BE; text-align:center; padding:20px;">Nessuna chiave ancora emessa.</td></tr>';
@@ -148,12 +154,23 @@ document.getElementById('adminPassword').addEventListener('keydown', (e) => {
 
 document.getElementById('addKeyBtn').addEventListener('click', async () => {
   const customer = document.getElementById('customerName').value.trim();
+  const manualKey = document.getElementById('manualKey').value.trim();
+  const errEl = document.getElementById('addKeyError');
+  errEl.style.display = 'none';
   if(!customer) return;
-  const result = await callAdmin('add', { customer });
+
+  const res = await callAdmin('add', { customer, key: manualKey || undefined });
+  if(res.status === 409){
+    errEl.textContent = 'Questa chiave esiste già.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const result = await res.json();
   const box = document.getElementById('newKeyResult');
   box.style.display = 'block';
-  box.innerHTML = `Chiave creata per <b>${result.customer}</b>:<br><span class="key-mono">${result.key}</span>`;
+  box.innerHTML = `Chiave ${manualKey ? 'registrata' : 'creata'} per <b>${result.customer}</b>:<br><span class="key-mono">${result.key}</span>`;
   document.getElementById('customerName').value = '';
+  document.getElementById('manualKey').value = '';
   loadKeys();
 });
 
