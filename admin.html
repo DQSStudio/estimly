@@ -81,6 +81,18 @@
         <tbody id="keysBody"></tbody>
       </table>
     </div>
+
+    <div class="card">
+      <b>Migra dati tra chiavi</b>
+      <div class="sub" style="margin:4px 0 14px;">Sposta preventivi e catalogo salvati da una chiave a un'altra (es. da una chiave cliente al tuo account interno).</div>
+      <label>Chiave di origine (dove sono i dati oggi)</label>
+      <input id="migrateFromKey" placeholder="Es. DQSS-XXXX-XXXX-XXXX" style="text-transform:uppercase;">
+      <label>Chiave di destinazione</label>
+      <input id="migrateToKey" placeholder="Es. INTERNAL-STUDIO" style="text-transform:uppercase;">
+      <button id="migrateBtn">Migra dati</button>
+      <div class="field-error" id="migrateError" style="display:none;"></div>
+      <div id="migrateResult" style="display:none;" class="newkey-result"></div>
+    </div>
   </div>
 </div>
 
@@ -175,6 +187,26 @@ document.getElementById('addKeyBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('refreshBtn').addEventListener('click', loadKeys);
+
+document.getElementById('migrateBtn').addEventListener('click', async () => {
+  const fromKey = document.getElementById('migrateFromKey').value.trim();
+  const toKey = document.getElementById('migrateToKey').value.trim();
+  const errEl = document.getElementById('migrateError');
+  const resEl = document.getElementById('migrateResult');
+  errEl.style.display = 'none';
+  resEl.style.display = 'none';
+  if(!fromKey || !toKey) return;
+
+  const res = await callAdmin('migrateData', { fromKey, toKey });
+  const data = await res.json();
+  if(!res.ok){
+    errEl.textContent = data.error || 'Errore durante la migrazione.';
+    errEl.style.display = 'block';
+    return;
+  }
+  resEl.style.display = 'block';
+  resEl.innerHTML = `Dati migrati correttamente da <span class="key-mono">${fromKey}</span> a <span class="key-mono">${toKey}</span> (${data.migratedQuotes} preventivi salvati).`;
+});
 </script>
 </body>
 </html>
