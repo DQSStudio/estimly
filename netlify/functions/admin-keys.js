@@ -84,5 +84,20 @@ export default async (req) => {
     return new Response(JSON.stringify({ key, ...record }), { status: 200 });
   }
 
+  if (action === 'migrateData') {
+    const fromKey = (body.fromKey || '').trim().toUpperCase();
+    const toKey = (body.toKey || '').trim().toUpperCase();
+    if (!fromKey || !toKey) {
+      return new Response(JSON.stringify({ error: 'fromKey e toKey richieste' }), { status: 400 });
+    }
+    const dataStore = getStore('studio-data');
+    const record = await dataStore.get(fromKey, { type: 'json' });
+    if (!record) {
+      return new Response(JSON.stringify({ error: 'nessun dato trovato per la chiave di origine' }), { status: 404 });
+    }
+    await dataStore.setJSON(toKey, record);
+    return new Response(JSON.stringify({ ok: true, migratedQuotes: (record.savedQuotes || []).length }), { status: 200 });
+  }
+
   return new Response(JSON.stringify({ error: 'unknown action' }), { status: 400 });
 };
