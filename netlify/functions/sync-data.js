@@ -5,22 +5,26 @@ const MAX_SAVED_QUOTES = 10;
 const SUPABASE_URL = 'https://qgeiehavpnqdxqnggfzq.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
 
+function lineTotal(l) {
+  return l.modalita === 'orario' ? (l.ore || 0) * (l.tariffa || 0) : (l.qty || 0) * (l.prezzo || 0);
+}
+
 async function pushQuoteToSupabase(quoteEntry, licenseKey) {
   if (!SUPABASE_ANON_KEY) return; // se la chiave non è configurata, salta silenziosamente
 
   const cart = Array.isArray(quoteEntry.cart) ? quoteEntry.cart : [];
-  const totale = cart.reduce((sum, item) => sum + (Number(item.totale) || 0), 0);
+  const totale = cart.reduce((sum, item) => sum + lineTotal(item), 0);
   const client = quoteEntry.client || {};
 
   const payload = {
     id: quoteEntry.id,
     external_id: quoteEntry.id,
-    numero: quoteEntry.id,
-    revisione: '1',
-    data: quoteEntry.savedAt ? quoteEntry.savedAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
-    cliente_nome: client.nome || client.name || null,
+    numero: client.numero || quoteEntry.id,
+    revisione: client.revisione || '1',
+    data: client.data || (quoteEntry.savedAt ? quoteEntry.savedAt.slice(0, 10) : new Date().toISOString().slice(0, 10)),
+    cliente_nome: client.cliente || null,
     cliente_email: client.email || null,
-    progetto_label: client.progetto || client.label || null,
+    progetto_label: client.progetto || client.oggetto || null,
     totale: totale,
     stato: 'inviato',
     payload: quoteEntry,
