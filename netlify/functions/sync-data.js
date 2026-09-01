@@ -2,6 +2,48 @@ import { getStore } from '@netlify/blobs';
 
 const MAX_SAVED_QUOTES = 10;
 
+const SUPABASE_URL = 'https://qgeiehavpnqdxqnggfzq.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
+
+async function pushQuoteToSupabase(quoteEntry, licenseKey) {
+  if (!SUPABASE_ANON_KEY) return; // se la chiave non è configurata, salta silenziosamente
+
+  const cart = Array.isArray(quoteEntry.cart) ? quoteEntry.cart : [];
+  const totale = cart.reduce((sum, item) => sum + (Number(item.totale) || 0), 0);
+  const client = quoteEntry.client || {};
+
+  const payload = {
+    id: quoteEntry.id,
+    external_id: quoteEntry.id,
+    numero: quoteEntry.id,
+    revisione: '1',
+    data: quoteEntry.savedAt ? quoteEntry.savedAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+    cliente_nome: client.nome || client.name || null,
+    cliente_email: client.email || null,
+    progetto_label: client.progetto || client.label || null,
+    totale: totale,
+    stato: 'inviato',
+    payload: quoteEntry,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/estimly_quotes?on_conflict=external_id`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    // non blocchiamo il salvataggio principale su Netlify Blobs se Supabase fallisce
+    console.error('Errore sincronizzazione Supabase:', err);
+  }
+}
+
 export default async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'method not allowed' }), { status: 405 });
@@ -76,6 +118,10 @@ export default async (req) => {
       updatedAt: new Date().toISOString()
     };
     await dataStore.setJSON(key, record);
+
+    // Sincronizzazione verso Supabase / DSQ Manager (non blocca la risposta principale)
+    await pushQuoteToSupabase(entry, key);
+
     return new Response(JSON.stringify({ ok: true, savedQuotes: updated }), { status: 200 });
   }
 
