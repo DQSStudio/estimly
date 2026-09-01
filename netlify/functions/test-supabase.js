@@ -24,8 +24,7 @@ export default async () => {
       headers: {
         'Content-Type': 'application/json',
         'apikey': key,
-        'Authorization': `Bearer ${key}`,
-        'Prefer': 'return=representation'
+        'Authorization': `Bearer ${key}`
       },
       body: JSON.stringify(payload)
     });
