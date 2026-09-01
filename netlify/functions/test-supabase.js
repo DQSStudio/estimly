@@ -19,13 +19,13 @@ export default async () => {
   };
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/estimly_quotes?on_conflict=external_id`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/estimly_quotes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': key,
         'Authorization': `Bearer ${key}`,
-        'Prefer': 'resolution=merge-duplicates,return=representation'
+        'Prefer': 'return=representation'
       },
       body: JSON.stringify(payload)
     });

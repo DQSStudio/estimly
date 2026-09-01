@@ -28,13 +28,12 @@ async function pushQuoteToSupabase(quoteEntry, licenseKey) {
   };
 
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/estimly_quotes?on_conflict=external_id`, {
+    await fetch(`${SUPABASE_URL}/rest/v1/estimly_quotes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Prefer': 'resolution=merge-duplicates'
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
       },
       body: JSON.stringify(payload)
     });
