@@ -460,27 +460,19 @@ header.top{
 <div id="licenseGate" style="position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
   <div style="max-width:360px; width:100%; padding:32px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-md);">
     <div class="display" style="font-weight:700; font-size:20px; margin-bottom:6px;">DESEARQ — Preventivatore</div>
-    <div id="gateSubtitle" style="font-size:13px; color:var(--ink-soft); margin-bottom:20px;">Inserisci la chiave di licenza per continuare</div>
-
+    <div style="font-size:13px; color:var(--ink-soft); margin-bottom:20px;">Inserisci la chiave di licenza per continuare</div>
     <input id="licenseKeyInput" placeholder="DQSS-XXXX-XXXX-XXXX" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-bottom:14px; background:var(--surface); color:var(--ink);">
-
-    <input id="loginEmailInput" type="email" placeholder="Email" style="display:none; width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:10px; background:var(--surface); color:var(--ink);">
-    <input id="loginPasswordInput" type="password" placeholder="Password" style="display:none; width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:14px; background:var(--surface); color:var(--ink);">
-
-    <div id="gateTosBlock">
-      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:12px; line-height:1.5;">
-        Proseguendo dichiari di aver preso visione dell'<a href="privacy.html" target="_blank" rel="noopener">Informativa Privacy</a>.
-      </div>
-      <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:10px; cursor:pointer; line-height:1.4;">
-        <input type="checkbox" id="acceptTos" style="margin-top:2px;">
-        <span>Ho letto e accetto i <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
-      </label>
-      <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:16px; cursor:pointer; line-height:1.4;">
-        <input type="checkbox" id="acceptVessatorie" style="margin-top:2px;">
-        <span>Approvo specificamente, ai sensi degli artt. 1341-1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
-      </label>
+    <div style="font-size:12px; color:var(--ink-soft); margin-bottom:12px; line-height:1.5;">
+      Proseguendo dichiari di aver preso visione dell'<a href="privacy.html" target="_blank" rel="noopener">Informativa Privacy</a>.
     </div>
-
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:10px; cursor:pointer; line-height:1.4;">
+      <input type="checkbox" id="acceptTos" style="margin-top:2px;">
+      <span>Ho letto e accetto i <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
+    </label>
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:16px; cursor:pointer; line-height:1.4;">
+      <input type="checkbox" id="acceptVessatorie" style="margin-top:2px;">
+      <span>Approvo specificamente, ai sensi degli artt. 1341-1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
+    </label>
     <button id="licenseSubmitBtn" disabled style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); cursor:not-allowed; opacity:0.5; font-weight:500; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;">Sblocca</button>
     <div id="licenseError" style="color:var(--danger); font-size:12px; margin-top:10px; display:none;"></div>
   </div>
@@ -575,6 +567,7 @@ header.top{
           </select>
         </div>
         <div class="field"><label>Codice fiscale</label><input id="fCF" placeholder="RSSMRA80A01H501U"></div>
+        <div class="field"><label>Email cliente</label><input id="fEmail" type="email" placeholder="cliente@esempio.it"></div>
         <div class="field full"><label>Indirizzo / Via di residenza o sede</label><input id="fIndirizzo" placeholder="Via, civico, città, CAP"></div>
         <div class="field full"><label>Partita IVA</label><input id="fPiva" placeholder="IT00000000000"></div>
       </div>
@@ -741,6 +734,15 @@ header.top{
         </div>
       </div>
 
+      <div class="field-section-label">Integrazione esterna (opzionale)</div>
+      <div class="field-grid">
+        <div class="field full" style="font-size:12px; color:var(--ink-soft); line-height:1.5;">
+          Se il tuo studio usa un proprio gestionale collegato a un database Supabase, inserisci qui il suo indirizzo e la sua chiave per far arrivare automaticamente i preventivi salvati. Ogni studio usa qui le proprie credenziali: nessun dato viene condiviso con altri utenti di Estimly.
+        </div>
+        <div class="field full"><label>Indirizzo REST del database (es. https://tuoprogetto.supabase.co/rest/v1)</label><input id="sExternalSyncUrl" placeholder="https://tuoprogetto.supabase.co/rest/v1"></div>
+        <div class="field full"><label>Chiave pubblica (anon key)</label><input id="sExternalSyncKey" placeholder="sb_publishable_..."></div>
+      </div>
+
     </div>
     <div class="modal-actions">
       <button id="settingsSave" class="btn-save">Salva impostazioni</button>
@@ -832,7 +834,8 @@ let studioSettings = {
   telefono:'', email:'', pec:'', logo:'', colorPrimary:'#4338CA', colorInk:'#17181C',
   iban:'', intestatario:'', banca:'', sdi:'',
   letterheadMode:'standard', letterheadHeader:'', letterheadFooter:'',
-  fontPairing:'moderno', pdfLayout:'classico'
+  fontPairing:'moderno', pdfLayout:'classico',
+  externalSyncUrl:'', externalSyncKey:''
 };
 
 function fmt(n){
@@ -926,6 +929,7 @@ function currentQuoteState(){
     client:{
       cliente: document.getElementById('fCliente').value,
       tipoCliente: document.getElementById('fTipoCliente').value,
+      email: document.getElementById('fEmail').value,
       indirizzo: document.getElementById('fIndirizzo').value,
       cf: document.getElementById('fCF').value,
       piva: document.getElementById('fPiva').value,
@@ -979,6 +983,76 @@ async function loadSavedQuotesCloud(){
   }
 }
 
+async function syncQuoteToExternalIntegration(entry, deleted){
+  const url = (studioSettings.externalSyncUrl||'').trim().replace(/\/+$/,'');
+  const apiKey = (studioSettings.externalSyncKey||'').trim();
+  if(!url || !apiKey) return { ok:false, reason:'not_configured' };
+  try{
+    if(deleted){
+      const res = await fetch(`${url}/estimly_quotes?external_id=eq.${encodeURIComponent(entry.id)}`, {
+        method:'DELETE',
+        headers:{ apikey:apiKey, Authorization:`Bearer ${apiKey}` }
+      });
+      if(!res.ok) return { ok:false, reason:'http_error', detail:await res.text() };
+      return { ok:true };
+    }
+    const totale = (entry.cart||[]).reduce((s,l)=>s+lineTotal(l), 0);
+    const c = entry.client||{};
+    const payload = {
+      external_id: entry.id,
+      numero: c.numero||'',
+      revisione: c.revisione||'',
+      data: c.data||null,
+      cliente_nome: c.cliente||'',
+      cliente_email: c.email||'',
+      progetto_label: c.progetto||'',
+      totale: totale,
+      stato: entry.stato||'Bozza',
+      payload: entry
+    };
+    const res = await fetch(`${url}/estimly_quotes?on_conflict=external_id`, {
+      method:'POST',
+      headers:{
+        apikey:apiKey, Authorization:`Bearer ${apiKey}`,
+        'Content-Type':'application/json',
+        'Prefer':'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify([payload])
+    });
+    if(!res.ok) return { ok:false, reason:'http_error', detail:await res.text() };
+    return { ok:true };
+  }catch(err){ console.error('Sincronizzazione esterna non riuscita', err); return { ok:false, reason:'network_error', detail:String(err) }; }
+}
+async function manualSyncQuote(id, btnEl){
+  const q = savedQuotes.find(x=>x.id===id);
+  if(!q) return;
+  const statusEl = document.getElementById('sync-status-'+id);
+  const originalText = btnEl.textContent;
+  btnEl.disabled = true; btnEl.textContent = 'Invio...';
+  if(statusEl){ statusEl.textContent = ''; statusEl.style.color = ''; }
+  const result = await syncQuoteToExternalIntegration(q);
+  btnEl.disabled = false; btnEl.textContent = originalText;
+  if(!statusEl) return;
+  if(result.ok){
+    statusEl.style.color = 'var(--success, #1B4332)';
+    statusEl.textContent = '✓ Inviato a Desearq Studio Manager';
+  } else if(result.reason==='not_configured'){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Integrazione non configurata: vai su Impostazioni Studio → Integrazione esterna e inserisci indirizzo e chiave.';
+  } else {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Invio non riuscito: ' + (result.detail||'controlla indirizzo e chiave nelle Impostazioni Studio.').slice(0,140);
+  }
+}
+async function setQuoteStato(id, stato){
+  const q = savedQuotes.find(x=>x.id===id);
+  if(!q) return;
+  q.stato = stato;
+  await persistSavedQuotesLocal();
+  renderSavedQuotesList();
+  syncQuoteToExternalIntegration(q);
+}
+
 function renderSavedQuotesList(){
   const list = document.getElementById('savedQuotesList');
   const empty = document.getElementById('savedQuotesEmpty');
@@ -1004,10 +1078,17 @@ function renderSavedQuotesList(){
           <div style="font-weight:600; font-size:13px;">${numero} — ${cliente}</div>
           <div style="font-size:12px; color:var(--ink-soft);">${dataLabel} · € ${fmt(totale)}</div>
         </div>
-        <div style="display:flex; gap:6px; flex-shrink:0;">
+        <div style="display:flex; gap:6px; flex-shrink:0; align-items:center;">
+          <select onchange="setQuoteStato('${q.id}', this.value)" style="padding:5px 8px; border:1px solid var(--border); border-radius:6px; font-size:11.5px; background:var(--surface); color:var(--ink);">
+            <option value="Bozza" ${(!q.stato||q.stato==='Bozza')?'selected':''}>Bozza</option>
+            <option value="Inviato" ${q.stato==='Inviato'?'selected':''}>Inviato</option>
+            <option value="Confermato" ${q.stato==='Confermato'?'selected':''}>Confermato</option>
+          </select>
+          <button onclick="manualSyncQuote('${q.id}', this)" class="btn-cancel" style="padding:6px 10px;" title="Invia questo preventivo a Desearq Studio Manager">Invia a Studio Manager</button>
           <button data-open-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;">Apri</button>
           <button data-delete-quote="${q.id}" class="btn-cancel" style="padding:6px 10px; color:var(--danger);">Elimina</button>
         </div>
+        <div id="sync-status-${q.id}" style="font-size:11px; margin-top:4px;"></div>
       </div>`;
   }).join('');
 }
@@ -1019,10 +1100,12 @@ async function saveCurrentQuote(){
     savedAt: new Date().toISOString(),
     cart: state.cart,
     idCounter: state.idCounter,
-    client: state.client
+    client: state.client,
+    stato: 'Bozza'
   };
   savedQuotes = [entry, ...savedQuotes].slice(0, MAX_SAVED_QUOTES);
   await persistSavedQuotesLocal();
+  syncQuoteToExternalIntegration(entry);
   const key = getLicenseKey();
   if(key){
     try{
@@ -1050,6 +1133,7 @@ function loadQuoteById(id){
   const c = q.client || {};
   document.getElementById('fCliente').value = c.cliente || '';
   document.getElementById('fTipoCliente').value = c.tipoCliente || 'Privato';
+  document.getElementById('fEmail').value = c.email || '';
   document.getElementById('fIndirizzo').value = c.indirizzo || '';
   document.getElementById('fCF').value = c.cf || '';
   document.getElementById('fPiva').value = c.piva || '';
@@ -1076,6 +1160,7 @@ async function deleteQuoteById(id){
   savedQuotes = savedQuotes.filter(q=>q.id!==id);
   await persistSavedQuotesLocal();
   renderSavedQuotesList();
+  syncQuoteToExternalIntegration({id}, true);
   const key = getLicenseKey();
   if(key){
     try{
@@ -1170,6 +1255,8 @@ function openSettingsModal(){
   document.getElementById('sLetterheadMode').value = s.letterheadMode || 'standard';
   document.getElementById('sFontPairing').value = s.fontPairing || 'moderno';
   document.getElementById('sPdfLayout').value = s.pdfLayout || 'classico';
+  document.getElementById('sExternalSyncUrl').value = s.externalSyncUrl || '';
+  document.getElementById('sExternalSyncKey').value = s.externalSyncKey || '';
   document.getElementById('letterheadCustomFields').style.display = (s.letterheadMode === 'custom') ? 'block' : 'none';
   const hPreview = document.getElementById('letterheadHeaderPreview');
   const hRemove = document.getElementById('letterheadHeaderRemoveBtn');
@@ -1199,6 +1286,7 @@ async function initStorage(){
       idCounter = d.idCounter || (cart.length+1);
       document.getElementById('fCliente').value = d.client?.cliente || '';
       document.getElementById('fTipoCliente').value = d.client?.tipoCliente || 'Privato';
+      document.getElementById('fEmail').value = d.client?.email || '';
       document.getElementById('fIndirizzo').value = d.client?.indirizzo || '';
       document.getElementById('fCF').value = d.client?.cf || '';
       document.getElementById('fPiva').value = d.client?.piva || '';
@@ -1262,6 +1350,7 @@ async function saveDraft(){
     client:{
       cliente: document.getElementById('fCliente').value,
       tipoCliente: document.getElementById('fTipoCliente').value,
+      email: document.getElementById('fEmail').value,
       indirizzo: document.getElementById('fIndirizzo').value,
       cf: document.getElementById('fCF').value,
       piva: document.getElementById('fPiva').value,
@@ -2199,7 +2288,9 @@ document.getElementById('settingsSave').addEventListener('click', async ()=>{
     colorInk: document.getElementById('sColorInk').value,
     letterheadMode: document.getElementById('sLetterheadMode').value,
     fontPairing: document.getElementById('sFontPairing').value,
-    pdfLayout: document.getElementById('sPdfLayout').value
+    pdfLayout: document.getElementById('sPdfLayout').value,
+    externalSyncUrl: document.getElementById('sExternalSyncUrl').value.trim(),
+    externalSyncKey: document.getElementById('sExternalSyncKey').value.trim()
   });
   if(studioSettings._pendingLogo !== undefined){
     studioSettings.logo = studioSettings._pendingLogo;
@@ -2239,9 +2330,6 @@ if('serviceWorker' in navigator){
   const GRACE_DAYS = 30;
   const TERMS_VERSION = 'v1';
   const TERMS_ACCEPTED_STORAGE = 'desearq-terms-accepted-version';
-  const INTERNAL_SESSION_KEY = 'INTERNAL-STUDIO';
-
-  let authMode = 'key'; // 'key' oppure 'login', determinato dal sito (variabile AUTH_MODE)
 
   function hideGate(){
     const gate = document.getElementById('licenseGate');
@@ -2259,18 +2347,9 @@ if('serviceWorker' in navigator){
   }
 
   function updateSubmitState(){
-    const btn = document.getElementById('licenseSubmitBtn');
-    if(authMode === 'login'){
-      const email = document.getElementById('loginEmailInput').value.trim();
-      const pass = document.getElementById('loginPasswordInput').value;
-      const ok = email && pass;
-      btn.disabled = !ok;
-      btn.style.opacity = ok ? '1' : '0.5';
-      btn.style.cursor = ok ? 'pointer' : 'not-allowed';
-      return;
-    }
     const tos = document.getElementById('acceptTos');
     const vex = document.getElementById('acceptVessatorie');
+    const btn = document.getElementById('licenseSubmitBtn');
     const ok = tos && vex && tos.checked && vex.checked;
     btn.disabled = !ok;
     btn.style.opacity = ok ? '1' : '0.5';
@@ -2303,72 +2382,7 @@ if('serviceWorker' in navigator){
     }
   }
 
-  async function validateLogin(email, password, opts){
-    opts = opts || {};
-    try{
-      const res = await fetch('/.netlify/functions/validate-login', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ email: email, password: password })
-      });
-      const data = await res.json();
-      if(data.valid){
-        localStorage.setItem(KEY_STORAGE, INTERNAL_SESSION_KEY);
-        localStorage.setItem(VALIDATED_AT_STORAGE, Date.now().toString());
-        localStorage.setItem(TERMS_ACCEPTED_STORAGE, TERMS_VERSION);
-        hideGate();
-        loadCloudData();
-        loadSavedQuotesCloud();
-        return true;
-      }
-      if(!opts.silent) showError('Email o password non corrette.');
-      return false;
-    }catch(err){
-      if(!opts.silent) showError('Impossibile verificare le credenziali: controlla la connessione.');
-      return false;
-    }
-  }
-
-  async function detectAuthMode(){
-    try{
-      const res = await fetch('/.netlify/functions/auth-mode');
-      const data = await res.json();
-      return data.mode === 'login' ? 'login' : 'key';
-    }catch(err){
-      return 'key';
-    }
-  }
-
-  function applyAuthModeUI(){
-    const isLogin = authMode === 'login';
-    document.getElementById('licenseKeyInput').style.display = isLogin ? 'none' : 'block';
-    document.getElementById('loginEmailInput').style.display = isLogin ? 'block' : 'none';
-    document.getElementById('loginPasswordInput').style.display = isLogin ? 'block' : 'none';
-    document.getElementById('gateTosBlock').style.display = isLogin ? 'none' : 'block';
-    document.getElementById('gateSubtitle').textContent = isLogin
-      ? 'Accedi con le tue credenziali per continuare'
-      : 'Inserisci la chiave di licenza per continuare';
-  }
-
   async function initLicenseGate(){
-    authMode = await detectAuthMode();
-    applyAuthModeUI();
-
-    if(authMode === 'login'){
-      const storedKey = localStorage.getItem(KEY_STORAGE);
-      const validatedAt = parseInt(localStorage.getItem(VALIDATED_AT_STORAGE) || '0', 10);
-      const withinGrace = storedKey && (Date.now() - validatedAt) < GRACE_DAYS*24*60*60*1000;
-      if(storedKey === INTERNAL_SESSION_KEY && withinGrace){
-        hideGate();
-        loadCloudData();
-        loadSavedQuotesCloud();
-      }
-      document.getElementById('loginEmailInput').addEventListener('input', updateSubmitState);
-      document.getElementById('loginPasswordInput').addEventListener('input', updateSubmitState);
-      updateSubmitState();
-      return;
-    }
-
     const storedKey = localStorage.getItem(KEY_STORAGE);
     const validatedAt = parseInt(localStorage.getItem(VALIDATED_AT_STORAGE) || '0', 10);
     const withinGrace = storedKey && (Date.now() - validatedAt) < GRACE_DAYS*24*60*60*1000;
@@ -2391,13 +2405,6 @@ if('serviceWorker' in navigator){
   }
 
   document.getElementById('licenseSubmitBtn').addEventListener('click', () => {
-    if(authMode === 'login'){
-      const email = document.getElementById('loginEmailInput').value.trim();
-      const password = document.getElementById('loginPasswordInput').value;
-      if(!email || !password) return;
-      validateLogin(email, password);
-      return;
-    }
     const tos = document.getElementById('acceptTos');
     const vex = document.getElementById('acceptVessatorie');
     if(!tos.checked || !vex.checked){
@@ -2409,9 +2416,6 @@ if('serviceWorker' in navigator){
     validateKey(key);
   });
   document.getElementById('licenseKeyInput').addEventListener('keydown', (e) => {
-    if(e.key === 'Enter') document.getElementById('licenseSubmitBtn').click();
-  });
-  document.getElementById('loginPasswordInput').addEventListener('keydown', (e) => {
     if(e.key === 'Enter') document.getElementById('licenseSubmitBtn').click();
   });
 
