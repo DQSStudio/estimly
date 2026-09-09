@@ -43,29 +43,11 @@ export default async (req) => {
     if (!customer) {
       return new Response(JSON.stringify({ error: 'customer required' }), { status: 400 });
     }
-
-    // Se viene passata una chiave manuale, usa quella invece di generarne una nuova
-    const manualKey = (body.key || '').trim().toUpperCase();
-
-    if (manualKey) {
-      const existing = await store.get(manualKey, { type: 'json' });
-      if (existing) {
-        return new Response(JSON.stringify({ error: 'key already exists' }), { status: 409 });
-      }
-      const record = {
-        customer,
-        status: 'active',
-        createdAt: new Date().toISOString(),
-        validationCount: 0
-      };
-      await store.setJSON(manualKey, record);
-      return new Response(JSON.stringify({ key: manualKey, ...record }), { status: 200 });
-    }
-
     const key = generateKey('DQSS');
     const record = {
       customer,
       status: 'active',
+      aiEnabled: !!body.aiEnabled,
       createdAt: new Date().toISOString(),
       validationCount: 0
     };
@@ -84,19 +66,15 @@ export default async (req) => {
     return new Response(JSON.stringify({ key, ...record }), { status: 200 });
   }
 
-  if (action === 'migrateData') {
-    const fromKey = (body.fromKey || '').trim().toUpperCase();
-    const toKey = (body.toKey || '').trim().toUpperCase();
-    if (!fromKey || !toKey) {
-      return new Response(JSON.stringify({ error: 'fromKey e toKey richieste' }), { status: 400 });
-    }
-    const dataStore = getStore('studio-data');
-    const record = await dataStore.get(fromKey, { type: 'json' });
+  if (action === 'setAi') {
+    const key = (body.key || '').trim().toUpperCase();
+    const record = await store.get(key, { type: 'json' });
     if (!record) {
-      return new Response(JSON.stringify({ error: 'nessun dato trovato per la chiave di origine' }), { status: 404 });
+      return new Response(JSON.stringify({ error: 'not found' }), { status: 404 });
     }
-    await dataStore.setJSON(toKey, record);
-    return new Response(JSON.stringify({ ok: true, migratedQuotes: (record.savedQuotes || []).length }), { status: 200 });
+    record.aiEnabled = !!body.aiEnabled;
+    await store.setJSON(key, record);
+    return new Response(JSON.stringify({ key, ...record }), { status: 200 });
   }
 
   return new Response(JSON.stringify({ error: 'unknown action' }), { status: 400 });
