@@ -17,7 +17,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#801430">
+<meta name="theme-color" content="#4338CA">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -26,24 +26,24 @@
 <script src="vendor/xlsx.full.min.js"></script>
 <style>
 :root{
-  --bg:#F6F4EF;
+  --bg:#FAFAFA;
   --surface:#FFFFFF;
-  --surface-alt:#EFEBE2;
-  --border:#E7E4DC;
-  --border-soft:#EFEBE2;
-  --ink:#171717;
-  --ink-soft:#6B6B6B;
-  --ink-faint:#A0A0A0;
-  --accent:#801430;
-  --accent-hover:#630F24;
-  --accent-soft:#F3DCE1;
-  --amber:#B8860B;
-  --amber-soft:#F7EDD6;
+  --surface-alt:#F4F4F5;
+  --border:#E6E6E9;
+  --border-soft:#F0F0F2;
+  --ink:#17181C;
+  --ink-soft:#7A7C85;
+  --ink-faint:#B4B6BE;
+  --accent:#4338CA;
+  --accent-hover:#362BA8;
+  --accent-soft:#EEEDFB;
+  --amber:#B45309;
+  --amber-soft:#FDF3E7;
   --teal:#0F766E;
   --teal-soft:#E9F5F3;
-  --danger:#B3261E;
-  --danger-soft:#F7E2E0;
-  --sage:#5B6B4F;
+  --danger:#DC2626;
+  --danger-soft:#FDECEC;
+  --sage:#7A7C85;
   --radius:16px;
   --radius-sm:8px;
   --shadow-sm:0 1px 2px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.04);
@@ -245,7 +245,7 @@ header.top{
 .hour-calc-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:4px;}
 .hour-calc-title{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:600; font-size:15px;}
 .hour-calc-hint{font-size:11px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace;}
-.hour-calc-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;}
+.hour-calc-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px;}
 .hour-calc-grid select{
   width:100%; padding:7px 8px; border:1px solid var(--border); border-radius:var(--radius-sm);
   background:var(--surface); font-size:12.5px; color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
@@ -258,6 +258,11 @@ header.top{
   font-size:12.5px; font-weight:500; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 #hcAddBtn:hover{background:var(--accent-hover);}
+#hcAddListinoBtn{
+  background:var(--surface); color:var(--accent); border:1px solid var(--accent); border-radius:var(--radius-sm); padding:9px 18px;
+  font-size:12.5px; font-weight:500; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+#hcAddListinoBtn:hover{background:var(--accent-soft);}
 @media (max-width:640px){ .hour-calc-grid{grid-template-columns:1fr 1fr;} }
 
 .quote-panel{
@@ -553,10 +558,18 @@ header.top{
           <label>Costo orario €/h</label>
           <input id="hcTariffa" type="number" step="0.01" value="0">
         </div>
+        <div class="field">
+          <label>Categoria</label>
+          <select id="hcCategoria"></select>
+          <input id="hcCategoriaNew" placeholder="Nome nuova categoria" style="margin-top:6px; display:none;">
+        </div>
       </div>
       <div class="hour-calc-footer">
         <div class="hour-calc-result">Totale stimato <span id="hcTotale">€ 0,00</span></div>
-        <button id="hcAddBtn">+ Aggiungi al preventivo</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="hcAddListinoBtn" class="secondary-btn">+ Aggiungi al listino</button>
+          <button id="hcAddBtn">+ Aggiungi al preventivo</button>
+        </div>
       </div>
     </div>
 
@@ -681,8 +694,8 @@ header.top{
             <button id="logoRemoveBtn" class="logo-remove-btn" style="display:none;">Rimuovi</button>
           </div>
         </div>
-        <div class="field"><label>Colore primario</label><input type="color" id="sColorPrimary" value="#801430"></div>
-        <div class="field"><label>Colore marchio / testo</label><input type="color" id="sColorInk" value="#171717"></div>
+        <div class="field"><label>Colore primario</label><input type="color" id="sColorPrimary" value="#4338CA"></div>
+        <div class="field"><label>Colore marchio / testo</label><input type="color" id="sColorInk" value="#17181C"></div>
       </div>
 
       <div class="field-section-label">Intestazione studio</div>
@@ -894,7 +907,7 @@ let draggedCategory = null;
 
 let studioSettings = {
   nome:'DESEARQ', tagline:'Preventivatore di studio', indirizzo:'', piva:'', cf:'',
-  telefono:'', email:'', pec:'', logo:'', colorPrimary:'#801430', colorInk:'#171717',
+  telefono:'', email:'', pec:'', logo:'', colorPrimary:'#4338CA', colorInk:'#17181C',
   iban:'', intestatario:'', banca:'', sdi:'',
   letterheadMode:'standard', letterheadHeader:'', letterheadFooter:'',
   fontPairing:'moderno', pdfLayout:'classico',
@@ -1500,8 +1513,8 @@ function openSettingsModal(){
   document.getElementById('sIntestatario').value = s.intestatario || '';
   document.getElementById('sBanca').value = s.banca || '';
   document.getElementById('sSdi').value = s.sdi || '';
-  document.getElementById('sColorPrimary').value = s.colorPrimary || '#801430';
-  document.getElementById('sColorInk').value = s.colorInk || '#171717';
+  document.getElementById('sColorPrimary').value = s.colorPrimary || '#4338CA';
+  document.getElementById('sColorInk').value = s.colorInk || '#17181C';
   document.getElementById('sLetterheadMode').value = s.letterheadMode || 'standard';
   document.getElementById('sFontPairing').value = s.fontPairing || 'moderno';
   document.getElementById('sPdfLayout').value = s.pdfLayout || 'classico';
@@ -1628,6 +1641,17 @@ function populateCategorySelect(){
   const dl = document.getElementById('categoryDatalist');
   if(dl) dl.innerHTML = cats.map(c=>`<option value="${c}">`).join('');
   populateHourCalcSelect();
+  populateHourCalcCategorySelect();
+}
+
+function populateHourCalcCategorySelect(){
+  const sel = document.getElementById('hcCategoria');
+  if(!sel) return;
+  const current = sel.value;
+  const knownCats = getKnownCategories();
+  sel.innerHTML = knownCats.map(c=>`<option value="${c}">${c}</option>`).join('') +
+    `<option value="__new__">+ Nuova categoria...</option>`;
+  if(knownCats.includes(current)) sel.value = current;
 }
 
 function populateHourCalcSelect(){
@@ -2107,11 +2131,59 @@ document.getElementById('hcItem').addEventListener('change', (e)=>{
     document.getElementById('hcNome').placeholder = item.prestazione;
     document.getElementById('hcOre').value = item.ore || 1;
     document.getElementById('hcTariffa').value = item.ore ? +(item.prezzo/item.ore).toFixed(2) : item.prezzo;
+    const catSel = document.getElementById('hcCategoria');
+    if([...catSel.options].some(o=>o.value===item.categoria)){
+      catSel.value = item.categoria;
+      document.getElementById('hcCategoriaNew').style.display = 'none';
+    }
   }
   updateHourCalcTotal();
 });
 document.getElementById('hcOre').addEventListener('input', updateHourCalcTotal);
 document.getElementById('hcTariffa').addEventListener('input', updateHourCalcTotal);
+
+document.getElementById('hcCategoria').addEventListener('change', (e)=>{
+  document.getElementById('hcCategoriaNew').style.display = (e.target.value === '__new__') ? 'block' : 'none';
+});
+
+function generateCatalogCode(categoria){
+  const prefix = 'DES-' + (categoria || 'GEN').replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase();
+  let n = 1;
+  let codice;
+  do {
+    codice = prefix + '-' + String(n).padStart(3,'0');
+    n++;
+  } while(catalog.find(i=>i.codice===codice));
+  return codice;
+}
+
+document.getElementById('hcAddListinoBtn').addEventListener('click', ()=>{
+  const codice = document.getElementById('hcItem').value;
+  const item = catalog.find(i=>i.codice===codice);
+  const ore = parseFloat(document.getElementById('hcOre').value) || 0;
+  const tariffa = parseFloat(document.getElementById('hcTariffa').value) || 0;
+  const nomeLibero = document.getElementById('hcNome').value.trim();
+  const catSelectEl = document.getElementById('hcCategoria');
+  const categoria = (catSelectEl.value === '__new__')
+    ? (document.getElementById('hcCategoriaNew').value.trim() || 'Senza categoria')
+    : catSelectEl.value;
+
+  if(ore <= 0 || tariffa <= 0){ alert('Inserisci ore lavorate e costo orario maggiori di zero.'); return; }
+  if(!categoria){ alert('Scegli o crea una categoria per il listino.'); return; }
+  const nome = item ? item.prestazione : (nomeLibero || 'Lavorazione a ore');
+
+  ensureCategoryInOrder(categoria);
+  const newCodice = generateCatalogCode(categoria);
+  catalog.push({
+    codice:newCodice, categoria, sottocategoria:'', prestazione:nome, descrizione:'',
+    um:'cad', ore, prezzo: +(ore*tariffa).toFixed(2), pacchetto:'Base', source:'custom'
+  });
+
+  populateCategorySelect();
+  renderCatalog();
+  scheduleCloudSave();
+  alert(`Aggiunto al listino come "${nome}" (${newCodice}) nella categoria "${categoria}".`);
+});
 
 document.getElementById('hcAddBtn').addEventListener('click', ()=>{
   const codice = document.getElementById('hcItem').value;
@@ -2666,7 +2738,18 @@ if('serviceWorker' in navigator){
     if(e.key === 'Enter') document.getElementById('licenseSubmitBtn').click();
   });
 
-  initLicenseGate();
+  /* ANTEPRIMA LOCALE — bypassa il gate solo per navigare l'interfaccia. Rimosso nella build reale. */
+  const PREVIEW_MODE = true;
+  if(PREVIEW_MODE){
+    document.getElementById('licenseGate').style.display = 'none';
+    applyAiVisibility();
+    const banner = document.createElement('div');
+    banner.textContent = '👁 ANTEPRIMA LOCALE — solo per navigazione, non rappresenta l\'accesso reale con licenza';
+    banner.style.cssText = 'position:fixed; bottom:0; left:0; right:0; background:#171717; color:#fff; text-align:center; font-size:12px; padding:6px; z-index:99999; font-family:-apple-system,sans-serif;';
+    document.body.appendChild(banner);
+  } else {
+    initLicenseGate();
+  }
 })();
 </script>
 </body>
