@@ -17,7 +17,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#4338CA">
+<meta name="theme-color" content="#801430">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -460,27 +460,19 @@ header.top{
 <div id="licenseGate" style="position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
   <div style="max-width:360px; width:100%; padding:32px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-md);">
     <div class="display" style="font-weight:700; font-size:20px; margin-bottom:6px;">DESEARQ — Preventivatore</div>
-    <div id="gateSubtitle" style="font-size:13px; color:var(--ink-soft); margin-bottom:20px;">Inserisci la chiave di licenza per continuare</div>
-
+    <div style="font-size:13px; color:var(--ink-soft); margin-bottom:20px;">Inserisci la chiave di licenza per continuare</div>
     <input id="licenseKeyInput" placeholder="DQSS-XXXX-XXXX-XXXX" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-bottom:14px; background:var(--surface); color:var(--ink);">
-
-    <input id="loginEmailInput" type="email" placeholder="Email" style="display:none; width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:10px; background:var(--surface); color:var(--ink);">
-    <input id="loginPasswordInput" type="password" placeholder="Password" style="display:none; width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:14px; background:var(--surface); color:var(--ink);">
-
-    <div id="gateTosBlock">
-      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:12px; line-height:1.5;">
-        Proseguendo dichiari di aver preso visione dell'<a href="privacy.html" target="_blank" rel="noopener">Informativa Privacy</a>.
-      </div>
-      <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:10px; cursor:pointer; line-height:1.4;">
-        <input type="checkbox" id="acceptTos" style="margin-top:2px;">
-        <span>Ho letto e accetto i <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
-      </label>
-      <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:16px; cursor:pointer; line-height:1.4;">
-        <input type="checkbox" id="acceptVessatorie" style="margin-top:2px;">
-        <span>Approvo specificamente, ai sensi degli artt. 1341-1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
-      </label>
+    <div style="font-size:12px; color:var(--ink-soft); margin-bottom:12px; line-height:1.5;">
+      Proseguendo dichiari di aver preso visione dell'<a href="privacy.html" target="_blank" rel="noopener">Informativa Privacy</a>.
     </div>
-
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:10px; cursor:pointer; line-height:1.4;">
+      <input type="checkbox" id="acceptTos" style="margin-top:2px;">
+      <span>Ho letto e accetto i <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
+    </label>
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:16px; cursor:pointer; line-height:1.4;">
+      <input type="checkbox" id="acceptVessatorie" style="margin-top:2px;">
+      <span>Approvo specificamente, ai sensi degli artt. 1341-1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
+    </label>
     <button id="licenseSubmitBtn" disabled style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); cursor:not-allowed; opacity:0.5; font-weight:500; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;">Sblocca</button>
     <div id="licenseError" style="color:var(--danger); font-size:12px; margin-top:10px; display:none;"></div>
   </div>
@@ -494,6 +486,10 @@ header.top{
         <div class="brand-name" id="brandName">DES<span>EARQ</span></div>
         <div class="brand-sub" id="brandSub">Preventivatore di studio</div>
       </div>
+      <span id="estimlyAiBadge" style="display:none; align-items:center; gap:5px; background:var(--accent-soft); color:var(--accent); font-size:11px; font-weight:700; letter-spacing:0.3px; padding:4px 11px; border-radius:999px; margin-left:6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.3L19 9l-5.1 1.7L12 16l-1.9-5.3L5 9l5.1-1.7L12 2z"/></svg>
+        EstimlyAI
+      </span>
     </div>
     <div class="top-actions">
       <button id="settingsBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="14" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="8" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="16" cy="18" r="2"/></svg>Impostazioni studio</button>
@@ -524,6 +520,14 @@ header.top{
         <div class="chip" data-pkg="Premium">Premium</div>
       </div>
       <button class="new-item-btn" id="newItemBtn">+ Nuova lavorazione</button>
+      <button class="new-item-btn" id="aiGenerateBtn" style="display:none; background:#0D0D0D; color:#fff; border-color:#0D0D0D;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px; margin-right:4px;"><path d="M12 2l1.9 5.3L19 9l-5.1 1.7L12 16l-1.9-5.3L5 9l5.1-1.7L12 2z"/></svg>
+        Genera con AI
+      </button>
+      <button class="new-item-btn" id="openCostCalcTopBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Calcola il tuo costo orario
+      </button>
     </div>
     <datalist id="categoryDatalist"></datalist>
 
@@ -581,7 +585,13 @@ header.top{
 
       <div class="field-section-label">Dati preventivo</div>
       <div class="field-grid">
-        <div class="field full"><label>Progetto / Immobile</label><input id="fProgetto" placeholder="Es. Appartamento Milano centro"></div>
+        <div class="field full">
+          <label style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Progetto / Immobile</span>
+            <button type="button" class="ai-improve-btn" data-field="fProgetto" data-context="descrizione del progetto/immobile" style="display:none;">✨ Migliora</button>
+          </label>
+          <input id="fProgetto" placeholder="Es. Appartamento Milano centro">
+        </div>
         <div class="field"><label>Data</label><input id="fData" type="date"></div>
         <div class="field"><label>N. preventivo</label><input id="fNumero"></div>
         <div class="field"><label>Revisione</label><input id="fRevisione" placeholder="Rev. 0"></div>
@@ -602,7 +612,13 @@ header.top{
           </select>
         </div>
         <div class="field" id="regimeCustomField" style="display:none;"><label>Aliquota personalizzata %</label><input id="fAliquotaCustom" type="number" min="0" max="100" step="0.1" value="22"></div>
-        <div class="field full"><label>Note di pagamento (per questo preventivo)</label><input id="fNotePagamento" placeholder="Es. Acconto 30% all'ordine, saldo a consegna"></div>
+        <div class="field full">
+          <label style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Note di pagamento (per questo preventivo)</span>
+            <button type="button" class="ai-improve-btn" data-field="fNotePagamento" data-context="nota di pagamento" style="display:none;">✨ Migliora</button>
+          </label>
+          <input id="fNotePagamento" placeholder="Es. Acconto 30% all'ordine, saldo a consegna">
+        </div>
       </div>
 
       <div id="cartList"></div>
@@ -665,8 +681,8 @@ header.top{
             <button id="logoRemoveBtn" class="logo-remove-btn" style="display:none;">Rimuovi</button>
           </div>
         </div>
-        <div class="field"><label>Colore primario</label><input type="color" id="sColorPrimary" value="#4338CA"></div>
-        <div class="field"><label>Colore marchio / testo</label><input type="color" id="sColorInk" value="#17181C"></div>
+        <div class="field"><label>Colore primario</label><input type="color" id="sColorPrimary" value="#801430"></div>
+        <div class="field"><label>Colore marchio / testo</label><input type="color" id="sColorInk" value="#171717"></div>
       </div>
 
       <div class="field-section-label">Intestazione studio</div>
@@ -766,6 +782,55 @@ header.top{
   </div>
 </div>
 
+<div id="aiGenerateModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Genera con EstimlyAI</div>
+      <button id="aiGenerateClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:12px;">Descrivi il lavoro in poche parole: EstimlyAI selezionerà le voci più adatte dal tuo catalogo. Vengono usate solo voci realmente presenti nel catalogo, mai inventate.</div>
+      <textarea id="aiGenerateInput" rows="4" placeholder="Es. Ristrutturazione bagno 8mq, con rilievo e progetto preliminare" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:13px; background:var(--surface); color:var(--ink); resize:vertical;"></textarea>
+      <div id="aiGenerateStatus" style="font-size:12px; color:var(--ink-soft); margin-top:8px; display:none;"></div>
+      <div id="aiGenerateError" style="font-size:12px; color:var(--danger); margin-top:8px; display:none;"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="aiGenerateSubmit" class="btn-save">Genera</button>
+      <button id="aiGenerateCancel" class="btn-cancel">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div id="costCalcModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Calcola il tuo costo orario</div>
+      <button id="costCalcClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Calcola la tariffa oraria minima da applicare per coprire i tuoi costi e il tuo stipendio desiderato. Il risultato diventa il valore di partenza nel calcolatore a ore (resta sempre modificabile riga per riga).</div>
+      <div class="field-grid">
+        <div class="field"><label>Stipendio netto desiderato (annuo €)</label><input id="ccStipendio" type="number" step="100" value="30000"></div>
+        <div class="field"><label>Costi fissi studio (annuo €)</label><input id="ccCostiFissi" type="number" step="100" value="6000"></div>
+        <div class="field"><label>Settimane lavorate all'anno</label><input id="ccSettimane" type="number" step="1" value="46"></div>
+        <div class="field"><label>Giorni lavorativi a settimana</label><input id="ccGiorni" type="number" step="1" value="5"></div>
+        <div class="field"><label>Ore lavorative al giorno</label><input id="ccOreGiorno" type="number" step="0.5" value="7"></div>
+        <div class="field"><label>Quota di tempo fatturabile (%)</label><input id="ccFatturabile" type="number" step="1" value="60"></div>
+        <div class="field full"><label>Margine per imprevisti/utile (%)</label><input id="ccMargine" type="number" step="1" value="15"></div>
+      </div>
+      <div id="costCalcResult" style="margin-top:16px; padding:14px; background:var(--accent-soft); border-radius:var(--radius-sm); display:none;">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--accent); font-weight:600; margin-bottom:4px;">Tariffa oraria minima</div>
+        <div style="font-size:26px; font-weight:700; color:var(--accent);" id="costCalcRateOut">€ 0,00 /h</div>
+        <div style="font-size:11.5px; color:var(--ink-soft); margin-top:6px;" id="costCalcDetailOut"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="costCalcCompute" class="btn-cancel">Calcola</button>
+      <button id="costCalcApply" class="btn-save" style="display:none;">Usa questa tariffa</button>
+    </div>
+  </div>
+</div>
+
 
 <script>
 if(!window.storage){
@@ -829,10 +894,12 @@ let draggedCategory = null;
 
 let studioSettings = {
   nome:'DESEARQ', tagline:'Preventivatore di studio', indirizzo:'', piva:'', cf:'',
-  telefono:'', email:'', pec:'', logo:'', colorPrimary:'#4338CA', colorInk:'#17181C',
+  telefono:'', email:'', pec:'', logo:'', colorPrimary:'#801430', colorInk:'#171717',
   iban:'', intestatario:'', banca:'', sdi:'',
   letterheadMode:'standard', letterheadHeader:'', letterheadFooter:'',
-  fontPairing:'moderno', pdfLayout:'classico'
+  fontPairing:'moderno', pdfLayout:'classico',
+  tariffaOrariaBase: 0,
+  costCalc: { stipendio:30000, costiFissi:6000, settimane:46, giorni:5, oreGiorno:7, fatturabile:60, margine:15 }
 };
 
 function fmt(n){
@@ -1096,6 +1163,269 @@ function closeSavedQuotesModal(){
   document.getElementById('savedQuotesModal').style.display = 'none';
 }
 
+/* ===================== EstimlyAI ===================== */
+/* Interruttore generale: finché non è configurata la chiave API su Netlify, il livello EstimlyAI
+   resta nascosto ovunque, anche per le licenze con aiEnabled=true. Il codice è pronto: basta
+   portare questo a 'true' quando si vuole lanciare davvero la feature. */
+const ESTIMLYAI_FEATURE_LIVE = false;
+
+let estimlyAiEnabled = false;
+let aiUsageInfo = null; // {used, limit}
+
+function applyAiVisibility(){
+  const active = ESTIMLYAI_FEATURE_LIVE && estimlyAiEnabled;
+  const display = active ? '' : 'none';
+  document.getElementById('estimlyAiBadge').style.display = active ? 'inline-flex' : 'none';
+  document.getElementById('aiGenerateBtn').style.display = display;
+  document.querySelectorAll('.ai-improve-btn').forEach(b => b.style.display = display);
+  renderAiSuggestions();
+}
+
+function addToCartWithQty(codice, qty){
+  const item = catalog.find(i=>i.codice===codice);
+  if(!item) return;
+  const q = (typeof qty === 'number' && qty > 0) ? qty : 1;
+  cart.push({
+    id:idCounter++, codice:item.codice, nome:item.prestazione, um:item.um,
+    modalita:'fisso', qty:q, prezzo:item.prezzo, ore:item.ore||1, tariffa:item.ore ? +(item.prezzo/item.ore).toFixed(2) : item.prezzo,
+    custom:false, categoria:item.categoria
+  });
+}
+
+function openAiGenerateModal(){
+  document.getElementById('aiGenerateInput').value = '';
+  document.getElementById('aiGenerateStatus').style.display = 'none';
+  document.getElementById('aiGenerateError').style.display = 'none';
+  document.getElementById('aiGenerateModal').style.display = 'flex';
+}
+function closeAiGenerateModal(){
+  document.getElementById('aiGenerateModal').style.display = 'none';
+}
+
+async function runAiGenerate(){
+  const description = document.getElementById('aiGenerateInput').value.trim();
+  if(!description) return;
+  const key = getLicenseKey();
+  const statusEl = document.getElementById('aiGenerateStatus');
+  const errEl = document.getElementById('aiGenerateError');
+  const btn = document.getElementById('aiGenerateSubmit');
+  errEl.style.display = 'none';
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'Generazione in corso...';
+  btn.disabled = true;
+
+  const catalogPayload = catalog.map(c => ({ codice:c.codice, nome:c.prestazione, categoria:c.categoria }));
+
+  try{
+    const res = await fetch('/.netlify/functions/estimlyai', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, mode:'generate', description, catalog: catalogPayload })
+    });
+    const data = await res.json();
+
+    if(!res.ok){
+      if(data.error === 'limit_reached'){
+        errEl.textContent = `Hai raggiunto il limite mensile di EstimlyAI (${data.limit} utilizzi). Riprova il mese prossimo.`;
+      } else {
+        errEl.textContent = data.message || 'Non è stato possibile generare il preventivo. Riprova.';
+      }
+      errEl.style.display = 'block';
+      statusEl.style.display = 'none';
+      btn.disabled = false;
+      return;
+    }
+
+    aiUsageInfo = { used: data.used, limit: data.limit };
+    const items = data.items || [];
+    if(items.length === 0){
+      errEl.textContent = 'Nessuna voce del catalogo sembra corrispondere alla descrizione. Prova a essere più specifico.';
+      errEl.style.display = 'block';
+      statusEl.style.display = 'none';
+      btn.disabled = false;
+      return;
+    }
+
+    items.forEach(it => addToCartWithQty(it.codice, it.quantita));
+    renderCart(); scheduleSave();
+    closeAiGenerateModal();
+  }catch(err){
+    errEl.textContent = 'Errore di connessione. Riprova.';
+    errEl.style.display = 'block';
+    statusEl.style.display = 'none';
+  }
+  btn.disabled = false;
+}
+
+async function improveTextField(btn){
+  const fieldId = btn.getAttribute('data-field');
+  const context = btn.getAttribute('data-context');
+  const input = document.getElementById(fieldId);
+  const text = input.value.trim();
+  if(!text) return;
+  const key = getLicenseKey();
+
+  const originalText = input.value;
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  try{
+    const res = await fetch('/.netlify/functions/estimlyai', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, mode:'improve_text', text, context })
+    });
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.error === 'limit_reached'
+        ? `Hai raggiunto il limite mensile di EstimlyAI (${data.limit} utilizzi).`
+        : (data.message || 'Non è stato possibile migliorare il testo.'));
+      btn.disabled = false; btn.textContent = originalLabel;
+      return;
+    }
+
+    aiUsageInfo = { used: data.used, limit: data.limit };
+    input.value = data.improved;
+    scheduleSave();
+
+    btn.textContent = '↺ Annulla';
+    btn.disabled = false;
+    btn.onclick = () => {
+      input.value = originalText;
+      scheduleSave();
+      btn.textContent = originalLabel;
+      btn.onclick = () => improveTextField(btn);
+    };
+  }catch(err){
+    alert('Errore di connessione. Riprova.');
+    btn.disabled = false; btn.textContent = originalLabel;
+  }
+}
+
+/* Suggerimenti da storico preventivi salvati — pura statistica locale, nessuna chiamata AI/costo */
+function renderAiSuggestions(){
+  const existing = document.getElementById('aiSuggestPanel');
+  if(existing) existing.remove();
+  if(!ESTIMLYAI_FEATURE_LIVE || !estimlyAiEnabled || cart.length === 0 || savedQuotes.length < 2) return;
+
+  const currentCodes = new Set(cart.map(l=>l.codice).filter(Boolean));
+  const coCount = {};
+  savedQuotes.forEach(q=>{
+    const codes = (q.cart||[]).map(l=>l.codice).filter(Boolean);
+    const hasOverlap = codes.some(c=>currentCodes.has(c));
+    if(!hasOverlap) return;
+    codes.forEach(c=>{
+      if(currentCodes.has(c)) return;
+      coCount[c] = (coCount[c]||0) + 1;
+    });
+  });
+
+  const suggestions = Object.entries(coCount)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,4)
+    .map(([codice]) => catalog.find(i=>i.codice===codice))
+    .filter(Boolean);
+
+  if(suggestions.length === 0) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'aiSuggestPanel';
+  panel.style.cssText = 'margin-top:10px; padding:12px; background:var(--accent-soft); border-radius:var(--radius-sm); font-size:12px;';
+  panel.innerHTML = `<div style="font-weight:600; color:var(--accent); margin-bottom:8px;">✨ EstimlyAI suggerisce, dai tuoi preventivi passati:</div>
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+      ${suggestions.map(s=>`<button class="ai-suggest-chip" data-codice="${s.codice}" style="background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:5px 12px; font-size:11.5px; cursor:pointer;">+ ${s.prestazione}</button>`).join('')}
+    </div>`;
+  document.getElementById('cartList').insertAdjacentElement('afterend', panel);
+
+  panel.querySelectorAll('.ai-suggest-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      addToCart(chip.getAttribute('data-codice'));
+      scheduleSave();
+    });
+  });
+}
+
+document.getElementById('aiGenerateBtn').addEventListener('click', openAiGenerateModal);
+document.getElementById('aiGenerateClose').addEventListener('click', closeAiGenerateModal);
+document.getElementById('aiGenerateCancel').addEventListener('click', closeAiGenerateModal);
+document.getElementById('aiGenerateSubmit').addEventListener('click', runAiGenerate);
+document.getElementById('aiGenerateModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'aiGenerateModal') closeAiGenerateModal();
+});
+document.querySelectorAll('.ai-improve-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>improveTextField(btn));
+});
+/* ===================== fine EstimlyAI ===================== */
+
+/* ===================== Calcolatore costo orario ===================== */
+function computeHourlyRate(v){
+  const oreLavorativeAnnue = v.settimane * v.giorni * v.oreGiorno;
+  const oreFatturabiliAnnue = oreLavorativeAnnue * (v.fatturabile/100);
+  const costoTotale = (v.stipendio + v.costiFissi) * (1 + v.margine/100);
+  if(oreFatturabiliAnnue <= 0) return { rate:0, oreFatturabiliAnnue:0, costoTotale };
+  return { rate: costoTotale / oreFatturabiliAnnue, oreFatturabiliAnnue, costoTotale };
+}
+
+function openCostCalcModal(){
+  const c = studioSettings.costCalc || {};
+  document.getElementById('ccStipendio').value = c.stipendio ?? 30000;
+  document.getElementById('ccCostiFissi').value = c.costiFissi ?? 6000;
+  document.getElementById('ccSettimane').value = c.settimane ?? 46;
+  document.getElementById('ccGiorni').value = c.giorni ?? 5;
+  document.getElementById('ccOreGiorno').value = c.oreGiorno ?? 7;
+  document.getElementById('ccFatturabile').value = c.fatturabile ?? 60;
+  document.getElementById('ccMargine').value = c.margine ?? 15;
+  document.getElementById('costCalcResult').style.display = 'none';
+  document.getElementById('costCalcApply').style.display = 'none';
+  document.getElementById('costCalcModal').style.display = 'flex';
+}
+function closeCostCalcModal(){
+  document.getElementById('costCalcModal').style.display = 'none';
+}
+
+let lastComputedRate = 0;
+
+function runCostCalc(){
+  const v = {
+    stipendio: parseFloat(document.getElementById('ccStipendio').value) || 0,
+    costiFissi: parseFloat(document.getElementById('ccCostiFissi').value) || 0,
+    settimane: parseFloat(document.getElementById('ccSettimane').value) || 0,
+    giorni: parseFloat(document.getElementById('ccGiorni').value) || 0,
+    oreGiorno: parseFloat(document.getElementById('ccOreGiorno').value) || 0,
+    fatturabile: parseFloat(document.getElementById('ccFatturabile').value) || 0,
+    margine: parseFloat(document.getElementById('ccMargine').value) || 0
+  };
+  const { rate, oreFatturabiliAnnue, costoTotale } = computeHourlyRate(v);
+  lastComputedRate = rate;
+  studioSettings.costCalc = v;
+
+  document.getElementById('costCalcRateOut').textContent = '€ ' + fmt(rate) + ' /h';
+  document.getElementById('costCalcDetailOut').textContent =
+    `Basato su ${fmt(oreFatturabiliAnnue)} ore fatturabili/anno e € ${fmt(costoTotale)} da coprire complessivamente.`;
+  document.getElementById('costCalcResult').style.display = 'block';
+  document.getElementById('costCalcApply').style.display = 'inline-block';
+}
+
+function applyCostCalc(){
+  studioSettings.tariffaOrariaBase = +lastComputedRate.toFixed(2);
+  saveStudioSettings();
+  scheduleCloudSave();
+  const hcTariffa = document.getElementById('hcTariffa');
+  hcTariffa.value = studioSettings.tariffaOrariaBase;
+  closeCostCalcModal();
+}
+
+document.getElementById('openCostCalcTopBtn').addEventListener('click', openCostCalcModal);
+document.getElementById('costCalcClose').addEventListener('click', closeCostCalcModal);
+document.getElementById('costCalcCompute').addEventListener('click', runCostCalc);
+document.getElementById('costCalcApply').addEventListener('click', applyCostCalc);
+document.getElementById('costCalcModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'costCalcModal') closeCostCalcModal();
+});
+/* ===================== fine Calcolatore costo orario ===================== */
+
 function applyStudioSettings(){
   document.documentElement.style.setProperty('--accent', studioSettings.colorPrimary);
   document.documentElement.style.setProperty('--accent-hover', shadeColor(studioSettings.colorPrimary, -18));
@@ -1113,6 +1443,11 @@ function applyStudioSettings(){
   if(cStudio) cStudio.textContent = studioSettings.nome || 'Studio';
 
   renderPaymentBlock();
+
+  const hcTariffa = document.getElementById('hcTariffa');
+  if(hcTariffa && (!hcTariffa.value || parseFloat(hcTariffa.value) === 0) && studioSettings.tariffaOrariaBase){
+    hcTariffa.value = studioSettings.tariffaOrariaBase;
+  }
 }
 
 function hexToSoft(hex){
@@ -1165,8 +1500,8 @@ function openSettingsModal(){
   document.getElementById('sIntestatario').value = s.intestatario || '';
   document.getElementById('sBanca').value = s.banca || '';
   document.getElementById('sSdi').value = s.sdi || '';
-  document.getElementById('sColorPrimary').value = s.colorPrimary || '#4338CA';
-  document.getElementById('sColorInk').value = s.colorInk || '#17181C';
+  document.getElementById('sColorPrimary').value = s.colorPrimary || '#801430';
+  document.getElementById('sColorInk').value = s.colorInk || '#171717';
   document.getElementById('sLetterheadMode').value = s.letterheadMode || 'standard';
   document.getElementById('sFontPairing').value = s.fontPairing || 'moderno';
   document.getElementById('sPdfLayout').value = s.pdfLayout || 'classico';
@@ -1622,6 +1957,7 @@ function renderCart(){
   bindCartLineEvents();
   renderTotals();
   renderCartiglio();
+  renderAiSuggestions();
 }
 
 function cartLineHtml(l){
@@ -2239,9 +2575,6 @@ if('serviceWorker' in navigator){
   const GRACE_DAYS = 30;
   const TERMS_VERSION = 'v1';
   const TERMS_ACCEPTED_STORAGE = 'desearq-terms-accepted-version';
-  const INTERNAL_SESSION_KEY = 'INTERNAL-STUDIO';
-
-  let authMode = 'key'; // 'key' oppure 'login', determinato dal sito (variabile AUTH_MODE)
 
   function hideGate(){
     const gate = document.getElementById('licenseGate');
@@ -2259,18 +2592,9 @@ if('serviceWorker' in navigator){
   }
 
   function updateSubmitState(){
-    const btn = document.getElementById('licenseSubmitBtn');
-    if(authMode === 'login'){
-      const email = document.getElementById('loginEmailInput').value.trim();
-      const pass = document.getElementById('loginPasswordInput').value;
-      const ok = email && pass;
-      btn.disabled = !ok;
-      btn.style.opacity = ok ? '1' : '0.5';
-      btn.style.cursor = ok ? 'pointer' : 'not-allowed';
-      return;
-    }
     const tos = document.getElementById('acceptTos');
     const vex = document.getElementById('acceptVessatorie');
+    const btn = document.getElementById('licenseSubmitBtn');
     const ok = tos && vex && tos.checked && vex.checked;
     btn.disabled = !ok;
     btn.style.opacity = ok ? '1' : '0.5';
@@ -2290,6 +2614,8 @@ if('serviceWorker' in navigator){
         localStorage.setItem(KEY_STORAGE, key);
         localStorage.setItem(VALIDATED_AT_STORAGE, Date.now().toString());
         if(!opts.silent) localStorage.setItem(TERMS_ACCEPTED_STORAGE, TERMS_VERSION);
+        estimlyAiEnabled = !!data.aiEnabled;
+        applyAiVisibility();
         hideGate();
         loadCloudData();
         loadSavedQuotesCloud();
@@ -2303,72 +2629,7 @@ if('serviceWorker' in navigator){
     }
   }
 
-  async function validateLogin(email, password, opts){
-    opts = opts || {};
-    try{
-      const res = await fetch('/.netlify/functions/validate-login', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ email: email, password: password })
-      });
-      const data = await res.json();
-      if(data.valid){
-        localStorage.setItem(KEY_STORAGE, INTERNAL_SESSION_KEY);
-        localStorage.setItem(VALIDATED_AT_STORAGE, Date.now().toString());
-        localStorage.setItem(TERMS_ACCEPTED_STORAGE, TERMS_VERSION);
-        hideGate();
-        loadCloudData();
-        loadSavedQuotesCloud();
-        return true;
-      }
-      if(!opts.silent) showError('Email o password non corrette.');
-      return false;
-    }catch(err){
-      if(!opts.silent) showError('Impossibile verificare le credenziali: controlla la connessione.');
-      return false;
-    }
-  }
-
-  async function detectAuthMode(){
-    try{
-      const res = await fetch('/.netlify/functions/auth-mode');
-      const data = await res.json();
-      return data.mode === 'login' ? 'login' : 'key';
-    }catch(err){
-      return 'key';
-    }
-  }
-
-  function applyAuthModeUI(){
-    const isLogin = authMode === 'login';
-    document.getElementById('licenseKeyInput').style.display = isLogin ? 'none' : 'block';
-    document.getElementById('loginEmailInput').style.display = isLogin ? 'block' : 'none';
-    document.getElementById('loginPasswordInput').style.display = isLogin ? 'block' : 'none';
-    document.getElementById('gateTosBlock').style.display = isLogin ? 'none' : 'block';
-    document.getElementById('gateSubtitle').textContent = isLogin
-      ? 'Accedi con le tue credenziali per continuare'
-      : 'Inserisci la chiave di licenza per continuare';
-  }
-
   async function initLicenseGate(){
-    authMode = await detectAuthMode();
-    applyAuthModeUI();
-
-    if(authMode === 'login'){
-      const storedKey = localStorage.getItem(KEY_STORAGE);
-      const validatedAt = parseInt(localStorage.getItem(VALIDATED_AT_STORAGE) || '0', 10);
-      const withinGrace = storedKey && (Date.now() - validatedAt) < GRACE_DAYS*24*60*60*1000;
-      if(storedKey === INTERNAL_SESSION_KEY && withinGrace){
-        hideGate();
-        loadCloudData();
-        loadSavedQuotesCloud();
-      }
-      document.getElementById('loginEmailInput').addEventListener('input', updateSubmitState);
-      document.getElementById('loginPasswordInput').addEventListener('input', updateSubmitState);
-      updateSubmitState();
-      return;
-    }
-
     const storedKey = localStorage.getItem(KEY_STORAGE);
     const validatedAt = parseInt(localStorage.getItem(VALIDATED_AT_STORAGE) || '0', 10);
     const withinGrace = storedKey && (Date.now() - validatedAt) < GRACE_DAYS*24*60*60*1000;
@@ -2391,13 +2652,6 @@ if('serviceWorker' in navigator){
   }
 
   document.getElementById('licenseSubmitBtn').addEventListener('click', () => {
-    if(authMode === 'login'){
-      const email = document.getElementById('loginEmailInput').value.trim();
-      const password = document.getElementById('loginPasswordInput').value;
-      if(!email || !password) return;
-      validateLogin(email, password);
-      return;
-    }
     const tos = document.getElementById('acceptTos');
     const vex = document.getElementById('acceptVessatorie');
     if(!tos.checked || !vex.checked){
@@ -2409,9 +2663,6 @@ if('serviceWorker' in navigator){
     validateKey(key);
   });
   document.getElementById('licenseKeyInput').addEventListener('keydown', (e) => {
-    if(e.key === 'Enter') document.getElementById('licenseSubmitBtn').click();
-  });
-  document.getElementById('loginPasswordInput').addEventListener('keydown', (e) => {
     if(e.key === 'Enter') document.getElementById('licenseSubmitBtn').click();
   });
 
