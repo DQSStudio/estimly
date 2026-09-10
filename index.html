@@ -173,6 +173,9 @@ header.top{
 .category-block.drag-over{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft);}
 .drag-handle{cursor:grab; color:var(--ink-faint); margin-right:6px; font-size:13px; letter-spacing:-1px;}
 .category-head[draggable="true"]:active .drag-handle{cursor:grabbing;}
+.item-row.dragging, .cart-line.dragging{opacity:0.4;}
+.item-row.drag-over, .cart-line.drag-over{background:var(--accent-soft);}
+.item-row[draggable="true"]:active .drag-handle, .cart-line[draggable="true"]:active .drag-handle{cursor:grabbing;}
 .category-head{
   display:flex; align-items:center; justify-content:space-between; padding:13px 16px; cursor:pointer;
 }
@@ -190,7 +193,7 @@ header.top{
   padding:12px 16px; border-top:1px solid var(--border-soft);
 }
 .item-row:hover{background:var(--surface-alt);}
-.item-code{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint);}
+.item-code{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint); display:flex; align-items:center;}
 .item-name{font-weight:500; font-size:13.5px;}
 .item-desc{font-size:12px; color:var(--ink-soft); margin-top:1px;}
 .item-badge{
@@ -298,7 +301,7 @@ header.top{
 .cart-group-head span:last-child{font-family:'JetBrains Mono',monospace; font-weight:400; color:var(--ink-faint);}
 .cart-line{padding:11px 0; border-bottom:1px solid var(--border-soft);}
 .cart-line-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
-.cart-line-name{font-size:12.5px; font-weight:500;}
+.cart-line-name{font-size:12.5px; font-weight:500; display:flex; align-items:center;}
 .cart-line-code{font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-faint);}
 .mode-toggle{display:flex; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; margin:7px 0;}
 .mode-toggle button{
@@ -314,6 +317,46 @@ header.top{
   font-family:'JetBrains Mono',monospace; color:var(--ink); background:var(--surface);
 }
 .cart-line-fields input:focus{outline:none; border-color:var(--accent);}
+.cart-line-note{margin-bottom:6px;}
+.cart-line-note label{display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:0.3px; color:var(--ink-faint); margin-bottom:2px;}
+.cart-line-note input{
+  width:100%; padding:5px 6px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12px;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color:var(--ink); background:var(--surface);
+}
+.cart-line-note input:focus{outline:none; border-color:var(--accent);}
+
+.contract-manager{ margin-top:6px; }
+.contract-template-card{ border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin-bottom:10px; background:var(--surface-alt); }
+.contract-template-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.contract-template-name-input{
+  flex:1; font-size:13.5px; font-weight:600; padding:6px 8px; border:1px solid transparent; border-radius:var(--radius-sm);
+  background:transparent; color:var(--ink); font-family:inherit;
+}
+.contract-template-name-input:focus{ outline:none; border-color:var(--border); background:var(--surface); }
+.contract-template-head button{ border:none; background:none; color:var(--accent); font-size:11px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.contract-template-head button.danger{ color:var(--danger); }
+.contract-section-card{ border:1px solid var(--border-soft); border-radius:var(--radius-sm); padding:8px; margin-bottom:8px; background:var(--surface); }
+.contract-section-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.contract-section-head span{ font-size:10px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-faint); font-weight:600; }
+.contract-section-head button{ border:none; background:none; color:var(--danger); font-size:10.5px; cursor:pointer; }
+.contract-section-card input[type="text"]{
+  width:100%; padding:6px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12.5px;
+  font-weight:500; color:var(--ink); background:var(--surface); margin-bottom:6px; font-family:inherit;
+}
+.contract-section-card textarea{
+  width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:inherit;
+  font-size:12px; background:var(--surface); color:var(--ink); resize:vertical;
+}
+.contract-section-card input[type="text"]:focus, .contract-section-card textarea:focus{ outline:none; border-color:var(--accent); }
+.extra-page-card{ border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:8px; background:var(--surface-alt); }
+.extra-page-card-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.extra-page-card-head span{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-faint); font-weight:600; }
+.extra-page-card-head button{ border:none; background:none; color:var(--danger); font-size:11px; cursor:pointer; }
+.extra-page-card textarea{
+  width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:inherit;
+  font-size:12.5px; background:var(--surface); color:var(--ink); resize:vertical;
+}
+.extra-page-card textarea:focus{ outline:none; border-color:var(--accent); }
 .cart-line-total{display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); margin-top:2px;}
 .cart-line-total span{font-family:'JetBrains Mono',monospace; font-weight:600; color:var(--ink);}
 .remove-x{background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:16px; padding:0 2px; line-height:1;}
@@ -373,7 +416,8 @@ header.top{
 @media print{
   header.top, .catalog, .toolbar, .top-actions, .custom-add, .action-btns, .print-hint,
   .mode-toggle, .remove-x, .icon-btn, .new-item-btn, .hour-calc, .modal-overlay,
-  .quote-header, .field-section-label, .field-grid, #cartList, #totalsBlock, .cartiglio{
+  .quote-header, .field-section-label, .field-grid, #cartList, #totalsBlock, .cartiglio,
+  .extra-pages-section, #contractSelectRow, #contractStatus{
     display:none !important;
   }
 
@@ -383,6 +427,7 @@ header.top{
   .layout{ display:block; max-width:800px; margin:0 auto; }
   .quote-panel{ position:static; border:none; min-height:0; width:100%; }
   .quote-scroll{ padding:0; overflow:visible; }
+
 
   #printDoc{
     display:block; color:#111;
@@ -427,6 +472,17 @@ header.top{
   .pd-total-row.pd-grand span:last-child{ color:var(--accent); }
   .pd-nota{ font-size:10px; color:#777; font-style:italic; margin-top:7px; text-align:right; }
   .pd-payment{ font-size:11px; color:#444; margin-top:14px; padding-top:9px; border-top:1px dashed #ccc; }
+
+  .pd-extra-pages{ page-break-before:always; padding-top:20px; font-size:12.5px; line-height:1.6; color:#222; }
+  .pd-extra-pages p{ margin:0 0 10px; }
+
+  .pd-item-name{ font-weight:500; }
+  .pd-item-desc{ font-size:10.5px; color:#777; margin-top:2px; line-height:1.4; }
+  .pd-item-note{ font-size:10.5px; color:#a15c00; font-style:italic; margin-top:2px; }
+
+  .pd-contract-body{ margin-top:24px; }
+  .pd-contract-h2{ font-size:14px; margin:20px 0 8px; color:#111; }
+  .pd-contract-p{ font-size:12.5px; line-height:1.65; color:#222; margin:0 0 10px; }
 
   .pd-letterhead-header{ display:block; width:100%; max-height:160px; object-fit:contain; margin-bottom:14px; }
   .pd-letterhead-footer{ display:block; width:100%; max-height:120px; object-fit:contain; margin-top:18px; }
@@ -575,6 +631,16 @@ header.top{
     </div>
 
     <div id="catalogRoot"></div>
+
+    <div class="contract-manager">
+      <div class="field-section-label" style="margin-top:20px;">Contratti</div>
+      <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">
+        Scrivi qui i tuoi modelli di contratto, divisi in sezioni. Alla stampa useranno automaticamente la stessa intestazione/logo del preventivo. Segnaposto disponibili tra graffe:
+        <code style="font-size:10.5px;">{cliente}</code> <code style="font-size:10.5px;">{indirizzo_cliente}</code> <code style="font-size:10.5px;">{cf_piva_cliente}</code> <code style="font-size:10.5px;">{numero_preventivo}</code> <code style="font-size:10.5px;">{data}</code> <code style="font-size:10.5px;">{oggetto}</code> <code style="font-size:10.5px;">{totale}</code> <code style="font-size:10.5px;">{validita}</code> <code style="font-size:10.5px;">{studio_nome}</code> <code style="font-size:10.5px;">{studio_indirizzo}</code> <code style="font-size:10.5px;">{studio_piva}</code>
+      </div>
+      <div id="contractTemplatesList"></div>
+      <button type="button" id="addContractTemplateBtn" class="new-item-btn" style="margin-top:6px;">+ Nuovo modello di contratto</button>
+    </div>
   </div>
 
   <div class="quote-panel">
@@ -647,6 +713,18 @@ header.top{
       </div>
 
       <div class="totals" id="totalsBlock"></div>
+
+      <div class="extra-pages-section">
+        <div class="field-section-label" style="margin-top:18px;">Pagine extra allegate al preventivo</div>
+        <div style="font-size:11px; color:var(--ink-soft); margin-bottom:8px;">Ogni blocco qui sotto diventa una pagina a sé nel PDF finale, dopo il preventivo.</div>
+        <div id="extraPagesList"></div>
+        <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center;">
+          <button type="button" id="addExtraPageBtn" class="btn-cancel" style="padding:7px 14px; font-size:12px;">+ Aggiungi pagina di testo</button>
+          <select id="textBlockInsert" style="padding:6px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:11.5px; background:var(--surface); color:var(--ink);">
+            <option value="">+ Inserisci blocco salvato come nuova pagina...</option>
+          </select>
+        </div>
+      </div>
     </div>
 
     <div class="cartiglio">
@@ -666,10 +744,16 @@ header.top{
         <div class="payment-block-grid" id="paymentBlockGrid"></div>
       </div>
       <div class="stamp">CONFORME<br>PREVENTIVO</div>
+      <div id="contractSelectRow" style="display:none; margin-bottom:8px;">
+        <label style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-faint); margin-bottom:3px; display:block; font-weight:500;">Contratto da generare insieme al preventivo</label>
+        <select id="contractTemplateSelect" style="width:100%; padding:7px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); font-size:12.5px; color:var(--ink);"></select>
+        <button type="button" id="contractPreviewBtn" style="border:none; background:none; color:var(--accent); font-size:11px; font-weight:600; cursor:pointer; padding:6px 0 0; display:none;">Anteprima contratto (senza stampare)</button>
+      </div>
       <div class="action-btns">
         <button id="printBtn">Stampa / Salva PDF</button>
         <button id="exportBtn" class="secondary">Esporta Excel</button>
       </div>
+      <div id="contractStatus" style="font-size:11px; color:var(--ink-soft); margin-top:6px; display:none;"></div>
       <div class="print-hint">Nella finestra di stampa scegli "Salva come PDF" come destinazione.</div>
     </div>
   </div>
@@ -771,6 +855,17 @@ header.top{
         </div>
       </div>
 
+      <div class="field-section-label">Blocchi di testo riutilizzabili</div>
+      <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">
+        Salva qui testi che usi spesso come pagine extra nei preventivi (termini e condizioni, note generali, specifiche standard). Potrai richiamarli dal menu "Inserisci blocco salvato" mentre compili un preventivo.
+      </div>
+      <div id="textBlocksList" style="margin-bottom:10px;"></div>
+      <div class="field-grid" style="padding:0; margin-bottom:8px;">
+        <div class="field"><label>Nome del blocco</label><input id="newTextBlockName" placeholder="Es. Termini standard"></div>
+      </div>
+      <textarea id="newTextBlockContent" rows="4" placeholder="Testo del blocco..." style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:12.5px; background:var(--surface); color:var(--ink); resize:vertical; margin-bottom:8px;"></textarea>
+      <button type="button" id="addTextBlockBtn" class="btn-cancel" style="padding:8px 16px;">+ Salva blocco</button>
+
     </div>
     <div class="modal-actions">
       <button id="settingsSave" class="btn-save">Salva impostazioni</button>
@@ -811,6 +906,21 @@ header.top{
     <div class="modal-actions">
       <button id="aiGenerateSubmit" class="btn-save">Genera</button>
       <button id="aiGenerateCancel" class="btn-cancel">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div id="contractPreviewModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="max-width:700px;">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Anteprima contratto</div>
+      <button id="contractPreviewClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body" style="max-height:60vh; overflow:auto;">
+      <div id="contractPreviewBody" style="font-size:13px; line-height:1.6;"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="contractPreviewCloseBtn" class="btn-cancel">Chiudi</button>
     </div>
   </div>
 </div>
@@ -885,6 +995,34 @@ function reorderCategory(draggedCat, targetCat){
   scheduleCloudSave();
 }
 
+function reorderCatalogItem(draggedCodice, targetCodice){
+  if(!draggedCodice || !targetCodice || draggedCodice === targetCodice) return;
+  const draggedItem = catalog.find(i=>i.codice===draggedCodice);
+  const targetItem = catalog.find(i=>i.codice===targetCodice);
+  if(!draggedItem || !targetItem) return;
+  if(draggedItem.categoria !== targetItem.categoria) return;
+  const from = catalog.indexOf(draggedItem);
+  catalog.splice(from, 1);
+  const to = catalog.indexOf(targetItem);
+  catalog.splice(to, 0, draggedItem);
+  renderCatalog();
+  scheduleCloudSave();
+}
+
+function reorderCartLine(draggedId, targetId){
+  if(draggedId==null || targetId==null || draggedId===targetId) return;
+  const draggedLine = cart.find(l=>l.id===draggedId);
+  const targetLine = cart.find(l=>l.id===targetId);
+  if(!draggedLine || !targetLine) return;
+  if((draggedLine.categoria||'Altro') !== (targetLine.categoria||'Altro')) return;
+  const from = cart.indexOf(draggedLine);
+  cart.splice(from, 1);
+  const to = cart.indexOf(targetLine);
+  cart.splice(to, 0, draggedLine);
+  renderCart();
+  scheduleSave();
+}
+
 const REGIMI_FISCALI = {
   ord22:   { label:'IVA ordinaria 22%', rate:0.22, nota:'' },
   rid10:   { label:'IVA ridotta 10%', rate:0.10, nota:'' },
@@ -897,6 +1035,7 @@ const REGIMI_FISCALI = {
 
 let catalog = [];
 let cart = [];
+let extraPages = [];
 let openCategories = new Set();
 let activePkg = 'all';
 let searchTerm = '';
@@ -905,6 +1044,8 @@ let idCounter = 1;
 let editingCodice = null;
 let editingNew = false;
 let draggedCategory = null;
+let draggedItemCodice = null;
+let draggedCartLineId = null;
 
 let studioSettings = {
   nome:'DESEARQ', tagline:'Preventivatore di studio', indirizzo:'', piva:'', cf:'',
@@ -913,7 +1054,9 @@ let studioSettings = {
   letterheadMode:'standard', letterheadHeader:'', letterheadFooter:'',
   fontPairing:'moderno', pdfLayout:'classico',
   tariffaOrariaBase: 0,
-  costCalc: { stipendio:30000, costiFissi:6000, settimane:46, giorni:5, oreGiorno:7, fatturabile:60, margine:15 }
+  costCalc: { stipendio:30000, costiFissi:6000, settimane:46, giorni:5, oreGiorno:7, fatturabile:60, margine:15 },
+  contractTemplates: [],
+  textBlocks: []
 };
 
 function fmt(n){
@@ -1017,6 +1160,7 @@ function currentQuoteState(){
       validita: parseInt(document.getElementById('fValidita').value,10) || 30,
       sconto: parseFloat(document.getElementById('fSconto').value)||0,
       notePagamento: document.getElementById('fNotePagamento').value,
+      pagineExtra: extraPages.map(p=>p.testo),
       contributoLabel: document.getElementById('fContributoLabel').value,
       contributoPct: parseFloat(document.getElementById('fContributoPct').value) || 0,
       regime: document.getElementById('fRegime').value,
@@ -1141,6 +1285,7 @@ function loadQuoteById(id){
   document.getElementById('fValidita').value = c.validita ?? 30;
   document.getElementById('fSconto').value = c.sconto ?? 0;
   document.getElementById('fNotePagamento').value = c.notePagamento || '';
+  extraPages = normalizeExtraPages(c.pagineExtra); renderExtraPages();
   document.getElementById('fContributoLabel').value = c.contributoLabel || '';
   document.getElementById('fContributoPct').value = c.contributoPct ?? 0;
   document.getElementById('fRegime').value = c.regime || 'ord22';
@@ -1202,7 +1347,7 @@ function addToCartWithQty(codice, qty){
   cart.push({
     id:idCounter++, codice:item.codice, nome:item.prestazione, um:item.um,
     modalita:'fisso', qty:q, prezzo:item.prezzo, ore:item.ore||1, tariffa:item.ore ? +(item.prezzo/item.ore).toFixed(2) : item.prezzo,
-    custom:false, categoria:item.categoria
+    custom:false, categoria:item.categoria, descrizione:item.descrizione||'', nota:''
   });
 }
 
@@ -1440,11 +1585,400 @@ document.getElementById('costCalcModal').addEventListener('click', (e)=>{
 });
 /* ===================== fine Calcolatore costo orario ===================== */
 
+/* ===================== Modelli di contratto (nativi, a sezioni) ===================== */
+let studioSaveTimer = null;
+function scheduleStudioSave(){
+  clearTimeout(studioSaveTimer);
+  studioSaveTimer = setTimeout(()=>{ saveStudioSettings(); scheduleCloudSave(); }, 400);
+}
+
+function getContractData(){
+  const s = studioSettings;
+  const cliente = document.getElementById('fCliente').value || '';
+  const indirizzoCliente = document.getElementById('fIndirizzo').value || '';
+  const cf = document.getElementById('fCF').value || '';
+  const piva = document.getElementById('fPiva').value || '';
+  const progetto = document.getElementById('fProgetto').value || '';
+  const dataRaw = document.getElementById('fData').value;
+  const dataFmt = dataRaw ? new Date(dataRaw+'T00:00:00').toLocaleDateString('it-IT') : '';
+  const numero = document.getElementById('fNumero').value || '';
+  const validita = addDays(dataRaw, document.getElementById('fValidita').value);
+
+  const imponibile = cart.reduce((sum,l)=>sum+lineTotal(l),0);
+  const scontoPct = parseFloat(document.getElementById('fSconto').value)||0;
+  const sconto = imponibile*scontoPct/100;
+  const netto = imponibile - sconto;
+  const contributoPct = parseFloat(document.getElementById('fContributoPct').value) || 0;
+  const contributo = netto * contributoPct/100;
+  const baseIva = netto + contributo;
+  const regime = getRegimeAttivo();
+  const totale = baseIva + baseIva*regime.rate;
+
+  return {
+    cliente, indirizzo_cliente: indirizzoCliente,
+    cf_piva_cliente: [cf, piva].filter(Boolean).join(' / ') || '—',
+    numero_preventivo: numero, data: dataFmt, oggetto: progetto || '—',
+    totale: '€ ' + fmt(totale), validita,
+    studio_nome: s.nome || '', studio_indirizzo: s.indirizzo || '', studio_piva: s.piva || ''
+  };
+}
+
+function substitutePlaceholders(text, data){
+  let out = text || '';
+  Object.keys(data).forEach(key=>{
+    out = out.split('{' + key + '}').join(escapeHtml(String(data[key])));
+  });
+  return out;
+}
+
+function buildContractPrintHtml(template){
+  const data = getContractData();
+  const sections = (template.sections||[]).filter(sec => (sec.titolo||'').trim() || (sec.corpo||'').trim());
+  const bodyHtml = sections.map(sec => `
+    ${sec.titolo ? `<h2 class="pd-contract-h2">${substitutePlaceholders(sec.titolo, data)}</h2>` : ''}
+    ${(sec.corpo||'').trim() ? substitutePlaceholders(sec.corpo, data).split(/\n{2,}/).map(par=>`<p class="pd-contract-p">${par.replace(/\n/g,'<br>')}</p>`).join('') : ''}
+  `).join('');
+
+  const headerHtml = buildLetterheadHtml('Contratto', [
+    ['Rif. preventivo', escapeHtml(data.numero_preventivo)],
+    ['Data', data.data]
+  ]);
+
+  return `${headerHtml}<div class="pd-contract-body">${bodyHtml}</div>${letterheadFooterHtml()}`;
+}
+
+function renderContractTemplatesList(){
+  const box = document.getElementById('contractTemplatesList');
+  if(!box) return;
+  const templates = studioSettings.contractTemplates || [];
+  if(templates.length === 0){
+    box.innerHTML = '<div style="font-size:12px; color:var(--ink-faint); margin-bottom:8px;">Nessun modello ancora creato.</div>';
+    return;
+  }
+  box.innerHTML = templates.map(t => `
+    <div class="contract-template-card" data-template-id="${t.id}">
+      <div class="contract-template-head">
+        <input type="text" data-template-name="${t.id}" value="${escapeHtml(t.nome)}" class="contract-template-name-input">
+        <div style="display:flex; gap:10px; flex-shrink:0;">
+          <button type="button" data-preview-template="${t.id}">Anteprima</button>
+          <button type="button" data-remove-template="${t.id}" class="danger">Elimina modello</button>
+        </div>
+      </div>
+      <div class="contract-sections">
+        ${(t.sections||[]).map((sec, idx) => `
+          <div class="contract-section-card" data-section-id="${sec.id}">
+            <div class="contract-section-head">
+              <span>Sezione ${idx+1}</span>
+              <button type="button" data-remove-section="${t.id}|${sec.id}">Rimuovi</button>
+            </div>
+            <input type="text" data-section-title="${t.id}|${sec.id}" value="${escapeHtml(sec.titolo)}" placeholder="Titolo sezione (es. Oggetto dell'incarico)">
+            <textarea rows="4" data-section-body="${t.id}|${sec.id}" placeholder="Testo della sezione...">${escapeHtml(sec.corpo)}</textarea>
+          </div>
+        `).join('')}
+      </div>
+      <button type="button" data-add-section="${t.id}" class="btn-cancel" style="padding:6px 12px; font-size:11.5px; margin-top:4px;">+ Aggiungi sezione</button>
+    </div>
+  `).join('');
+
+  box.querySelectorAll('[data-template-name]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const t = templates.find(x=>x.id===inp.getAttribute('data-template-name'));
+      if(t){ t.nome = inp.value; populateContractSelect(); scheduleStudioSave(); }
+    });
+  });
+  box.querySelectorAll('[data-remove-template]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(!confirm('Eliminare questo modello di contratto?')) return;
+      studioSettings.contractTemplates = templates.filter(t=>t.id!==btn.getAttribute('data-remove-template'));
+      renderContractTemplatesList();
+      populateContractSelect();
+      saveStudioSettings();
+      scheduleCloudSave();
+    });
+  });
+  box.querySelectorAll('[data-preview-template]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = templates.find(x=>x.id===btn.getAttribute('data-preview-template'));
+      if(!t) return;
+      document.getElementById('contractPreviewBody').innerHTML = buildContractPrintHtml(t);
+      document.getElementById('contractPreviewModal').style.display = 'flex';
+    });
+  });
+  box.querySelectorAll('[data-add-section]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = templates.find(x=>x.id===btn.getAttribute('data-add-section'));
+      if(t){
+        t.sections = t.sections || [];
+        t.sections.push({ id:'sec_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6), titolo:'', corpo:'' });
+        renderContractTemplatesList();
+        saveStudioSettings();
+        scheduleCloudSave();
+      }
+    });
+  });
+  box.querySelectorAll('[data-remove-section]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const [tid, sid] = btn.getAttribute('data-remove-section').split('|');
+      const t = templates.find(x=>x.id===tid);
+      if(t){
+        t.sections = (t.sections||[]).filter(s=>s.id!==sid);
+        renderContractTemplatesList();
+        saveStudioSettings();
+        scheduleCloudSave();
+      }
+    });
+  });
+  box.querySelectorAll('[data-section-title]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const [tid, sid] = inp.getAttribute('data-section-title').split('|');
+      const t = templates.find(x=>x.id===tid);
+      const sec = t && (t.sections||[]).find(s=>s.id===sid);
+      if(sec){ sec.titolo = inp.value; scheduleStudioSave(); }
+    });
+  });
+  box.querySelectorAll('[data-section-body]').forEach(ta=>{
+    ta.addEventListener('input', ()=>{
+      const [tid, sid] = ta.getAttribute('data-section-body').split('|');
+      const t = templates.find(x=>x.id===tid);
+      const sec = t && (t.sections||[]).find(s=>s.id===sid);
+      if(sec){ sec.corpo = ta.value; scheduleStudioSave(); }
+    });
+  });
+}
+
+document.getElementById('addContractTemplateBtn').addEventListener('click', ()=>{
+  const nome = prompt('Nome del nuovo modello di contratto:', 'Nuovo contratto');
+  if(nome === null) return;
+  const nomeFinal = nome.trim() || 'Nuovo contratto';
+  studioSettings.contractTemplates = studioSettings.contractTemplates || [];
+  studioSettings.contractTemplates.push({
+    id: 'ct_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6),
+    nome: nomeFinal,
+    sections: [{ id:'sec_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6), titolo:'', corpo:'' }]
+  });
+  renderContractTemplatesList();
+  populateContractSelect();
+  saveStudioSettings();
+  scheduleCloudSave();
+});
+
+function populateContractSelect(){
+  const sel = document.getElementById('contractTemplateSelect');
+  const row = document.getElementById('contractSelectRow');
+  if(!sel || !row) return;
+  const templates = studioSettings.contractTemplates || [];
+  if(templates.length === 0){
+    row.style.display = 'none';
+    return;
+  }
+  row.style.display = 'block';
+  const current = sel.value;
+  sel.innerHTML = `<option value="">Nessun contratto (solo preventivo)</option>` +
+    templates.map(t=>`<option value="${t.id}">${escapeHtml(t.nome)}</option>`).join('');
+  if(templates.find(t=>t.id===current)) sel.value = current;
+  const previewBtn = document.getElementById('contractPreviewBtn');
+  if(previewBtn) previewBtn.style.display = sel.value ? 'block' : 'none';
+}
+
+function previewContract(){
+  const templateId = document.getElementById('contractTemplateSelect').value;
+  const template = (studioSettings.contractTemplates||[]).find(t=>t.id===templateId);
+  if(!template) return;
+  document.getElementById('contractPreviewBody').innerHTML = buildContractPrintHtml(template);
+  document.getElementById('contractPreviewModal').style.display = 'flex';
+}
+document.getElementById('contractPreviewBtn').addEventListener('click', previewContract);
+document.getElementById('contractPreviewClose').addEventListener('click', ()=>{ document.getElementById('contractPreviewModal').style.display='none'; });
+document.getElementById('contractPreviewCloseBtn').addEventListener('click', ()=>{ document.getElementById('contractPreviewModal').style.display='none'; });
+document.getElementById('contractTemplateSelect').addEventListener('change', (e)=>{
+  document.getElementById('contractPreviewBtn').style.display = e.target.value ? 'block' : 'none';
+});
+
+let printTarget = 'quote';
+
+function printAndWait(){
+  return new Promise((resolve) => {
+    function onAfterPrint(){
+      window.removeEventListener('afterprint', onAfterPrint);
+      resolve();
+    }
+    window.addEventListener('afterprint', onAfterPrint);
+    window.print();
+  });
+}
+
+async function generateContract(templateId){
+  const template = (studioSettings.contractTemplates||[]).find(t=>t.id===templateId);
+  if(!template) return;
+  const statusEl = document.getElementById('contractStatus');
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'Si aprirà prima la finestra di stampa del contratto, poi quella del preventivo.';
+  try{
+    printTarget = 'contract';
+    document.getElementById('printDoc').innerHTML = buildContractPrintHtml(template);
+    await printAndWait();
+    statusEl.textContent = 'Contratto pronto.';
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = 'Impossibile generare il contratto.';
+  } finally {
+    printTarget = 'quote';
+  }
+}
+/* ===================== fine Modelli di contratto ===================== */
+
+/* ===================== Blocchi di testo riutilizzabili ===================== */
+function renderTextBlocksList(){
+  const box = document.getElementById('textBlocksList');
+  if(!box) return;
+  const blocks = studioSettings.textBlocks || [];
+  if(blocks.length === 0){
+    box.innerHTML = '<div style="font-size:12px; color:var(--ink-faint);">Nessun blocco salvato.</div>';
+    return;
+  }
+  box.innerHTML = blocks.map(b=>`
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border-soft);">
+      <span style="font-size:12.5px;">${escapeHtml(b.nome)}</span>
+      <button type="button" data-remove-block="${b.id}" style="border:none; background:none; color:var(--danger); font-size:11px; cursor:pointer;">Rimuovi</button>
+    </div>
+  `).join('');
+  box.querySelectorAll('[data-remove-block]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-remove-block');
+      studioSettings.textBlocks = (studioSettings.textBlocks||[]).filter(b=>b.id!==id);
+      renderTextBlocksList();
+      populateTextBlockInsert();
+      saveStudioSettings();
+      scheduleCloudSave();
+    });
+  });
+}
+
+function populateTextBlockInsert(){
+  const sel = document.getElementById('textBlockInsert');
+  if(!sel) return;
+  const blocks = studioSettings.textBlocks || [];
+  sel.innerHTML = `<option value="">+ Inserisci blocco salvato...</option>` +
+    blocks.map(b=>`<option value="${b.id}">${escapeHtml(b.nome)}</option>`).join('');
+}
+
+document.getElementById('addTextBlockBtn').addEventListener('click', ()=>{
+  const nome = document.getElementById('newTextBlockName').value.trim();
+  const content = document.getElementById('newTextBlockContent').value.trim();
+  if(!nome || !content){ alert('Inserisci nome e testo del blocco.'); return; }
+  studioSettings.textBlocks = studioSettings.textBlocks || [];
+  studioSettings.textBlocks.push({
+    id: 'tb_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6),
+    nome, content
+  });
+  document.getElementById('newTextBlockName').value = '';
+  document.getElementById('newTextBlockContent').value = '';
+  renderTextBlocksList();
+  populateTextBlockInsert();
+  saveStudioSettings();
+  scheduleCloudSave();
+});
+
+document.getElementById('textBlockInsert').addEventListener('change', (e)=>{
+  const id = e.target.value;
+  if(!id) return;
+  const block = (studioSettings.textBlocks||[]).find(b=>b.id===id);
+  if(block){
+    addExtraPage(block.content);
+  }
+  e.target.value = '';
+});
+/* ===================== fine Blocchi di testo riutilizzabili ===================== */
+
+/* ===================== Pagine extra del preventivo ===================== */
+function renderExtraPages(){
+  const box = document.getElementById('extraPagesList');
+  if(!box) return;
+  if(extraPages.length === 0){
+    box.innerHTML = '';
+    return;
+  }
+  box.innerHTML = extraPages.map((p, idx)=>`
+    <div class="extra-page-card" data-page-id="${p.id}">
+      <div class="extra-page-card-head">
+        <span>Pagina ${idx+1}</span>
+        <div style="display:flex; gap:12px;">
+          <button type="button" data-save-block="${p.id}" style="border:none; background:none; color:var(--accent); font-size:11px; cursor:pointer; font-weight:600;">Salva come blocco</button>
+          <button type="button" data-remove-page="${p.id}">Rimuovi</button>
+        </div>
+      </div>
+      <textarea rows="4" data-page-text="${p.id}" placeholder="Testo di questa pagina...">${escapeHtml(p.testo)}</textarea>
+    </div>
+  `).join('');
+  box.querySelectorAll('[data-page-text]').forEach(ta=>{
+    ta.addEventListener('input', ()=>{
+      const id = ta.getAttribute('data-page-text');
+      const page = extraPages.find(p=>p.id===id);
+      if(page){ page.testo = ta.value; scheduleSave(); }
+    });
+  });
+  box.querySelectorAll('[data-save-block]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-save-block');
+      const page = extraPages.find(p=>p.id===id);
+      if(!page || !page.testo.trim()){ alert('Scrivi del testo in questa pagina prima di salvarla come blocco.'); return; }
+      const nome = prompt('Nome del blocco riutilizzabile:', 'Nuovo blocco');
+      if(nome === null) return;
+      const nomeFinal = nome.trim();
+      if(!nomeFinal) return;
+      studioSettings.textBlocks = studioSettings.textBlocks || [];
+      studioSettings.textBlocks.push({
+        id: 'tb_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6),
+        nome: nomeFinal,
+        content: page.testo
+      });
+      populateTextBlockInsert();
+      saveStudioSettings();
+      scheduleCloudSave();
+      alert(`Blocco "${nomeFinal}" salvato. Da ora lo trovi in "Inserisci blocco salvato" in qualsiasi preventivo.`);
+    });
+  });
+  box.querySelectorAll('[data-remove-page]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-remove-page');
+      extraPages = extraPages.filter(p=>p.id!==id);
+      renderExtraPages();
+      scheduleSave();
+    });
+  });
+}
+
+function addExtraPage(initialText){
+  const id = 'ep_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6);
+  extraPages.push({ id, testo: initialText || '' });
+  renderExtraPages();
+  scheduleSave();
+  const ta = document.querySelector(`[data-page-text="${id}"]`);
+  if(ta) ta.focus();
+}
+
+function normalizeExtraPages(raw){
+  if(Array.isArray(raw)){
+    return raw.map(t=>({ id:'ep_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6), testo:t }));
+  }
+  if(typeof raw === 'string' && raw.trim()){
+    return [{ id:'ep_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6), testo:raw }];
+  }
+  return [];
+}
+
+document.getElementById('addExtraPageBtn').addEventListener('click', ()=>addExtraPage(''));
+/* ===================== fine Pagine extra del preventivo ===================== */
+
 function applyStudioSettings(){
   document.documentElement.style.setProperty('--accent', studioSettings.colorPrimary);
   document.documentElement.style.setProperty('--accent-hover', shadeColor(studioSettings.colorPrimary, -18));
   document.documentElement.style.setProperty('--accent-soft', hexToSoft(studioSettings.colorPrimary));
   document.documentElement.style.setProperty('--ink', studioSettings.colorInk);
+
+  populateContractSelect();
+  renderContractTemplatesList();
+  populateTextBlockInsert();
 
   document.getElementById('brandName').textContent = studioSettings.nome || 'Studio';
   document.getElementById('brandSub').textContent = studioSettings.tagline || '';
@@ -1502,6 +2036,7 @@ function renderPaymentBlock(){
 
 function openSettingsModal(){
   const s = studioSettings;
+  renderTextBlocksList();
   document.getElementById('sNome').value = s.nome || '';
   document.getElementById('sTagline').value = s.tagline || '';
   document.getElementById('sIndirizzo').value = s.indirizzo || '';
@@ -1558,6 +2093,7 @@ async function initStorage(){
       document.getElementById('fValidita').value = d.client?.validita ?? 30;
       document.getElementById('fSconto').value = d.client?.sconto ?? 0;
       document.getElementById('fNotePagamento').value = d.client?.notePagamento || '';
+      extraPages = normalizeExtraPages(d.client?.pagineExtra); renderExtraPages();
       document.getElementById('fContributoLabel').value = d.client?.contributoLabel || '';
       document.getElementById('fContributoPct').value = d.client?.contributoPct ?? 0;
       document.getElementById('fRegime').value = d.client?.regime || 'ord22';
@@ -1621,6 +2157,7 @@ async function saveDraft(){
       validita: parseInt(document.getElementById('fValidita').value,10) || 30,
       sconto: parseFloat(document.getElementById('fSconto').value)||0,
       notePagamento: document.getElementById('fNotePagamento').value,
+      pagineExtra: extraPages.map(p=>p.testo),
       contributoLabel: document.getElementById('fContributoLabel').value,
       contributoPct: parseFloat(document.getElementById('fContributoPct').value) || 0,
       regime: document.getElementById('fRegime').value,
@@ -1762,6 +2299,35 @@ function renderCatalog(){
       addToCart(btn.getAttribute('data-add'));
     });
   });
+  root.querySelectorAll('.item-row').forEach(el=>{
+    el.addEventListener('dragstart', (e)=>{
+      e.stopPropagation();
+      draggedItemCodice = el.getAttribute('data-row-for');
+      e.dataTransfer.effectAllowed = 'move';
+      try{ e.dataTransfer.setData('text/plain', draggedItemCodice); }catch(err){}
+      el.classList.add('dragging');
+    });
+    el.addEventListener('dragend', ()=>{
+      el.classList.remove('dragging');
+      root.querySelectorAll('.item-row.drag-over').forEach(r=>r.classList.remove('drag-over'));
+      draggedItemCodice = null;
+    });
+    el.addEventListener('dragover', (e)=>{
+      if(!draggedItemCodice) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', ()=>{ el.classList.remove('drag-over'); });
+    el.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      el.classList.remove('drag-over');
+      const targetCodice = el.getAttribute('data-row-for');
+      if(draggedItemCodice && targetCodice) reorderCatalogItem(draggedItemCodice, targetCodice);
+    });
+  });
   root.querySelectorAll('[data-edit]').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       e.stopPropagation();
@@ -1795,8 +2361,8 @@ function itemRow(item){
   const badge = `<span class="item-badge badge-${item.pacchetto||'Base'}">${item.pacchetto||'Base'}</span>`;
   const oreInfo = item.ore ? `<span class="item-um">${item.ore} h stimate</span>` : '';
   return `
-  <div class="item-row" data-row-for="${item.codice}">
-    <div class="item-code">${item.codice}</div>
+  <div class="item-row" data-row-for="${item.codice}" draggable="true">
+    <div class="item-code"><span class="drag-handle" title="Trascina per riordinare">&#8942;&#8942;</span>${item.codice}</div>
     <div>
       <div class="item-name">${item.prestazione}${badge}</div>
       ${item.descrizione ? `<div class="item-desc">${item.descrizione}</div>` : ''}
@@ -1947,7 +2513,7 @@ function addToCart(codice){
   cart.push({
     id:idCounter++, codice:item.codice, nome:item.prestazione, um:item.um,
     modalita:'fisso', qty:1, prezzo:item.prezzo, ore:item.ore||1, tariffa:item.ore ? +(item.prezzo/item.ore).toFixed(2) : item.prezzo,
-    custom:false, categoria:item.categoria
+    custom:false, categoria:item.categoria, descrizione:item.descrizione||'', nota:''
   });
   renderCart(); scheduleSave();
 }
@@ -1988,10 +2554,10 @@ function renderCart(){
 function cartLineHtml(l){
   const isOrario = l.modalita === 'orario';
   return `
-  <div class="cart-line">
+  <div class="cart-line" data-line-id="${l.id}" draggable="true">
     <div class="cart-line-top">
       <div>
-        <div class="cart-line-name">${l.nome}</div>
+        <div class="cart-line-name"><span class="drag-handle" title="Trascina per riordinare">&#8942;&#8942;</span>${l.nome}</div>
         <div class="cart-line-code">${l.custom ? 'voce libera' : l.codice}</div>
       </div>
       <button class="remove-x" data-remove="${l.id}">&times;</button>
@@ -2011,6 +2577,10 @@ function cartLineHtml(l){
       <div><label>Prezzo unit. €</label><input type="number" step="0.01" data-field="prezzo" data-id="${l.id}" value="${l.prezzo}"></div>
       <div><label>Qtà (${l.um||'cad'})</label><input type="number" step="1" data-field="qty" data-id="${l.id}" value="${l.qty}"></div>
     </div>`}
+    <div class="cart-line-note">
+      <label>Nota per questa voce (facoltativa, stampata nel PDF)</label>
+      <input type="text" data-note="${l.id}" value="${l.nota ? escapeHtml(l.nota) : ''}" placeholder="Es. da confermare con il cliente">
+    </div>
     <div class="cart-line-total">Totale riga <span>€ ${fmt(lineTotal(l))}</span></div>
   </div>`;
 }
@@ -2044,6 +2614,39 @@ function bindCartLineEvents(){
         renderTotals();
         scheduleSave();
       }
+    });
+  });
+  root.querySelectorAll('[data-note]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const id = parseFloat(inp.getAttribute('data-note'));
+      const line = cart.find(l=>l.id===id);
+      if(line){ line.nota = inp.value; scheduleSave(); }
+    });
+  });
+  root.querySelectorAll('.cart-line').forEach(el=>{
+    el.addEventListener('dragstart', (e)=>{
+      draggedCartLineId = parseFloat(el.getAttribute('data-line-id'));
+      e.dataTransfer.effectAllowed = 'move';
+      try{ e.dataTransfer.setData('text/plain', String(draggedCartLineId)); }catch(err){}
+      el.classList.add('dragging');
+    });
+    el.addEventListener('dragend', ()=>{
+      el.classList.remove('dragging');
+      root.querySelectorAll('.cart-line.drag-over').forEach(r=>r.classList.remove('drag-over'));
+      draggedCartLineId = null;
+    });
+    el.addEventListener('dragover', (e)=>{
+      if(draggedCartLineId==null) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', ()=>{ el.classList.remove('drag-over'); });
+    el.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      const targetId = parseFloat(el.getAttribute('data-line-id'));
+      if(draggedCartLineId!=null && targetId!=null) reorderCartLine(draggedCartLineId, targetId);
     });
   });
 }
@@ -2203,7 +2806,9 @@ document.getElementById('hcAddBtn').addEventListener('click', ()=>{
     modalita:'orario', ore, tariffa,
     qty:1, prezzo: tariffa,
     custom: !item,
-    categoria: item ? item.categoria : 'Voci libere'
+    categoria: item ? item.categoria : 'Voci libere',
+    descrizione: item ? (item.descrizione||'') : '',
+    nota: ''
   });
 
   document.getElementById('hcItem').value = '';
@@ -2235,7 +2840,7 @@ document.getElementById('customAddBtn').addEventListener('click', ()=>{
   const desc = document.getElementById('customDesc').value.trim();
   const price = parseFloat(document.getElementById('customPrice').value);
   if(!desc || isNaN(price)) return;
-  cart.push({id:idCounter++, codice:'LIBERA', nome:desc, prezzo:price, um:'cad', qty:1, ore:1, tariffa:price, modalita:'fisso', custom:true, categoria:'Voci libere'});
+  cart.push({id:idCounter++, codice:'LIBERA', nome:desc, prezzo:price, um:'cad', qty:1, ore:1, tariffa:price, modalita:'fisso', custom:true, categoria:'Voci libere', descrizione:'', nota:''});
   document.getElementById('customDesc').value='';
   document.getElementById('customPrice').value='';
   document.getElementById('customForm').classList.remove('open');
@@ -2257,6 +2862,7 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
   document.getElementById('fValidita').value=30;
   document.getElementById('fSconto').value=0;
   document.getElementById('fNotePagamento').value='';
+  extraPages = []; renderExtraPages();
   document.getElementById('fContributoLabel').value='';
   document.getElementById('fContributoPct').value=0;
   document.getElementById('fRegime').value='ord22';
@@ -2268,6 +2874,44 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
 
 function escapeHtml(str){
   return String(str==null?'':str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function buildLetterheadHtml(docTitle, metaPairs){
+  const s = studioSettings;
+  const useCustomLetterhead = s.letterheadMode === 'custom' && s.letterheadHeader;
+  const studioBits = [s.indirizzo, s.piva?('P.IVA '+s.piva):'', s.cf?('CF '+s.cf):'', s.telefono, s.email].filter(Boolean).map(escapeHtml).join(' &middot; ');
+  const metaGrid = metaPairs.map(([label,val])=>`<span>${label}</span><b>${val}</b>`).join('');
+  if(useCustomLetterhead){
+    return `
+      <img src="${s.letterheadHeader}" class="pd-letterhead-header">
+      <div class="pd-meta pd-meta-standalone">
+        <div class="pd-doc-title">${docTitle}</div>
+        <div class="pd-meta-grid">${metaGrid}</div>
+      </div>
+    `;
+  }
+  return `
+    <div class="pd-accent-bar"></div>
+    <div class="pd-header">
+      <div class="pd-brand">
+        ${s.logo ? `<img src="${s.logo}" class="pd-logo">` : ''}
+        <div>
+          <div class="pd-brand-name">${escapeHtml(s.nome||'Studio')}</div>
+          <div class="pd-brand-sub">${studioBits}</div>
+        </div>
+      </div>
+      <div class="pd-meta">
+        <div class="pd-doc-title">${docTitle}</div>
+        <div class="pd-meta-grid">${metaGrid}</div>
+      </div>
+    </div>
+  `;
+}
+
+function letterheadFooterHtml(){
+  const s = studioSettings;
+  const useCustomLetterhead = s.letterheadMode === 'custom' && s.letterheadHeader;
+  return (useCustomLetterhead && s.letterheadFooter) ? `<img src="${s.letterheadFooter}" class="pd-letterhead-footer">` : '';
 }
 
 function buildPrintDoc(){
@@ -2311,7 +2955,11 @@ function buildPrintDoc(){
         const unit = isOrario ? l.tariffa : l.prezzo;
         rowsHtml += `<tr>
           <td class="pd-code">${escapeHtml(l.custom?'—':l.codice)}</td>
-          <td>${escapeHtml(l.nome)}</td>
+          <td>
+            <div class="pd-item-name">${escapeHtml(l.nome)}</div>
+            ${l.descrizione ? `<div class="pd-item-desc">${escapeHtml(l.descrizione)}</div>` : ''}
+            ${l.nota ? `<div class="pd-item-note">Nota: ${escapeHtml(l.nota)}</div>` : ''}
+          </td>
           <td class="pd-num">${qty}</td>
           <td class="pd-num">€ ${fmt(unit)}</td>
           <td class="pd-num pd-strong">€ ${fmt(lineTotal(l))}</td>
@@ -2351,45 +2999,24 @@ function buildPrintDoc(){
     paymentHtml = `<div class="pd-payment"><b>Pagamento</b> — ${bits.join(' &nbsp;&middot;&nbsp; ')}${notePagamento?`<br>${escapeHtml(notePagamento)}`:''}</div>`;
   }
 
-  const studioBits = [s.indirizzo, s.piva?('P.IVA '+s.piva):'', s.cf?('CF '+s.cf):'', s.telefono, s.email].filter(Boolean).map(escapeHtml).join(' &middot; ');
-
-  const useCustomLetterhead = s.letterheadMode === 'custom' && s.letterheadHeader;
-
-  const headerHtml = useCustomLetterhead ? `
-    <img src="${s.letterheadHeader}" class="pd-letterhead-header">
-    <div class="pd-meta pd-meta-standalone">
-      <div class="pd-doc-title">Preventivo</div>
-      <div class="pd-meta-grid">
-        <span>N.</span><b>${escapeHtml(numero)}</b>
-        <span>Data</span><b>${dataFmt}</b>
-        <span>Rev.</span><b>${escapeHtml(revisione)}</b>
-        <span>Valido fino al</span><b>${validita}</b>
-      </div>
-    </div>
-  ` : `
-    <div class="pd-accent-bar"></div>
-    <div class="pd-header">
-      <div class="pd-brand">
-        ${s.logo ? `<img src="${s.logo}" class="pd-logo">` : ''}
-        <div>
-          <div class="pd-brand-name">${escapeHtml(s.nome||'Studio')}</div>
-          <div class="pd-brand-sub">${studioBits}</div>
-        </div>
-      </div>
-      <div class="pd-meta">
-        <div class="pd-doc-title">Preventivo</div>
-        <div class="pd-meta-grid">
-          <span>N.</span><b>${escapeHtml(numero)}</b>
-          <span>Data</span><b>${dataFmt}</b>
-          <span>Rev.</span><b>${escapeHtml(revisione)}</b>
-          <span>Valido fino al</span><b>${validita}</b>
-        </div>
-      </div>
-    </div>
-  `;
+  const headerHtml = buildLetterheadHtml('Preventivo', [
+    ['N.', escapeHtml(numero)],
+    ['Data', dataFmt],
+    ['Rev.', escapeHtml(revisione)],
+    ['Valido fino al', validita]
+  ]);
 
   document.getElementById('printDoc').setAttribute('data-font', s.fontPairing || 'moderno');
   document.getElementById('printDoc').setAttribute('data-layout', s.pdfLayout || 'classico');
+
+  const pagineExtraHtml = extraPages
+    .map(p => (p.testo||'').trim())
+    .filter(Boolean)
+    .map(testo => `
+      <div class="pd-extra-pages">
+        ${escapeHtml(testo).split(/\n{2,}/).map(par=>`<p>${par.replace(/\n/g,'<br>')}</p>`).join('')}
+      </div>
+    `).join('');
 
   document.getElementById('printDoc').innerHTML = `
     ${headerHtml}
@@ -2412,12 +3039,21 @@ function buildPrintDoc(){
     <div class="pd-totals">${totalsHtml}</div>
     ${regime.nota ? `<div class="pd-nota">${escapeHtml(regime.nota)}</div>` : ''}
     ${paymentHtml}
-    ${useCustomLetterhead && s.letterheadFooter ? `<img src="${s.letterheadFooter}" class="pd-letterhead-footer">` : ''}
+    ${letterheadFooterHtml()}
+    ${pagineExtraHtml}
   `;
 }
 
-window.addEventListener('beforeprint', buildPrintDoc);
-document.getElementById('printBtn').addEventListener('click', ()=>{ buildPrintDoc(); window.print(); });
+window.addEventListener('beforeprint', ()=>{ if(printTarget === 'quote') buildPrintDoc(); });
+document.getElementById('printBtn').addEventListener('click', async ()=>{
+  const templateId = document.getElementById('contractTemplateSelect').value;
+  if(templateId){
+    await generateContract(templateId);
+  }
+  printTarget = 'quote';
+  buildPrintDoc();
+  window.print();
+});
 
 function generatePackageQuote(tier){
   const items = catalog.filter(i=>tierRank(i.pacchetto) <= tierRank(tier));
@@ -2430,7 +3066,7 @@ function generatePackageQuote(tier){
     id:idCounter++, codice:item.codice, nome:item.prestazione, um:item.um,
     modalita:'fisso', qty:1, prezzo:item.prezzo, ore:item.ore||1,
     tariffa: item.ore ? +(item.prezzo/item.ore).toFixed(2) : item.prezzo,
-    custom:false, categoria:item.categoria
+    custom:false, categoria:item.categoria, descrizione:item.descrizione||'', nota:''
   }));
   activePkg = tier;
   document.querySelectorAll('#pkgChips .chip').forEach(c=>{
