@@ -76,7 +76,7 @@
         <button class="secondary" id="refreshBtn">Aggiorna</button>
       </div>
       <table>
-        <thead><tr><th>Cliente</th><th>Chiave</th><th>Stato</th><th>EstimlyAI</th><th>Creata</th><th>Usi</th><th></th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Chiave</th><th>Stato</th><th>EstimlyAI</th><th>Creata</th><th>Usi</th><th>Backup</th><th></th></tr></thead>
         <tbody id="keysBody"></tbody>
       </table>
     </div>
@@ -106,7 +106,7 @@ async function loadKeys(){
   const data = await callAdmin('list');
   const body = document.getElementById('keysBody');
   if(!data.items || data.items.length === 0){
-    body.innerHTML = '<tr><td colspan="7" style="color:#B4B6BE; text-align:center; padding:20px;">Nessuna chiave ancora emessa.</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" style="color:#B4B6BE; text-align:center; padding:20px;">Nessuna chiave ancora emessa.</td></tr>';
     return;
   }
   body.innerHTML = data.items.map(it => `
@@ -121,6 +121,13 @@ async function loadKeys(){
       </td>
       <td>${fmtDate(it.createdAt)}</td>
       <td>${it.validationCount || 0}</td>
+      <td>
+        <button class="secondary" data-download-backup="${it.key}" data-customer="${(it.customer||'cliente').replace(/"/g,'')}" style="padding:4px 8px; font-size:11px;">Scarica</button>
+        <label class="secondary" style="display:inline-block; padding:4px 8px; font-size:11px; border:1px solid #E6E6E9; border-radius:6px; cursor:pointer; margin-left:4px;">
+          Ripristina
+          <input type="file" accept=".json" data-restore-backup="${it.key}" style="display:none;">
+        </label>
+      </td>
       <td>
         ${it.status === 'active'
           ? `<button class="danger" data-action="revoke" data-key="${it.key}">Revoca</button>`
@@ -143,6 +150,50 @@ async function loadKeys(){
       const aiEnabled = btn.getAttribute('data-ai-action') === 'on';
       await callAdmin('setAi', { key: btn.getAttribute('data-key'), aiEnabled });
       loadKeys();
+    });
+  });
+
+  body.querySelectorAll('button[data-download-backup]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try{
+        const key = btn.getAttribute('data-download-backup');
+        const customer = btn.getAttribute('data-customer');
+        const result = await callAdmin('exportData', { key });
+        const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStr = new Date().toISOString().slice(0,10);
+        a.href = url;
+        a.download = `backup_${customer}_${dateStr}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }catch(err){
+        alert('Impossibile scaricare il backup.');
+      }
+      btn.disabled = false;
+    });
+  });
+
+  body.querySelectorAll('input[data-restore-backup]').forEach(input => {
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const key = input.getAttribute('data-restore-backup');
+      if(!confirm(`Ripristinare i dati da questo file per la chiave ${key}? I dati attuali del cliente verranno sovrascritti (una copia di sicurezza viene comunque salvata automaticamente prima).`)){
+        e.target.value = '';
+        return;
+      }
+      try{
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const data = parsed.data || parsed;
+        await callAdmin('importData', { key, data });
+        alert('Backup ripristinato con successo.');
+      }catch(err){
+        alert('File non valido o errore nel ripristino.');
+      }
+      e.target.value = '';
     });
   });
 }
