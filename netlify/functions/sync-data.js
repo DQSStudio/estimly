@@ -43,6 +43,15 @@ export default async (req) => {
 
   if (body.action === 'save') {
     const existing = await dataStore.get(key, { type: 'json' });
+    if (existing) {
+      const backupsStore = getStore('studio-data-backups');
+      const lastBackup = await backupsStore.get(key, { type: 'json' });
+      const dayMs = 24 * 60 * 60 * 1000;
+      const isStale = !lastBackup || (Date.now() - new Date(lastBackup.savedAt).getTime()) > dayMs;
+      if (isStale) {
+        await backupsStore.setJSON(key, { savedAt: new Date().toISOString(), data: existing });
+      }
+    }
     const record = {
       catalog: Array.isArray(body.catalog) ? body.catalog : [],
       studioSettings: body.studioSettings || {},

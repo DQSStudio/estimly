@@ -77,5 +77,47 @@ export default async (req) => {
     return new Response(JSON.stringify({ key, ...record }), { status: 200 });
   }
 
+  if (action === 'exportData') {
+    const key = (body.key || '').trim().toUpperCase();
+    const license = await store.get(key, { type: 'json' });
+    if (!license) {
+      return new Response(JSON.stringify({ error: 'not found' }), { status: 404 });
+    }
+    const dataStore = getStore('studio-data');
+    const data = (await dataStore.get(key, { type: 'json' })) || {};
+    return new Response(JSON.stringify({
+      key,
+      customer: license.customer,
+      exportedAt: new Date().toISOString(),
+      data
+    }), { status: 200 });
+  }
+
+  if (action === 'importData') {
+    const key = (body.key || '').trim().toUpperCase();
+    const license = await store.get(key, { type: 'json' });
+    if (!license) {
+      return new Response(JSON.stringify({ error: 'not found' }), { status: 404 });
+    }
+    if (!body.data || typeof body.data !== 'object') {
+      return new Response(JSON.stringify({ error: 'missing_data' }), { status: 400 });
+    }
+    const dataStore = getStore('studio-data');
+    const backupsStore = getStore('studio-data-backups');
+    const current = await dataStore.get(key, { type: 'json' });
+    if (current) {
+      await backupsStore.setJSON(key, { savedAt: new Date().toISOString(), data: current });
+    }
+    const record = {
+      catalog: Array.isArray(body.data.catalog) ? body.data.catalog : [],
+      studioSettings: body.data.studioSettings || {},
+      categoryOrder: Array.isArray(body.data.categoryOrder) ? body.data.categoryOrder : [],
+      savedQuotes: Array.isArray(body.data.savedQuotes) ? body.data.savedQuotes : [],
+      updatedAt: new Date().toISOString()
+    };
+    await dataStore.setJSON(key, record);
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  }
+
   return new Response(JSON.stringify({ error: 'unknown action' }), { status: 400 });
 };
