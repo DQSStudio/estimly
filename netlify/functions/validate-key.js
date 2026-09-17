@@ -32,7 +32,7 @@ export default async (req) => {
     record.validationCount = (record.validationCount || 0) + 1;
     await store.setJSON(key, record);
 
-    return new Response(JSON.stringify({ valid: true, customer: record.customer, aiEnabled: !!record.aiEnabled }), {
+    return new Response(JSON.stringify({ valid: true, customer: record.customer, aiEnabled: !!record.aiEnabled, followupEnabled: !!record.followupEnabled }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });

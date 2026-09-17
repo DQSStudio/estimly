@@ -48,6 +48,7 @@ export default async (req) => {
       customer,
       status: 'active',
       aiEnabled: !!body.aiEnabled,
+      followupEnabled: !!body.followupEnabled,
       createdAt: new Date().toISOString(),
       validationCount: 0
     };
@@ -73,6 +74,17 @@ export default async (req) => {
       return new Response(JSON.stringify({ error: 'not found' }), { status: 404 });
     }
     record.aiEnabled = !!body.aiEnabled;
+    await store.setJSON(key, record);
+    return new Response(JSON.stringify({ key, ...record }), { status: 200 });
+  }
+
+  if (action === 'setFollowup') {
+    const key = (body.key || '').trim().toUpperCase();
+    const record = await store.get(key, { type: 'json' });
+    if (!record) {
+      return new Response(JSON.stringify({ error: 'not found' }), { status: 404 });
+    }
+    record.followupEnabled = !!body.followupEnabled;
     await store.setJSON(key, record);
     return new Response(JSON.stringify({ key, ...record }), { status: 200 });
   }
