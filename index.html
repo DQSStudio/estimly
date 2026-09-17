@@ -49,6 +49,100 @@
   --shadow-sm:0 1px 2px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.04);
   --shadow-md:0 8px 24px rgba(0,0,0,0.08);
 }
+/* Tema Estimly 2.0 — attivo solo quando il follow-up automatico è sbloccato per la licenza.
+   Riusa lo stesso sistema di variabili, quindi non serve toccare i singoli componenti. */
+body.estimly2-theme{
+  --bg:#F6F4EF;
+  --surface-alt:#EFEBE2;
+  --border:#E7E4DC;
+  --border-soft:#EFEBE2;
+  --sage:#1B4332;
+  --sage-soft:#DCEEE1;
+  --radius:22px;
+  --radius-sm:12px;
+}
+
+#e2Sidebar{ display:none; }
+body.estimly2-theme #e2Sidebar{
+  display:flex; flex-direction:column; gap:2px;
+  position:fixed; top:0; left:0; bottom:0; width:212px; padding:20px 14px;
+  background:var(--bg); border-right:1px solid var(--border); z-index:600; overflow-y:auto;
+}
+body.estimly2-theme{ padding-left:212px; }
+@media print{ body.estimly2-theme{ padding-left:0 !important; } #e2Sidebar{ display:none !important; } }
+.e2-sidebar-brand{ display:flex; align-items:center; gap:9px; font-weight:700; font-size:15px; margin:4px 4px 18px; }
+.e2-sidebar-brand-badge{
+  flex-shrink:0; width:30px; height:30px; border-radius:50%; background:#0D0D0D; color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;
+}
+.e2-sidebar-brand span{ color:var(--sage); }
+.e2-nav-item{
+  display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:none; border:none; cursor:pointer;
+  padding:10px 12px; border-radius:999px; font-size:13px; font-weight:500; color:var(--ink);
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+.e2-nav-item svg{ flex-shrink:0; opacity:0.7; }
+.e2-nav-item.active svg{ opacity:1; }
+.e2-nav-item:hover{ background:var(--surface-alt); }
+.e2-nav-item.active{ background:#0D0D0D; color:#fff; }
+.e2-sidebar-sep{ height:1px; background:var(--border); margin:10px 4px; }
+.e2-page{ }
+.e2-dash-wrap{ padding:28px 36px; max-width:none; }
+.e2-hero-card{
+  padding:0; margin-bottom:26px;
+}
+.e2-hero-eyebrow{ font-size:11px; text-transform:uppercase; letter-spacing:0.6px; font-weight:700; color:var(--sage); margin-bottom:6px; }
+.e2-hero-title{ font-size:34px; font-weight:700; margin-bottom:6px; color:var(--ink); }
+.e2-hero-sub{ font-size:13.5px; color:var(--ink-soft); }
+.e2-dashboard-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px; }
+.e2-stat-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-sm); }
+.e2-stat-label{ font-size:12.5px; color:var(--ink-soft); margin-bottom:8px; }
+.e2-stat-value{ font-size:32px; font-weight:700; color:var(--ink); }
+.e2-activity-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow-sm); }
+.e2-activity-head{ font-size:15px; font-weight:700; margin-bottom:14px; }
+.e2-activity-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--border-soft); }
+.e2-activity-row:first-child{ border-top:none; }
+.e2-activity-main{ font-size:13px; }
+.e2-activity-main b{ font-weight:600; }
+.e2-activity-date{ font-size:11.5px; color:var(--ink-faint); white-space:nowrap; }
+.e2-activity-empty{ font-size:13px; color:var(--ink-faint); text-align:center; padding:20px 0; }
+
+#e2HorizontalBuilder{ margin-bottom:16px; }
+.e2-h-scroll{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width:thin; }
+.e2-h-cat-chip{
+  flex-shrink:0; padding:8px 16px; border-radius:999px; border:1px solid var(--border); background:var(--surface);
+  font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; color:var(--ink);
+}
+.e2-h-cat-chip.active{ background:#0D0D0D; color:#fff; border-color:#0D0D0D; }
+.e2-h-item-card{
+  flex-shrink:0; width:168px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface);
+  padding:12px; display:flex; flex-direction:column; gap:8px;
+}
+.e2-h-item-name{ font-size:12px; font-weight:600; line-height:1.3; min-height:31px; }
+.e2-h-item-price{ font-size:13px; font-weight:700; color:var(--accent); }
+.e2-h-item-add{
+  border:none; background:#0D0D0D; color:#fff; border-radius:999px; padding:6px 0; font-size:11.5px;
+  font-weight:600; cursor:pointer;
+}
+#e2HCartRow{ display:flex; flex-direction:column; gap:8px; overflow-x:visible; }
+.e2-h-cart-item{
+  border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); padding:10px 12px;
+}
+.e2-h-cart-item-top{ display:flex; align-items:center; gap:8px; }
+.e2-h-cart-item-name{ flex:1; font-size:12.5px; font-weight:600; color:var(--ink); }
+.e2-h-cart-item-price{ font-size:12.5px; font-weight:700; color:var(--accent); white-space:nowrap; }
+.e2-h-cart-item-top button{
+  flex-shrink:0; border:none; background:rgba(0,0,0,0.08); color:var(--ink); width:20px; height:20px; border-radius:50%;
+  cursor:pointer; font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;
+}
+.e2-h-cart-item-note{ margin-top:6px; }
+.e2-h-cart-item-note input{
+  width:100%; padding:6px 8px; border:1px solid var(--border); border-radius:var(--radius-sm);
+  font-size:11.5px; font-family:inherit; color:var(--ink); background:var(--bg);
+}
+.e2-h-cart-empty{ font-size:12.5px; color:var(--ink-faint); padding:10px 0; }
+.e2-h-cart-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+.e2-h-cart-footer span{ font-weight:700; font-size:14px; }
 *{box-sizing:border-box;}
 body{
   margin:0;
@@ -142,11 +236,12 @@ header.top{
   max-width:1300px;
   margin:0 auto;
 }
+.layout.e2-single-col{ grid-template-columns:1fr; max-width:none; }
 @media (max-width: 900px){
   .layout{grid-template-columns:1fr;}
 }
 
-.catalog{padding:24px 28px 80px;}
+.catalog{padding:24px 28px 80px; min-width:0;}
 .toolbar{
   display:flex; gap:10px; flex-wrap:wrap; align-items:center;
   margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--border);
@@ -266,12 +361,22 @@ header.top{
   font-size:12.5px; font-weight:500; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 #hcAddListinoBtn:hover{background:var(--accent-soft);}
+#wzSaveRateBtn{
+  background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); padding:9px 18px;
+  font-size:12.5px; font-weight:500; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+#wzSaveRateBtn:hover{background:var(--accent-hover);}
+.wz-intro{ font-size:13px; color:var(--ink-soft); line-height:1.6; max-width:640px; margin-bottom:20px; }
+.wz-step-desc{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; max-width:520px; margin-bottom:12px; }
+.wz-step{ animation:wzFadeIn 0.25s ease; }
+@keyframes wzFadeIn{ from{ opacity:0; transform:translateY(4px); } to{ opacity:1; transform:translateY(0); } }
 @media (max-width:640px){ .hour-calc-grid{grid-template-columns:1fr 1fr;} }
 
 .quote-panel{
   background:var(--surface);
   border-left:1px solid var(--border);
   min-height:100vh;
+  min-width:0;
   position:sticky; top:0;
   display:flex; flex-direction:column;
 }
@@ -279,11 +384,28 @@ header.top{
 .quote-header{font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight:600; font-size:16px; margin:0 0 16px; color:var(--ink);}
 
 .field-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;}
+/* Nella pagina Preventivo a tutta larghezza (Estimly 2.0) i campi si dispongono su piu' colonne
+   invece di restare 2 colonne larghissime */
+.layout.e2-single-col .field-grid{ grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); }
 .field-grid .full{grid-column:1/-1;}
 .field-section-label{
   font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:var(--sage);
   font-weight:600; margin:0 0 8px; padding-bottom:6px; border-bottom:1px solid var(--border);
 }
+.client-header-card{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-alt);
+  padding:12px 14px; margin-bottom:16px;
+}
+.client-header-empty{ font-size:12.5px; color:var(--ink-faint); }
+.client-header-name{ font-size:13.5px; font-weight:600; }
+.client-header-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+.client-list-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:10px 0; border-bottom:1px solid var(--border);
+}
+.client-list-name{ font-weight:600; font-size:13px; }
+.client-list-meta{ font-size:12px; color:var(--ink-soft); margin-top:1px; }
 .field label{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-faint); margin-bottom:3px; font-weight:500;}
 .field input, .field select{
   width:100%; padding:7px 8px; border:1px solid var(--border); border-radius:var(--radius-sm);
@@ -417,7 +539,8 @@ header.top{
   header.top, .catalog, .toolbar, .top-actions, .custom-add, .action-btns, .print-hint,
   .mode-toggle, .remove-x, .icon-btn, .new-item-btn, .hour-calc, .modal-overlay,
   .quote-header, .field-section-label, .field-grid, #cartList, #totalsBlock, .cartiglio,
-  .extra-pages-section, #contractSelectRow, #contractStatus{
+  .extra-pages-section, #contractSelectRow, #contractStatus, .followup-section,
+  .client-header-card, #e2HorizontalBuilder{
     display:none !important;
   }
 
@@ -473,13 +596,15 @@ header.top{
   .pd-nota{ font-size:10px; color:#777; font-style:italic; margin-top:7px; text-align:right; }
   .pd-payment{ font-size:11px; color:#444; margin-top:14px; padding-top:9px; border-top:1px dashed #ccc; }
 
-  .pd-extra-pages{ page-break-before:always; padding-top:20px; font-size:12.5px; line-height:1.6; color:#222; }
-  .pd-extra-pages p{ margin:0 0 10px; }
+  .pd-extra-pages{ page-break-before:always; }
+  .pd-extra-pages-body{ padding-top:16px; font-size:12.5px; line-height:1.6; color:#222; }
+  .pd-extra-pages-body p{ margin:0 0 10px; }
 
   .pd-item-name{ font-weight:500; }
   .pd-item-desc{ font-size:10.5px; color:#777; margin-top:2px; line-height:1.4; }
   .pd-item-note{ font-size:10.5px; color:#a15c00; font-style:italic; margin-top:2px; }
 
+  .pd-contract-page{ page-break-after:always; }
   .pd-contract-body{ margin-top:24px; }
   .pd-contract-h2{ font-size:14px; margin:20px 0 8px; color:#111; }
   .pd-contract-p{ font-size:12.5px; line-height:1.65; color:#222; margin:0 0 10px; }
@@ -498,6 +623,10 @@ header.top{
   #printDoc[data-font="tecnico"] .pd-doc-title,
   #printDoc[data-font="tecnico"] .pd-party-label{ font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.5px; }
 
+  /* Font personalizzato caricato dallo studio: sostituisce qualsiasi combinazione sopra su tutto il documento */
+  #printDoc[data-custom-font],
+  #printDoc[data-custom-font] *{ font-family:'EstimlyCustomFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important; }
+
   /* Layout minimale: niente riempimenti colorati, bordi sottili */
   #printDoc[data-layout="minimale"] .pd-accent-bar{ display:none; }
   #printDoc[data-layout="minimale"] .pd-header{ border-bottom:1px solid #ddd; }
@@ -512,6 +641,45 @@ header.top{
     background:transparent; border:2px solid var(--accent); border-bottom:2px solid var(--accent);
     border-radius:8px; padding:16px 20px; margin-bottom:18px;
   }
+}
+
+/* ===================== Estimly 2.0 — responsive mobile ===================== */
+@media (max-width: 860px){
+  /* La sidebar verticale fissa diventa una barra orizzontale scorrevole in alto */
+  body.estimly2-theme{ padding-left:0; padding-top:54px; }
+  body.estimly2-theme #e2Sidebar{
+    top:0; left:0; right:0; bottom:auto; width:100%; height:54px;
+    flex-direction:row; align-items:center; gap:4px;
+    padding:8px 10px; overflow-x:auto; overflow-y:hidden; white-space:nowrap;
+    border-right:none; border-bottom:1px solid var(--border);
+  }
+  .e2-sidebar-brand, .e2-sidebar-sep{ display:none; }
+  .e2-nav-item{ flex-shrink:0; width:auto; padding:8px 12px; white-space:nowrap; }
+
+  .e2-dash-wrap{ padding:18px 16px; }
+  .e2-hero-title{ font-size:26px; }
+  .e2-dashboard-grid{ grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; }
+
+  header.top{ padding:14px 18px; }
+  .brand-name{ font-size:19px; }
+
+  .client-list-row{ flex-wrap:wrap; }
+  .client-header-card{ flex-direction:column; align-items:flex-start; }
+}
+
+@media (max-width: 640px){
+  .field-grid, .layout.e2-single-col .field-grid{ grid-template-columns:1fr; }
+  .item-row{ grid-template-columns:1fr; row-gap:6px; }
+  .item-row .item-price{ text-align:left; }
+  .item-um{ text-align:left; }
+  .e2-h-item-card{ width:150px; }
+  .e2-dashboard-grid{ grid-template-columns:1fr 1fr; }
+  .cartiglio-grid, .payment-block-grid{ grid-template-columns:1fr 1fr; }
+  .stamp{ position:static; display:inline-block; margin-bottom:12px; }
+}
+
+@media (max-width: 420px){
+  .e2-dashboard-grid{ grid-template-columns:1fr; }
 }
 
 </style>
@@ -551,12 +719,19 @@ header.top{
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.3L19 9l-5.1 1.7L12 16l-1.9-5.3L5 9l5.1-1.7L12 2z"/></svg>
         EstimlyAI
       </span>
+      <span id="estimly2Badge" style="display:none; align-items:center; background:var(--sage-soft); color:var(--sage); font-size:10.5px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; padding:4px 11px; border-radius:999px; margin-left:6px;">
+        Estimly 2.0
+      </span>
+      <button type="button" id="unlockEstimly2Btn" style="display:none; align-items:center; gap:5px; background:transparent; color:var(--sage); border:1px dashed var(--sage); font-size:10.5px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; padding:4px 11px; border-radius:999px; margin-left:6px; cursor:pointer;">
+        🔓 Sblocca Estimly 2.0
+      </button>
     </div>
     <div class="top-actions">
       <button id="settingsBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="14" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="8" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="16" cy="18" r="2"/></svg>Impostazioni studio</button>
       <button id="savedQuotesBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Preventivi salvati</button>
       <button id="saveQuoteBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salva preventivo</button>
       <button id="resetBtn" class="btn-pill-primary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nuovo preventivo</button>
+      <button id="followupsPanelBtn" title="Clienti da seguire"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Da seguire</button>
       <button id="logoutBtn" title="Esci e cambia chiave di licenza"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Esci</button>
     </div>
   </div>
@@ -570,6 +745,51 @@ header.top{
   </div>
 </header>
 
+<nav id="e2Sidebar">
+  <div class="e2-sidebar-brand"><span class="e2-sidebar-brand-badge">E</span>Estimly <span>2.0</span></div>
+  <button type="button" class="e2-nav-item active" data-e2-page="dashboard"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</button>
+  <button type="button" class="e2-nav-item" data-e2-page="preventivo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>Preventivo</button>
+  <button type="button" class="e2-nav-item" data-e2-page="listino"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Listino</button>
+  <button type="button" class="e2-nav-item" data-e2-page="contratti"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6M9 16h6M9 8h1"/><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Contratti</button>
+  <button type="button" class="e2-nav-item" data-e2-page="rubrica"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Rubrica</button>
+  <div class="e2-sidebar-sep"></div>
+  <button type="button" class="e2-nav-item" id="e2NavSalvati" data-e2-page="salvati"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Preventivi salvati</button>
+  <button type="button" class="e2-nav-item" id="e2NavSeguire" data-e2-page="seguire"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Da seguire</button>
+  <button type="button" class="e2-nav-item" data-e2-page="calcolatore"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Costo orario</button>
+  <button type="button" class="e2-nav-item" id="e2NavImpostazioni"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Impostazioni studio</button>
+</nav>
+
+<div id="e2PageDashboard" class="e2-page" style="display:none;">
+  <div class="e2-dash-wrap">
+    <div class="e2-hero-card">
+      <div class="e2-hero-eyebrow">Oggi</div>
+      <div class="e2-hero-title">Bentornato.</div>
+      <div class="e2-hero-sub">Preventivi, follow-up e attività del tuo studio, in un'unica vista.</div>
+    </div>
+
+    <div class="e2-dashboard-grid">
+      <div class="e2-stat-card">
+        <div class="e2-stat-label">Preventivi salvati</div>
+        <div class="e2-stat-value" id="e2StatCount">0</div>
+      </div>
+      <div class="e2-stat-card">
+        <div class="e2-stat-label">Valore totale preventivi</div>
+        <div class="e2-stat-value" id="e2StatTotal">€ 0,00</div>
+      </div>
+      <div class="e2-stat-card">
+        <div class="e2-stat-label">Follow-up attivi</div>
+        <div class="e2-stat-value" id="e2StatFollowupsActive">0</div>
+      </div>
+    </div>
+
+    <div class="e2-activity-card">
+      <div class="e2-activity-head">Attività recente</div>
+      <div id="e2ActivityList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="e2PagePreventivo" class="e2-page">
 <div class="layout">
   <div class="catalog">
     <div class="toolbar">
@@ -589,6 +809,10 @@ header.top{
       <button class="new-item-btn" id="openCostCalcTopBtn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         Calcola il tuo costo orario
+      </button>
+      <button class="new-item-btn" id="applyRateAllBtn" title="Ricalcola tutte le voci del listino con ore stimate usando la tariffa oraria salvata">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Applica tariffa oraria a tutto il listino
       </button>
     </div>
     <datalist id="categoryDatalist"></datalist>
@@ -631,16 +855,6 @@ header.top{
     </div>
 
     <div id="catalogRoot"></div>
-
-    <div class="contract-manager">
-      <div class="field-section-label" style="margin-top:20px;">Contratti</div>
-      <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">
-        Scrivi qui i tuoi modelli di contratto, divisi in sezioni. Alla stampa useranno automaticamente la stessa intestazione/logo del preventivo. Segnaposto disponibili tra graffe:
-        <code style="font-size:10.5px;">{cliente}</code> <code style="font-size:10.5px;">{indirizzo_cliente}</code> <code style="font-size:10.5px;">{cf_piva_cliente}</code> <code style="font-size:10.5px;">{numero_preventivo}</code> <code style="font-size:10.5px;">{data}</code> <code style="font-size:10.5px;">{oggetto}</code> <code style="font-size:10.5px;">{totale}</code> <code style="font-size:10.5px;">{validita}</code> <code style="font-size:10.5px;">{studio_nome}</code> <code style="font-size:10.5px;">{studio_indirizzo}</code> <code style="font-size:10.5px;">{studio_piva}</code>
-      </div>
-      <div id="contractTemplatesList"></div>
-      <button type="button" id="addContractTemplateBtn" class="new-item-btn" style="margin-top:6px;">+ Nuovo modello di contratto</button>
-    </div>
   </div>
 
   <div class="quote-panel">
@@ -648,19 +862,23 @@ header.top{
       <div class="quote-header">Preventivo</div>
       <div id="printDoc"></div>
 
-      <div class="field-section-label">Dati cliente</div>
-      <div class="field-grid">
-        <div class="field full"><label>Cliente / Ragione sociale</label><input id="fCliente" placeholder="Nome cliente"></div>
-        <div class="field">
-          <label>Tipo cliente</label>
-          <select id="fTipoCliente">
-            <option value="Privato">Privato</option>
-            <option value="Azienda">Azienda</option>
-          </select>
-        </div>
-        <div class="field"><label>Codice fiscale</label><input id="fCF" placeholder="RSSMRA80A01H501U"></div>
-        <div class="field full"><label>Indirizzo / Via di residenza o sede</label><input id="fIndirizzo" placeholder="Via, civico, città, CAP"></div>
-        <div class="field full"><label>Partita IVA</label><input id="fPiva" placeholder="IT00000000000"></div>
+      <div class="field-section-label">Cliente</div>
+      <div class="client-header-card" id="quoteClientCard">
+        <div id="quoteClientSummary" class="client-header-empty">Nessun cliente selezionato</div>
+        <button type="button" id="selectClientBtn" class="btn-cancel" style="padding:7px 14px; font-size:12px;">Seleziona cliente</button>
+      </div>
+      <!-- Dati cliente: ora gestiti nella Rubrica (scheda a parte). Questi campi restano qui, non visibili,
+           per l'intestazione del preventivo corrente e per compatibilità con stampa/esportazione/salvataggio. -->
+      <div style="display:none;">
+        <input id="fCliente" placeholder="Nome cliente">
+        <select id="fTipoCliente">
+          <option value="Privato">Privato</option>
+          <option value="Azienda">Azienda</option>
+        </select>
+        <input id="fCF" placeholder="RSSMRA80A01H501U">
+        <input id="fIndirizzo" placeholder="Via, civico, città, CAP">
+        <input id="fPiva" placeholder="IT00000000000">
+        <input id="fClienteEmail" type="email" placeholder="mario.rossi@email.it">
       </div>
 
       <div class="field-section-label">Dati preventivo</div>
@@ -701,6 +919,19 @@ header.top{
         </div>
       </div>
 
+      <div id="e2HorizontalBuilder" style="display:none;">
+        <div class="field-section-label" style="margin-top:0;">Aggiungi voci dal listino</div>
+        <div id="e2HCategoryRow" class="e2-h-scroll"></div>
+        <div id="e2HItemsRow" class="e2-h-scroll" style="margin-top:8px;"></div>
+
+        <div class="field-section-label" style="margin-top:18px;">Preventivo in sviluppo</div>
+        <div id="e2HCartRow" class="e2-h-scroll"></div>
+        <div class="e2-h-cart-footer">
+          <span id="e2HCartTotal">Totale: € 0,00</span>
+          <button type="button" id="e2HAddFreeBtn" class="btn-cancel" style="padding:6px 14px; font-size:12px;">+ Voce libera</button>
+        </div>
+      </div>
+
       <div id="cartList"></div>
 
       <div class="custom-add">
@@ -713,6 +944,25 @@ header.top{
       </div>
 
       <div class="totals" id="totalsBlock"></div>
+
+      <div class="followup-section" id="followupSection">
+        <div class="field-section-label" style="margin-top:18px;">Follow-up automatico</div>
+        <div id="followupInactive">
+          <div style="font-size:11px; color:var(--ink-soft); margin-bottom:8px;">Se il cliente non risponde, Estimly manda promemoria automatici (dopo 3, 7 e 14 giorni) finché non accetta, rifiuta, o disattivi il follow-up. Richiede l'email del cliente e un account Resend collegato in Impostazioni Studio.</div>
+          <button type="button" id="activateFollowupBtn" class="btn-cancel" style="padding:7px 14px; font-size:12px;">Attivare follow-up automatico?</button>
+        </div>
+        <div id="followupActive" style="display:none;">
+          <div id="followupStatusBadge"></div>
+          <div id="followupTimeline" style="margin-top:8px;"></div>
+          <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+            <button type="button" id="markRepliedBtn" class="btn-cancel" style="padding:5px 10px; font-size:11px;">Cliente ha risposto</button>
+            <button type="button" id="markAcceptedBtn" class="btn-cancel" style="padding:5px 10px; font-size:11px;">Segna accettato</button>
+            <button type="button" id="markRejectedBtn" class="btn-cancel" style="padding:5px 10px; font-size:11px;">Segna rifiutato</button>
+            <button type="button" id="markNotInterestedBtn" class="btn-cancel" style="padding:5px 10px; font-size:11px;">Non interessato</button>
+          </div>
+          <button type="button" id="deactivateFollowupBtn" style="border:none; background:none; color:var(--danger); font-size:11px; cursor:pointer; margin-top:8px;">Disattiva follow-up</button>
+        </div>
+      </div>
 
       <div class="extra-pages-section">
         <div class="field-section-label" style="margin-top:18px;">Pagine extra allegate al preventivo</div>
@@ -754,7 +1004,155 @@ header.top{
         <button id="exportBtn" class="secondary">Esporta Excel</button>
       </div>
       <div id="contractStatus" style="font-size:11px; color:var(--ink-soft); margin-top:6px; display:none;"></div>
+      <div id="hidePricesRow" style="margin-top:8px;">
+        <label style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--ink); cursor:pointer; font-weight:500;">
+          <input type="checkbox" id="fHidePrices" style="width:auto; margin:0;">
+          Nascondi i prezzi delle singole voci nel PDF (mostra solo il totale)
+        </label>
+      </div>
       <div class="print-hint">Nella finestra di stampa scegli "Salva come PDF" come destinazione.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="e2PageContratti" class="e2-page">
+  <div class="e2-dash-wrap">
+  <div class="contract-manager" style="max-width:1000px;">
+    <div class="field-section-label" style="margin-top:0;">Contratti</div>
+    <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">
+      Scrivi qui i tuoi modelli di contratto, divisi in sezioni. Alla stampa useranno automaticamente la stessa intestazione/logo del preventivo. Segnaposto disponibili tra graffe:
+      <code style="font-size:10.5px;">{cliente}</code> <code style="font-size:10.5px;">{indirizzo_cliente}</code> <code style="font-size:10.5px;">{cf_piva_cliente}</code> <code style="font-size:10.5px;">{numero_preventivo}</code> <code style="font-size:10.5px;">{data}</code> <code style="font-size:10.5px;">{oggetto}</code> <code style="font-size:10.5px;">{totale}</code> <code style="font-size:10.5px;">{validita}</code> <code style="font-size:10.5px;">{studio_nome}</code> <code style="font-size:10.5px;">{studio_indirizzo}</code> <code style="font-size:10.5px;">{studio_piva}</code>
+    </div>
+    <div id="contractTemplatesList"></div>
+    <button type="button" id="addContractTemplateBtn" class="new-item-btn" style="margin-top:6px;">+ Nuovo modello di contratto</button>
+  </div>
+  </div>
+</div>
+
+<div id="e2PageRubrica" class="e2-page" style="display:none;">
+  <div class="e2-dash-wrap">
+    <div class="field-section-label" style="margin-top:0;">Rubrica clienti</div>
+    <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">I dati dei clienti inseriti nei preventivi vengono salvati qui, così puoi riprenderli in futuro senza reinserirli.</div>
+    <button type="button" id="addClientBtn" class="new-item-btn" style="margin-bottom:12px;">+ Nuovo cliente</button>
+    <div id="rubricaList"></div>
+    <div id="rubricaEmpty" style="display:none; font-size:13px; color:var(--ink-soft); padding:20px 0; text-align:center;">Nessun cliente in rubrica.</div>
+  </div>
+</div>
+
+<div id="e2PageSalvati" class="e2-page" style="display:none;">
+  <div class="e2-dash-wrap">
+    <div class="field-section-label" style="margin-top:0;">Preventivi salvati</div>
+    <div class="saved-quotes-limit-text" style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Puoi tenere in archivio fino a 20 preventivi recenti. Salvandone uno oltre il limite, il più vecchio viene rimosso automaticamente.</div>
+    <div id="e2SalvatiList"></div>
+    <div id="e2SalvatiEmpty" style="display:none; font-size:13px; color:var(--ink-soft); padding:20px 0; text-align:center;">Nessun preventivo salvato.</div>
+  </div>
+</div>
+
+<div id="e2PageSeguire" class="e2-page" style="display:none;">
+  <div class="e2-dash-wrap">
+    <div class="field-section-label" style="margin-top:0;">Da seguire</div>
+    <div id="e2SeguireBody"></div>
+  </div>
+</div>
+
+<div id="e2PageCalcolatore" class="e2-page" style="display:none;">
+  <div class="e2-dash-wrap">
+    <div class="field-section-label" style="margin-top:0;">Calcola il tuo costo orario</div>
+    <div class="wz-intro">Quanto dovresti farti pagare all'ora per coprire lo stipendio che vuoi, le spese dello studio e un margine per gli imprevisti? Rispondi a queste domande una alla volta: alla fine calcoleremo insieme la tua tariffa oraria minima, che potrai salvare e riusare in tutto il listino.</div>
+
+    <div class="hour-calc wz-step" id="wzStep1">
+      <div class="hour-calc-head">
+        <span class="hour-calc-title">1. Quanto vuoi guadagnare in un anno?</span>
+      </div>
+      <div class="wz-step-desc">È lo stipendio netto che vuoi portare a casa in un anno di lavoro. È il punto di partenza: tutto il resto serve a capire quante ore devi fatturare per arrivarci.</div>
+      <div class="field" style="max-width:260px;">
+        <label>Stipendio netto desiderato (annuo €)</label>
+        <input id="wzStipendio" type="number" step="100" min="0" placeholder="Es. 30000">
+      </div>
+    </div>
+
+    <div class="hour-calc wz-step" id="wzStep2" style="display:none;">
+      <div class="hour-calc-head">
+        <span class="hour-calc-title">2. Quanto ti costa mandare avanti lo studio?</span>
+      </div>
+      <div class="wz-step-desc">Affitto, software, utenze, assicurazioni, collaboratori: tutte le spese fisse annue dello studio, escluso il tuo stipendio. Anche questi costi vanno recuperati con la tariffa oraria.</div>
+      <div class="field" style="max-width:260px;">
+        <label>Costi fissi studio (annuo €)</label>
+        <input id="wzCostiFissi" type="number" step="100" min="0" placeholder="Es. 6000">
+      </div>
+    </div>
+
+    <div class="hour-calc wz-step" id="wzStep3" style="display:none;">
+      <div class="hour-calc-head">
+        <span class="hour-calc-title">3. Quante settimane lavori davvero in un anno?</span>
+      </div>
+      <div class="wz-step-desc">Escludi ferie, malattia e periodi di chiusura. Su 52 settimane l'anno, quante restano davvero di lavoro effettivo?</div>
+      <div class="field" style="max-width:220px;">
+        <label>Settimane lavorate all'anno</label>
+        <input id="wzSettimane" type="number" step="1" min="0" placeholder="Es. 46">
+      </div>
+    </div>
+
+    <div class="hour-calc wz-step" id="wzStep4" style="display:none;">
+      <div class="hour-calc-head">
+        <span class="hour-calc-title">4. Quanti giorni lavori a settimana?</span>
+      </div>
+      <div class="wz-step-desc">I giorni della settimana in cui lavori normalmente, weekend esclusi se non lavori.</div>
+      <div class="field" style="max-width:220px;">
+        <label>Giorni lavorativi a settimana</label>
+        <input id="wzGiorni" type="number" step="1" min="0" placeholder="Es. 5">
+      </div>
+    </div>
+
+    <div class="hour-calc wz-step" id="wzStep5" style="display:none;">
+      <div class="hour-calc-head">
+        <span class="hour-calc-title">5. Quante ore lavori al giorno?</span>
+      </div>
+      <div class="wz-step-desc">Le ore di lavoro effettivo in una giornata tipo, non solo quelle "in ufficio".</div>
+      <div class="field" style="max-width:220px;">
+        <label>Ore lavorative al giorno</label>
+        <input id="wzOreGiorno" type="number" step="0.5" min="0" placeholder="Es. 7">
+      </div>
+    </div>
+
+    <div class="hour-calc wz-step" id="wzStep6" style="display:none;">
+      <div class="hour-calc-head">
+        <span class="hour-calc-title">6. Che percentuale del tuo tempo riesci davvero a fatturare?</span>
+      </div>
+      <div class="wz-step-desc">Non tutte le ore di lavoro sono fatturabili al cliente: email, amministrazione, preventivi, formazione... Che quota del tuo tempo totale pensi si trasformi davvero in ore fatturate?</div>
+      <div class="field" style="max-width:220px;">
+        <label>Quota di tempo fatturabile (%)</label>
+        <input id="wzFatturabile" type="number" step="1" min="0" max="100" placeholder="Es. 60">
+      </div>
+    </div>
+
+    <div class="hour-calc wz-step" id="wzStep7" style="display:none;">
+      <div class="hour-calc-head">
+        <span class="hour-calc-title">7. Quanto margine vuoi tenere per imprevisti o utile?</span>
+      </div>
+      <div class="wz-step-desc">Una percentuale extra che copre ritardi di pagamento, imprevisti di cantiere o semplicemente un margine di utile per lo studio.</div>
+      <div class="field" style="max-width:220px;">
+        <label>Margine per imprevisti/utile (%)</label>
+        <input id="wzMargine" type="number" step="1" min="0" placeholder="Es. 15">
+      </div>
+    </div>
+
+    <div class="hour-calc wz-step" id="wzStepFinale" style="display:none;">
+      <div class="hour-calc-head">
+        <span class="hour-calc-title">Ecco la tua tariffa oraria minima</span>
+      </div>
+      <div id="wzResultBox" style="margin-top:6px; padding:14px; background:var(--accent-soft); border-radius:var(--radius-sm);">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--accent); font-weight:600; margin-bottom:4px;">Tariffa oraria minima</div>
+        <div style="font-size:26px; font-weight:700; color:var(--accent);" id="wzRateOut">€ 0,00 /h</div>
+        <div style="font-size:11.5px; color:var(--ink-soft); margin-top:6px;" id="wzDetailOut"></div>
+      </div>
+      <div class="hour-calc-footer">
+        <div></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="wzSaveRateBtn">Salva questa tariffa</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -846,6 +1244,17 @@ header.top{
           </select>
         </div>
         <div class="field full">
+          <label>Font personalizzato del PDF (opzionale)</label>
+          <div class="logo-upload-row">
+            <span id="customFontPreview" style="display:none; font-size:12px; color:var(--ink); background:var(--surface-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 10px;"></span>
+            <label class="logo-upload-btn">Carica font
+              <input type="file" id="customFontInput" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2">
+            </label>
+            <button id="customFontRemoveBtn" class="logo-remove-btn" style="display:none;">Rimuovi</button>
+          </div>
+          <div style="font-size:11px; color:var(--ink-soft); margin-top:4px;">Se carichi un tuo font (.ttf, .otf, .woff, .woff2), verrà usato in tutto il PDF — intestazione, tabella, contratto e pagine extra comprese — al posto della combinazione scelta sopra.</div>
+        </div>
+        <div class="field full">
           <label>Impaginazione PDF</label>
           <select id="sPdfLayout" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;">
             <option value="classico">Classico — barra colore in alto, tabella evidenziata</option>
@@ -866,6 +1275,17 @@ header.top{
       <textarea id="newTextBlockContent" rows="4" placeholder="Testo del blocco..." style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:12.5px; background:var(--surface); color:var(--ink); resize:vertical; margin-bottom:8px;"></textarea>
       <button type="button" id="addTextBlockBtn" class="btn-cancel" style="padding:8px 16px;">+ Salva blocco</button>
 
+      <div class="field-section-label">Follow-up automatico &mdash; account email</div>
+      <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">
+        Per inviare i promemoria automatici serve un tuo account Resend (gratuito fino a 3.000 email/mese, nessuna carta richiesta) &mdash; ogni studio usa il proprio, così le email restano sempre gratuite indipendentemente da chi altro usa Estimly.
+        <a href="https://resend.com/signup" target="_blank" rel="noopener">Crea un account Resend &rarr;</a>
+      </div>
+      <div class="field-grid" style="padding:0;">
+        <div class="field full"><label>Chiave API Resend</label><input id="sResendApiKey" type="password" placeholder="re_xxxxxxxxxxxx"></div>
+        <div class="field"><label>Email mittente (verificata su Resend)</label><input id="sResendFromEmail" type="email" placeholder="preventivi@tuostudio.it"></div>
+        <div class="field"><label>Nome mittente</label><input id="sResendFromName" placeholder="Es. Studio Rossi"></div>
+      </div>
+
     </div>
     <div class="modal-actions">
       <button id="settingsSave" class="btn-save">Salva impostazioni</button>
@@ -881,12 +1301,59 @@ header.top{
       <button id="savedQuotesClose" class="modal-close">&times;</button>
     </div>
     <div class="modal-body">
-      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Puoi tenere in archivio fino a 10 preventivi recenti. Salvandone uno oltre il limite, il più vecchio viene rimosso automaticamente.</div>
+      <div class="saved-quotes-limit-text" style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Puoi tenere in archivio fino a 10 preventivi recenti. Salvandone uno oltre il limite, il più vecchio viene rimosso automaticamente.</div>
       <div id="savedQuotesList"></div>
       <div id="savedQuotesEmpty" style="display:none; font-size:13px; color:var(--ink-soft); padding:20px 0; text-align:center;">Nessun preventivo salvato.</div>
     </div>
     <div class="modal-actions">
       <button id="savedQuotesCloseBtn" class="btn-cancel">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div id="clientPickerModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Seleziona cliente</div>
+      <button id="clientPickerClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <button type="button" id="clientPickerNewBtn" class="new-item-btn" style="margin-bottom:12px;">+ Nuovo cliente</button>
+      <div id="clientPickerList"></div>
+      <div id="clientPickerEmpty" style="display:none; font-size:13px; color:var(--ink-soft); padding:20px 0; text-align:center;">Nessun cliente in rubrica. Crea la prima scheda cliente.</div>
+    </div>
+    <div class="modal-actions">
+      <button id="clientPickerCloseBtn" class="btn-cancel">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div id="clientFormModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;" id="clientFormTitle">Nuovo cliente</div>
+      <button id="clientFormClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cfId">
+      <div class="field-grid">
+        <div class="field full"><label>Cliente / Ragione sociale</label><input id="cfCliente" placeholder="Nome cliente"></div>
+        <div class="field">
+          <label>Tipo cliente</label>
+          <select id="cfTipoCliente">
+            <option value="Privato">Privato</option>
+            <option value="Azienda">Azienda</option>
+          </select>
+        </div>
+        <div class="field"><label>Codice fiscale</label><input id="cfCF" placeholder="RSSMRA80A01H501U"></div>
+        <div class="field full"><label>Indirizzo / Via di residenza o sede</label><input id="cfIndirizzo" placeholder="Via, civico, città, CAP"></div>
+        <div class="field full"><label>Partita IVA</label><input id="cfPiva" placeholder="IT00000000000"></div>
+        <div class="field full"><label>Email cliente (per il follow-up automatico)</label><input id="cfEmail" type="email" placeholder="mario.rossi@email.it"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="clientFormSaveBtn" class="btn-save">Salva cliente</button>
+      <button id="clientFormCancelBtn" class="btn-cancel">Annulla</button>
     </div>
   </div>
 </div>
@@ -910,6 +1377,28 @@ header.top{
   </div>
 </div>
 
+<div id="unlockEstimly2Modal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Sblocca Estimly 2.0</div>
+      <button id="unlockEstimly2Close" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:14px;">
+        Estimly 2.0 aggiunge alla tua licenza: una dashboard con lo storico delle attività, la Rubrica clienti, i follow-up automatici sui preventivi inviati, più spazio per i preventivi salvati e il nuovo Calcolatore lavorazione a ore come pagina dedicata.
+      </div>
+      <div style="font-size:12.5px; color:var(--ink-soft); line-height:1.6;">
+        Per attivarlo sulla tua licenza scrivici indicando il nome del tuo studio: ti risponderemo con i dettagli per l'attivazione.
+      </div>
+      <div id="unlockEstimly2Error" style="font-size:12px; color:var(--danger); margin-top:10px; display:none;"></div>
+    </div>
+    <div class="modal-actions">
+      <a id="unlockEstimly2MailBtn" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;" href="#" target="_blank" rel="noopener">Richiedi attivazione via email</a>
+      <button id="unlockEstimly2Cancel" class="btn-cancel">Chiudi</button>
+    </div>
+  </div>
+</div>
+
 <div id="contractPreviewModal" class="modal-overlay" style="display:none;">
   <div class="modal-card" style="max-width:700px;">
     <div class="modal-head">
@@ -921,6 +1410,21 @@ header.top{
     </div>
     <div class="modal-actions">
       <button id="contractPreviewCloseBtn" class="btn-cancel">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div id="followupsPanelModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="max-width:640px;">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Da seguire</div>
+      <button id="followupsPanelClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body" style="max-height:65vh; overflow:auto;">
+      <div id="followupsPanelBody"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="followupsPanelCloseBtn" class="btn-cancel">Chiudi</button>
     </div>
   </div>
 </div>
@@ -1053,10 +1557,12 @@ let studioSettings = {
   iban:'', intestatario:'', banca:'', sdi:'',
   letterheadMode:'standard', letterheadHeader:'', letterheadFooter:'',
   fontPairing:'moderno', pdfLayout:'classico',
+  customFontData:'', customFontName:'', customFontFormat:'',
   tariffaOrariaBase: 0,
   costCalc: { stipendio:30000, costiFissi:6000, settimane:46, giorni:5, oreGiorno:7, fatturabile:60, margine:15 },
   contractTemplates: [],
-  textBlocks: []
+  textBlocks: [],
+  resendApiKey: '', resendFromEmail: '', resendFromName: ''
 };
 
 function fmt(n){
@@ -1142,13 +1648,231 @@ function scheduleCloudSave(){
 
 let savedQuotes = [];
 const SAVED_QUOTES_LOCAL_KEY = 'preventivi-salvati';
-const MAX_SAVED_QUOTES = 10;
+const MAX_SAVED_QUOTES_BASE = 10;
+const MAX_SAVED_QUOTES_ESTIMLY2 = 20;
+function getMaxSavedQuotes(){
+  return (FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? MAX_SAVED_QUOTES_ESTIMLY2 : MAX_SAVED_QUOTES_BASE;
+}
+function updateSavedQuotesLimitText(){
+  const max = getMaxSavedQuotes();
+  document.querySelectorAll('.saved-quotes-limit-text').forEach(el=>{
+    el.textContent = `Puoi tenere in archivio fino a ${max} preventivi recenti. Salvandone uno oltre il limite, il più vecchio viene rimosso automaticamente.`;
+  });
+}
+
+/* ===================== Rubrica clienti ===================== */
+let clients = [];
+const CLIENTS_LOCAL_KEY = 'rubrica-clienti';
+let clientPickerContext = null; // 'picker' quando il form cliente e' aperto dal selettore nel preventivo
+
+async function loadClientsLocal(){
+  try{
+    const res = await window.storage.get(CLIENTS_LOCAL_KEY, false);
+    if(res && res.value){
+      clients = JSON.parse(res.value) || [];
+    }
+  }catch(e){ clients = []; }
+}
+
+async function persistClientsLocal(){
+  try{
+    await window.storage.set(CLIENTS_LOCAL_KEY, JSON.stringify(clients), false);
+  }catch(e){ console.error('Errore salvataggio locale rubrica', e); }
+}
+
+async function loadClientsCloud(){
+  const key = getLicenseKey();
+  if(!key) return;
+  try{
+    const res = await fetch('/.netlify/functions/sync-data', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action: 'load' })
+    });
+    const data = await res.json();
+    if(data && Array.isArray(data.clients)){
+      clients = data.clients;
+      persistClientsLocal();
+      renderRubricaList();
+      renderClientPickerList();
+    }
+  }catch(err){
+    console.error('Impossibile caricare la rubrica clienti', err);
+  }
+}
+
+async function saveClientToRubrica(clientData){
+  const key = getLicenseKey();
+  let saved = null;
+  if(key){
+    try{
+      const res = await fetch('/.netlify/functions/sync-data', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ key, action: 'saveClient', client: clientData })
+      });
+      const data = await res.json();
+      if(data && Array.isArray(data.clients)){
+        clients = data.clients;
+        saved = clientData.id
+          ? clients.find(c=>c.id===clientData.id)
+          : clients[0];
+      }
+    }catch(err){ console.error('Impossibile salvare il cliente nel cloud', err); }
+  }
+  if(!saved){
+    // Salvataggio solo locale (nessuna licenza o rete non disponibile)
+    if(clientData.id && clients.some(c=>c.id===clientData.id)){
+      clients = clients.map(c=> c.id===clientData.id ? {...c, ...clientData} : c);
+      saved = clients.find(c=>c.id===clientData.id);
+    } else {
+      saved = {...clientData, id: clientData.id || ('c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8))};
+      clients = [saved, ...clients];
+    }
+  }
+  await persistClientsLocal();
+  renderRubricaList();
+  renderClientPickerList();
+  return saved;
+}
+
+async function deleteClientFromRubrica(id){
+  if(!confirm('Eliminare questa scheda cliente dalla rubrica?')) return;
+  clients = clients.filter(c=>c.id!==id);
+  await persistClientsLocal();
+  renderRubricaList();
+  renderClientPickerList();
+  const key = getLicenseKey();
+  if(key){
+    try{
+      await fetch('/.netlify/functions/sync-data', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ key, action: 'deleteClient', id })
+      });
+    }catch(err){ console.error('Impossibile eliminare il cliente dal cloud', err); }
+  }
+}
+
+function clientSummaryHtml(c){
+  const bits = [];
+  if(c.cf) bits.push(c.cf);
+  if(c.piva) bits.push(c.piva);
+  if(c.email) bits.push(c.email);
+  return `<div class="client-list-name">${escapeHtml(c.cliente || 'Cliente senza nome')}</div><div class="client-list-meta">${escapeHtml(bits.join(' · ') || c.tipoCliente || '')}</div>`;
+}
+
+function renderRubricaList(){
+  const list = document.getElementById('rubricaList');
+  const empty = document.getElementById('rubricaEmpty');
+  if(!list) return;
+  if(!clients.length){
+    list.innerHTML = '';
+    if(empty) empty.style.display = 'block';
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+  list.innerHTML = clients.map(c=>`
+    <div class="client-list-row">
+      <div>${clientSummaryHtml(c)}</div>
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <button data-edit-client="${c.id}" class="btn-cancel" style="padding:6px 10px;">Modifica</button>
+        <button data-delete-client="${c.id}" class="btn-cancel" style="padding:6px 10px; color:var(--danger);">Elimina</button>
+      </div>
+    </div>`).join('');
+  list.querySelectorAll('[data-edit-client]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const c = clients.find(x=>x.id===btn.getAttribute('data-edit-client'));
+      if(c) openClientFormModal(c, null);
+    });
+  });
+  list.querySelectorAll('[data-delete-client]').forEach(btn=>{
+    btn.addEventListener('click', ()=>deleteClientFromRubrica(btn.getAttribute('data-delete-client')));
+  });
+}
+
+function renderClientPickerList(){
+  const list = document.getElementById('clientPickerList');
+  const empty = document.getElementById('clientPickerEmpty');
+  if(!list) return;
+  if(!clients.length){
+    list.innerHTML = '';
+    if(empty) empty.style.display = 'block';
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+  list.innerHTML = clients.map(c=>`
+    <div class="client-list-row">
+      <div>${clientSummaryHtml(c)}</div>
+      <button data-use-client="${c.id}" class="btn-save" style="padding:6px 12px;">Usa questo cliente</button>
+    </div>`).join('');
+  list.querySelectorAll('[data-use-client]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const c = clients.find(x=>x.id===btn.getAttribute('data-use-client'));
+      if(c){ applyClientToQuote(c); closeClientPickerModal(); }
+    });
+  });
+}
+
+function applyClientToQuote(c){
+  document.getElementById('fCliente').value = c.cliente || '';
+  document.getElementById('fTipoCliente').value = c.tipoCliente || 'Privato';
+  document.getElementById('fCF').value = c.cf || '';
+  document.getElementById('fIndirizzo').value = c.indirizzo || '';
+  document.getElementById('fPiva').value = c.piva || '';
+  document.getElementById('fClienteEmail').value = c.email || '';
+  updateQuoteClientSummary();
+  renderCartiglio();
+  scheduleSave();
+}
+
+function updateQuoteClientSummary(){
+  const summary = document.getElementById('quoteClientSummary');
+  if(!summary) return;
+  const nome = document.getElementById('fCliente').value;
+  if(!nome){
+    summary.className = 'client-header-empty';
+    summary.textContent = 'Nessun cliente selezionato';
+    return;
+  }
+  const email = document.getElementById('fClienteEmail').value;
+  const cf = document.getElementById('fCF').value;
+  const bits = [email, cf].filter(Boolean);
+  summary.className = '';
+  summary.innerHTML = `<div class="client-header-name">${escapeHtml(nome)}</div>` + (bits.length ? `<div class="client-header-meta">${escapeHtml(bits.join(' · '))}</div>` : '');
+}
+
+function openClientPickerModal(){
+  renderClientPickerList();
+  document.getElementById('clientPickerModal').style.display = 'flex';
+}
+function closeClientPickerModal(){
+  document.getElementById('clientPickerModal').style.display = 'none';
+}
+
+function openClientFormModal(existingClient, opts){
+  clientPickerContext = (opts && opts.fromPicker) ? 'picker' : null;
+  document.getElementById('clientFormTitle').textContent = existingClient ? 'Modifica cliente' : 'Nuovo cliente';
+  document.getElementById('cfId').value = existingClient ? existingClient.id : '';
+  document.getElementById('cfCliente').value = existingClient ? (existingClient.cliente||'') : '';
+  document.getElementById('cfTipoCliente').value = existingClient ? (existingClient.tipoCliente||'Privato') : 'Privato';
+  document.getElementById('cfCF').value = existingClient ? (existingClient.cf||'') : '';
+  document.getElementById('cfIndirizzo').value = existingClient ? (existingClient.indirizzo||'') : '';
+  document.getElementById('cfPiva').value = existingClient ? (existingClient.piva||'') : '';
+  document.getElementById('cfEmail').value = existingClient ? (existingClient.email||'') : '';
+  document.getElementById('clientFormModal').style.display = 'flex';
+}
+function closeClientFormModal(){
+  document.getElementById('clientFormModal').style.display = 'none';
+  clientPickerContext = null;
+}
 
 function currentQuoteState(){
   return {
     cart, idCounter,
     client:{
       cliente: document.getElementById('fCliente').value,
+      clienteEmail: document.getElementById('fClienteEmail').value,
       tipoCliente: document.getElementById('fTipoCliente').value,
       indirizzo: document.getElementById('fIndirizzo').value,
       cf: document.getElementById('fCF').value,
@@ -1164,7 +1888,8 @@ function currentQuoteState(){
       contributoLabel: document.getElementById('fContributoLabel').value,
       contributoPct: parseFloat(document.getElementById('fContributoPct').value) || 0,
       regime: document.getElementById('fRegime').value,
-      aliquotaCustom: parseFloat(document.getElementById('fAliquotaCustom').value) || 22
+      aliquotaCustom: parseFloat(document.getElementById('fAliquotaCustom').value) || 22,
+      hidePrices: document.getElementById('fHidePrices').checked
     }
   };
 }
@@ -1205,16 +1930,18 @@ async function loadSavedQuotesCloud(){
 }
 
 function renderSavedQuotesList(){
-  const list = document.getElementById('savedQuotesList');
-  const empty = document.getElementById('savedQuotesEmpty');
-  if(!list) return;
+  // Renderizza sia nel modal (utenti base) sia nella pagina Estimly 2.0 (sidebar > Preventivi salvati)
+  const targets = [
+    { list: document.getElementById('savedQuotesList'), empty: document.getElementById('savedQuotesEmpty') },
+    { list: document.getElementById('e2SalvatiList'), empty: document.getElementById('e2SalvatiEmpty') }
+  ].filter(t => t.list);
+  if(!targets.length) return;
+
   if(!savedQuotes.length){
-    list.innerHTML = '';
-    empty.style.display = 'block';
+    targets.forEach(t=>{ t.list.innerHTML = ''; if(t.empty) t.empty.style.display = 'block'; });
     return;
   }
-  empty.style.display = 'none';
-  list.innerHTML = savedQuotes.map(q=>{
+  const html = savedQuotes.map(q=>{
     const totale = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
     let dataLabel = '—';
     if(q.client && q.client.data){
@@ -1235,6 +1962,14 @@ function renderSavedQuotesList(){
         </div>
       </div>`;
   }).join('');
+  targets.forEach(t=>{ t.list.innerHTML = html; if(t.empty) t.empty.style.display = 'none'; });
+}
+
+function handleSavedQuotesListClick(e){
+  const openId = e.target.getAttribute('data-open-quote');
+  const delId = e.target.getAttribute('data-delete-quote');
+  if(openId) loadQuoteById(openId);
+  if(delId) deleteQuoteById(delId);
 }
 
 async function saveCurrentQuote(){
@@ -1246,7 +1981,7 @@ async function saveCurrentQuote(){
     idCounter: state.idCounter,
     client: state.client
   };
-  savedQuotes = [entry, ...savedQuotes].slice(0, MAX_SAVED_QUOTES);
+  savedQuotes = [entry, ...savedQuotes].slice(0, getMaxSavedQuotes());
   await persistSavedQuotesLocal();
   const key = getLicenseKey();
   if(key){
@@ -1274,6 +2009,7 @@ function loadQuoteById(id){
   idCounter = q.idCounter || (cart.length+1);
   const c = q.client || {};
   document.getElementById('fCliente').value = c.cliente || '';
+  document.getElementById('fClienteEmail').value = c.clienteEmail || '';
   document.getElementById('fTipoCliente').value = c.tipoCliente || 'Privato';
   document.getElementById('fIndirizzo').value = c.indirizzo || '';
   document.getElementById('fCF').value = c.cf || '';
@@ -1284,6 +2020,7 @@ function loadQuoteById(id){
   document.getElementById('fRevisione').value = c.revisione || 'Rev. 0';
   document.getElementById('fValidita').value = c.validita ?? 30;
   document.getElementById('fSconto').value = c.sconto ?? 0;
+  document.getElementById('fHidePrices').checked = !!c.hidePrices;
   document.getElementById('fNotePagamento').value = c.notePagamento || '';
   extraPages = normalizeExtraPages(c.pagineExtra); renderExtraPages();
   document.getElementById('fContributoLabel').value = c.contributoLabel || '';
@@ -1293,8 +2030,11 @@ function loadQuoteById(id){
   document.getElementById('regimeCustomField').style.display = document.getElementById('fRegime').value === 'custom' ? 'block' : 'none';
   renderCart();
   renderCartiglio();
+  renderFollowupSection();
+  updateQuoteClientSummary();
   scheduleSave();
   closeSavedQuotesModal();
+  if(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) switchEstimly2Page('preventivo');
 }
 
 async function deleteQuoteById(id){
@@ -1315,6 +2055,12 @@ async function deleteQuoteById(id){
 }
 
 function openSavedQuotesModal(){
+  // Per Estimly 2.0 la vista "Preventivi salvati" e' una pagina, non un popup:
+  // anche il pulsante in alto (utenti base) segue questa regola quando il tema 2.0 e' attivo.
+  if(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled){
+    switchEstimly2Page('salvati');
+    return;
+  }
   renderSavedQuotesList();
   document.getElementById('savedQuotesModal').style.display = 'flex';
 }
@@ -1339,6 +2085,31 @@ function applyAiVisibility(){
   document.querySelectorAll('.ai-improve-btn').forEach(b => b.style.display = display);
   renderAiSuggestions();
 }
+/* ===================== fine EstimlyAI (interruttore) ===================== */
+
+/* ===================== Follow-up automatico — interruttore Estimly 2.0 ===================== */
+/* Master switch: un solo codice (questo repo) serve sia il tuo sito che quello dei clienti,
+   quindi non può avere due valori diversi contemporaneamente sui due deploy. Il vero controllo
+   di chi vede Estimly 2.0 resta il flag per-licenza (followupEnabled, da /admin.html) — ogni sito
+   Netlify ha il suo storage licenze separato, quindi puoi tenerlo acceso per te e spento per i
+   clienti finché non li attivi uno per uno. Rimetti questo a 'false' solo per un blackout totale
+   di emergenza su ENTRAMBI i siti in un colpo solo (es. problema serio col follow-up email). */
+const FOLLOWUP_FEATURE_LIVE = true;
+let followupFeatureEnabled = false;
+
+function applyFollowupVisibility(){
+  const active = FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled;
+  const display = active ? '' : 'none';
+  document.getElementById('followupsPanelBtn').style.display = display;
+  document.getElementById('followupSection').style.display = display;
+  document.getElementById('estimly2Badge').style.display = active ? 'inline-flex' : 'none';
+  document.getElementById('unlockEstimly2Btn').style.display = active ? 'none' : 'inline-flex';
+  document.body.classList.toggle('estimly2-theme', active);
+  if(active) switchEstimly2Page('dashboard');
+  if(active) renderFollowupSection();
+  updateSavedQuotesLimitText();
+}
+/* ===================== fine Follow-up automatico (interruttore) ===================== */
 
 function addToCartWithQty(codice, qty){
   const item = catalog.find(i=>i.codice===codice);
@@ -1518,6 +2289,33 @@ document.querySelectorAll('.ai-improve-btn').forEach(btn=>{
 });
 /* ===================== fine EstimlyAI ===================== */
 
+/* ===================== Sblocca Estimly 2.0 (richiesta attivazione) ===================== */
+// Nessun pagamento reale integrato: il pulsante prepara una email con i dati
+// dello studio e della licenza, da inviare per attivare manualmente il flag
+// followupEnabled da /admin.html. Sostituisci l'indirizzo sotto con la tua email reale.
+const UNLOCK_ESTIMLY2_EMAIL = 'info@desearq.it';
+
+function openUnlockEstimly2Modal(){
+  const studioNome = (studioSettings && studioSettings.nome) ? studioSettings.nome : 'Studio';
+  const key = getLicenseKey();
+  const subject = `Attivazione Estimly 2.0 — ${studioNome}`;
+  const body = `Ciao,\n\nvorrei attivare Estimly 2.0 sulla mia licenza.\n\nStudio: ${studioNome}\nChiave di licenza: ${key || '(non disponibile)'}\n\nGrazie!`;
+  document.getElementById('unlockEstimly2MailBtn').href =
+    `mailto:${UNLOCK_ESTIMLY2_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  document.getElementById('unlockEstimly2Error').style.display = 'none';
+  document.getElementById('unlockEstimly2Modal').style.display = 'flex';
+}
+function closeUnlockEstimly2Modal(){
+  document.getElementById('unlockEstimly2Modal').style.display = 'none';
+}
+document.getElementById('unlockEstimly2Btn').addEventListener('click', openUnlockEstimly2Modal);
+document.getElementById('unlockEstimly2Close').addEventListener('click', closeUnlockEstimly2Modal);
+document.getElementById('unlockEstimly2Cancel').addEventListener('click', closeUnlockEstimly2Modal);
+document.getElementById('unlockEstimly2Modal').addEventListener('click', (e)=>{
+  if(e.target.id === 'unlockEstimly2Modal') closeUnlockEstimly2Modal();
+});
+/* ===================== fine Sblocca Estimly 2.0 ===================== */
+
 /* ===================== Calcolatore costo orario ===================== */
 function computeHourlyRate(v){
   const oreLavorativeAnnue = v.settimane * v.giorni * v.oreGiorno;
@@ -1582,6 +2380,23 @@ document.getElementById('costCalcCompute').addEventListener('click', runCostCalc
 document.getElementById('costCalcApply').addEventListener('click', applyCostCalc);
 document.getElementById('costCalcModal').addEventListener('click', (e)=>{
   if(e.target.id === 'costCalcModal') closeCostCalcModal();
+});
+
+document.getElementById('applyRateAllBtn').addEventListener('click', ()=>{
+  const tariffa = studioSettings.tariffaOrariaBase;
+  if(!tariffa){ alert('Nessuna tariffa oraria salvata. Usa prima "Calcola il tuo costo orario" per calcolarla e salvarla.'); return; }
+  const voci = catalog.filter(i=>i.ore > 0);
+  if(voci.length === 0){ alert('Nessuna voce del listino ha delle ore stimate impostate: non c\'è nulla da ricalcolare.'); return; }
+  const ok = confirm(
+    `Attenzione: stai per ricalcolare il prezzo di ${voci.length} voce/i del listino (quelle con ore stimate impostate) usando la tariffa oraria salvata di € ${fmt(tariffa)}/h.\n\n` +
+    `TUTTI i prezzi di queste voci verranno sovrascritti con il nuovo totale (ore × tariffa). Le voci senza ore stimate non vengono toccate.\n\n` +
+    `Vuoi continuare?`
+  );
+  if(!ok) return;
+  voci.forEach(i=>{ i.prezzo = +(i.ore*tariffa).toFixed(2); });
+  renderCatalog();
+  scheduleCloudSave();
+  alert(`Fatto: ${voci.length} voce/i del listino aggiornate con la tariffa di € ${fmt(tariffa)}/h.`);
 });
 /* ===================== fine Calcolatore costo orario ===================== */
 
@@ -1792,39 +2607,14 @@ document.getElementById('contractPreviewClose').addEventListener('click', ()=>{ 
 document.getElementById('contractPreviewCloseBtn').addEventListener('click', ()=>{ document.getElementById('contractPreviewModal').style.display='none'; });
 document.getElementById('contractTemplateSelect').addEventListener('change', (e)=>{
   document.getElementById('contractPreviewBtn').style.display = e.target.value ? 'block' : 'none';
-});
-
-let printTarget = 'quote';
-
-function printAndWait(){
-  return new Promise((resolve) => {
-    function onAfterPrint(){
-      window.removeEventListener('afterprint', onAfterPrint);
-      resolve();
-    }
-    window.addEventListener('afterprint', onAfterPrint);
-    window.print();
-  });
-}
-
-async function generateContract(templateId){
-  const template = (studioSettings.contractTemplates||[]).find(t=>t.id===templateId);
-  if(!template) return;
   const statusEl = document.getElementById('contractStatus');
-  statusEl.style.display = 'block';
-  statusEl.textContent = 'Si aprirà prima la finestra di stampa del contratto, poi quella del preventivo.';
-  try{
-    printTarget = 'contract';
-    document.getElementById('printDoc').innerHTML = buildContractPrintHtml(template);
-    await printAndWait();
-    statusEl.textContent = 'Contratto pronto.';
-  }catch(err){
-    console.error(err);
-    statusEl.textContent = 'Impossibile generare il contratto.';
-  } finally {
-    printTarget = 'quote';
+  if(e.target.value){
+    statusEl.style.display = 'block';
+    statusEl.textContent = 'Il contratto verrà incluso come prime pagine dello stesso PDF, prima del preventivo.';
+  } else {
+    statusEl.style.display = 'none';
   }
-}
+});
 /* ===================== fine Modelli di contratto ===================== */
 
 /* ===================== Blocchi di testo riutilizzabili ===================== */
@@ -1889,6 +2679,372 @@ document.getElementById('textBlockInsert').addEventListener('change', (e)=>{
   e.target.value = '';
 });
 /* ===================== fine Blocchi di testo riutilizzabili ===================== */
+
+/* ===================== Follow-up automatico ===================== */
+let followupsList = [];
+
+const FOLLOWUP_STATUS_META = {
+  freddo:          { emoji:'⚪', label:'Freddo — nessuna interazione', color:'#7A7C85', bg:'#F0F0F2' },
+  interessato:     { emoji:'🟡', label:'Interessato — ha aperto l\'email', color:'#92700C', bg:'#FDF3E0' },
+  attivo:          { emoji:'🟠', label:'Attivo — ha cliccato', color:'#B45309', bg:'#FDF0E3' },
+  caldo:           { emoji:'🔥', label:'Caldo — interazioni ripetute', color:'#C0392B', bg:'#FCE9E7' },
+  convertito:      { emoji:'🟢', label:'Convertito — preventivo accettato', color:'#0F766E', bg:'#E5F5F3' },
+  risposto:        { emoji:'💬', label:'Il cliente ha risposto', color:'#4338CA', bg:'#EEEDFB' },
+  accettato:       { emoji:'🟢', label:'Accettato', color:'#0F766E', bg:'#E5F5F3' },
+  rifiutato:       { emoji:'⚫', label:'Rifiutato', color:'#7A7C85', bg:'#F0F0F2' },
+  non_interessato: { emoji:'⚫', label:'Non interessato', color:'#7A7C85', bg:'#F0F0F2' },
+  disattivato:     { emoji:'⏸', label:'Follow-up disattivato', color:'#7A7C85', bg:'#F0F0F2' }
+};
+
+const FOLLOWUP_EVENT_LABELS = {
+  attivato: 'Follow-up attivato',
+  aperto: '👁 Email visualizzata',
+  cliccato: '🔗 Link aperto',
+  non_recapitato: '⚠ Email non recapitata',
+  segnalato_spam: '⚠ Segnalata come spam',
+  inviato_followup_1: 'Follow-up #1 inviato',
+  inviato_followup_2: 'Follow-up #2 inviato',
+  inviato_followup_3: 'Follow-up #3 inviato',
+  sequenza_conclusa: 'Sequenza conclusa',
+  risposto: '💬 Cliente ha risposto',
+  accettato: '🟢 Segnato come accettato',
+  rifiutato: 'Segnato come rifiutato',
+  non_interessato: 'Segnato come non interessato',
+  disattivato: 'Follow-up disattivato manualmente'
+};
+
+async function loadFollowupsCloud(){
+  if(!FOLLOWUP_FEATURE_LIVE || !followupFeatureEnabled) return;
+  const key = getLicenseKey();
+  if(!key) return;
+  try{
+    const res = await fetch('/.netlify/functions/followups', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action:'list' })
+    });
+    const data = await res.json();
+    if(data && Array.isArray(data.followups)){
+      followupsList = data.followups;
+      renderFollowupSection();
+    }
+  }catch(err){ console.error('Impossibile caricare i follow-up', err); }
+}
+
+function getCurrentFollowup(){
+  const numero = document.getElementById('fNumero').value.trim();
+  if(!numero) return null;
+  return followupsList.find(f => f.quoteRef === numero) || null;
+}
+
+function formatEventDate(iso){
+  return new Date(iso).toLocaleDateString('it-IT', { day:'numeric', month:'long' });
+}
+
+function renderFollowupSection(){
+  const inactive = document.getElementById('followupInactive');
+  const active = document.getElementById('followupActive');
+  const f = getCurrentFollowup();
+  if(!f || !f.active){
+    inactive.style.display = 'block';
+    active.style.display = 'none';
+    return;
+  }
+  inactive.style.display = 'none';
+  active.style.display = 'block';
+
+  const meta = FOLLOWUP_STATUS_META[f.status] || FOLLOWUP_STATUS_META.freddo;
+  document.getElementById('followupStatusBadge').innerHTML = `
+    <span style="display:inline-flex; align-items:center; gap:6px; background:${meta.bg}; color:${meta.color}; font-size:12px; font-weight:600; padding:5px 12px; border-radius:999px;">
+      ${meta.emoji} ${meta.label}
+    </span>`;
+
+  document.getElementById('followupTimeline').innerHTML = f.events.slice().reverse().map(ev => `
+    <div style="display:flex; gap:8px; font-size:11.5px; color:var(--ink-soft); padding:3px 0;">
+      <span style="flex-shrink:0; color:var(--ink-faint);">${formatEventDate(ev.at)}</span>
+      <span>${FOLLOWUP_EVENT_LABELS[ev.type] || ev.type}</span>
+    </div>
+  `).join('');
+}
+
+async function updateFollowupStatus(newStatus){
+  const f = getCurrentFollowup();
+  if(!f) return;
+  const key = getLicenseKey();
+  try{
+    await fetch('/.netlify/functions/followups', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action:'updateStatus', followupId:f.id, newStatus })
+    });
+    await loadFollowupsCloud();
+  }catch(err){ alert('Impossibile aggiornare lo stato del follow-up.'); }
+}
+
+document.getElementById('activateFollowupBtn').addEventListener('click', async ()=>{
+  const numero = document.getElementById('fNumero').value.trim();
+  const cliente = document.getElementById('fCliente').value.trim();
+  const clienteEmail = document.getElementById('fClienteEmail').value.trim();
+  const progetto = document.getElementById('fProgetto').value.trim();
+  if(!numero || !cliente){ alert('Compila almeno numero preventivo e nome cliente prima di attivare il follow-up.'); return; }
+  if(!clienteEmail){ alert('Inserisci l\'email del cliente per attivare il follow-up automatico.'); return; }
+  if(!studioSettings.resendApiKey || !studioSettings.resendFromEmail){
+    alert('Prima collega un account Resend in Impostazioni Studio → Follow-up automatico.');
+    return;
+  }
+  const key = getLicenseKey();
+  const totaleEl = document.querySelector('.total-row.grand .val');
+  const totale = totaleEl ? totaleEl.textContent.trim() : '';
+  try{
+    const res = await fetch('/.netlify/functions/followups', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        key, action:'start',
+        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale }
+      })
+    });
+    const data = await res.json();
+    if(data && data.ok){
+      await loadFollowupsCloud();
+    } else {
+      alert('Impossibile attivare il follow-up.');
+    }
+  }catch(err){ alert('Errore di connessione.'); }
+});
+
+document.getElementById('deactivateFollowupBtn').addEventListener('click', ()=>{
+  if(confirm('Disattivare il follow-up automatico per questo preventivo?')) updateFollowupStatus('disattivato');
+});
+document.getElementById('markRepliedBtn').addEventListener('click', ()=>updateFollowupStatus('risposto'));
+document.getElementById('markAcceptedBtn').addEventListener('click', ()=>updateFollowupStatus('accettato'));
+document.getElementById('markRejectedBtn').addEventListener('click', ()=>updateFollowupStatus('rifiutato'));
+document.getElementById('markNotInterestedBtn').addEventListener('click', ()=>updateFollowupStatus('non_interessato'));
+
+function renderFollowupsPanel(){
+  // Renderizza sia nel modal (utenti base) sia nella pagina Estimly 2.0 (sidebar > Da seguire)
+  const bodies = [document.getElementById('followupsPanelBody'), document.getElementById('e2SeguireBody')].filter(Boolean);
+  if(!bodies.length) return;
+  const attivi = followupsList.filter(f => f.active);
+  const caldi = attivi.filter(f => f.status === 'caldo' || f.status === 'attivo');
+  const inAttesa = attivi.filter(f => f.status !== 'caldo' && f.status !== 'attivo');
+  const conclusi = followupsList.filter(f => !f.active).slice(-10).reverse();
+
+  function row(f){
+    const meta = FOLLOWUP_STATUS_META[f.status] || FOLLOWUP_STATUS_META.freddo;
+    const opens = f.events.filter(e=>e.type==='aperto').length;
+    const clicks = f.events.filter(e=>e.type==='cliccato').length;
+    const hint = clicks>0 ? `Ha aperto il link ${clicks} volt${clicks===1?'a':'e'}` : (opens>0 ? `Ha visualizzato l'email ${opens} volt${opens===1?'a':'e'}` : 'Ancora nessuna interazione');
+    return `
+      <div style="border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <div style="font-weight:600; font-size:13px;">${escapeHtml(f.clienteNome)}</div>
+          <span style="font-size:11px; font-weight:600; color:${meta.color}; background:${meta.bg}; padding:3px 9px; border-radius:999px;">${meta.emoji} ${meta.label.split(' — ')[0]}</span>
+        </div>
+        <div style="font-size:11.5px; color:var(--ink-soft);">Preventivo ${escapeHtml(f.numero)}${f.totale?(' — '+escapeHtml(f.totale)):''}</div>
+        <div style="font-size:11.5px; color:var(--ink-soft); margin-top:2px;">${hint}</div>
+      </div>`;
+  }
+
+  let html = '';
+  if(caldi.length){
+    html += `<div style="font-size:12px; font-weight:700; color:var(--danger); margin-bottom:6px;">🔥 ${caldi.length} da contattare</div>` + caldi.map(row).join('');
+  }
+  if(inAttesa.length){
+    html += `<div style="font-size:12px; font-weight:700; color:var(--ink-soft); margin:14px 0 6px;">🟡 ${inAttesa.length} in attesa di risposta</div>` + inAttesa.map(row).join('');
+  }
+  if(conclusi.length){
+    html += `<div style="font-size:12px; font-weight:700; color:var(--ink-faint); margin:14px 0 6px;">Conclusi di recente</div>` + conclusi.map(row).join('');
+  }
+  if(!html){
+    html = '<div style="font-size:12.5px; color:var(--ink-faint); text-align:center; padding:24px 0;">Nessun follow-up attivo al momento.</div>';
+  }
+  bodies.forEach(b => b.innerHTML = html);
+}
+
+document.getElementById('followupsPanelBtn').addEventListener('click', async ()=>{
+  await loadFollowupsCloud();
+  renderFollowupsPanel();
+  document.getElementById('followupsPanelModal').style.display = 'flex';
+});
+document.getElementById('followupsPanelClose').addEventListener('click', ()=>{ document.getElementById('followupsPanelModal').style.display='none'; });
+document.getElementById('followupsPanelCloseBtn').addEventListener('click', ()=>{ document.getElementById('followupsPanelModal').style.display='none'; });
+/* ===================== fine Follow-up automatico ===================== */
+
+/* ===================== Menu Estimly 2.0 ===================== */
+let e2CurrentPage = 'dashboard';
+function switchEstimly2Page(pageId){
+  e2CurrentPage = pageId;
+  document.querySelectorAll('.e2-nav-item[data-e2-page]').forEach(btn=>{
+    btn.classList.toggle('active', btn.getAttribute('data-e2-page') === pageId);
+  });
+  document.getElementById('e2PageDashboard').style.display = pageId === 'dashboard' ? 'block' : 'none';
+  document.getElementById('e2PageContratti').style.display = pageId === 'contratti' ? 'block' : 'none';
+  document.getElementById('e2PageRubrica').style.display = pageId === 'rubrica' ? 'block' : 'none';
+  document.getElementById('e2PageSalvati').style.display = pageId === 'salvati' ? 'block' : 'none';
+  document.getElementById('e2PageSeguire').style.display = pageId === 'seguire' ? 'block' : 'none';
+  document.getElementById('e2PageCalcolatore').style.display = pageId === 'calcolatore' ? 'block' : 'none';
+  const preventivoPage = document.getElementById('e2PagePreventivo');
+  const quotePanel = document.querySelector('.quote-panel');
+  const catalogPanel = document.querySelector('.catalog');
+  const cartListEl = document.getElementById('cartList');
+  const horizBuilder = document.getElementById('e2HorizontalBuilder');
+  if(pageId === 'preventivo' || pageId === 'listino'){
+    preventivoPage.style.display = 'block';
+    quotePanel.style.display = pageId === 'preventivo' ? '' : 'none';
+    document.getElementById('hcAddBtn').style.display = pageId === 'preventivo' ? '' : 'none';
+    catalogPanel.style.display = pageId === 'listino' ? '' : 'none';
+    document.querySelector('.layout').classList.toggle('e2-single-col', true);
+    if(pageId === 'preventivo'){
+      cartListEl.style.display = 'none';
+      horizBuilder.style.display = 'block';
+      renderE2HCategories();
+      renderE2HCart();
+    } else {
+      horizBuilder.style.display = 'none';
+    }
+    if(pageId === 'listino') renderCatalog();
+  } else {
+    preventivoPage.style.display = 'none';
+  }
+  if(pageId === 'dashboard') renderDashboard();
+  if(pageId === 'rubrica') renderRubricaList();
+  if(pageId === 'salvati') renderSavedQuotesList();
+  if(pageId === 'seguire'){
+    loadFollowupsCloud().then(renderFollowupsPanel);
+  }
+  if(pageId === 'calcolatore') resetWizardCalc();
+}
+
+function renderDashboard(){
+  const count = savedQuotes.length;
+  const total = savedQuotes.reduce((sum, q) => sum + (q.cart||[]).reduce((s,l)=>s+lineTotal(l),0), 0);
+  document.getElementById('e2StatCount').textContent = count;
+  document.getElementById('e2StatTotal').textContent = '€ ' + fmt(total);
+  document.getElementById('e2StatFollowupsActive').textContent = followupsList.filter(f=>f.active).length;
+
+  const ACTIVITY_LABELS = {
+    attivato: 'Follow-up attivato',
+    aperto: '👁 ha visualizzato l\'email',
+    cliccato: '🔗 ha aperto il link',
+    inviato_followup_1: 'Follow-up #1 inviato',
+    inviato_followup_2: 'Follow-up #2 inviato',
+    inviato_followup_3: 'Follow-up #3 inviato',
+    sequenza_conclusa: 'Sequenza conclusa',
+    risposto: '💬 ha risposto',
+    accettato: '🟢 ha accettato il preventivo',
+    rifiutato: 'preventivo rifiutato',
+    non_interessato: 'segnato come non interessato',
+    non_recapitato: '⚠ email non recapitata',
+    segnalato_spam: '⚠ segnalata come spam',
+    disattivato: 'follow-up disattivato'
+  };
+
+  const allEvents = [];
+  followupsList.forEach(f=>{
+    (f.events||[]).forEach(ev=>{
+      allEvents.push({ at: ev.at, clienteNome: f.clienteNome, numero: f.numero, type: ev.type });
+    });
+  });
+  allEvents.sort((a,b)=> new Date(b.at) - new Date(a.at));
+
+  const box = document.getElementById('e2ActivityList');
+  if(allEvents.length === 0){
+    box.innerHTML = '<div class="e2-activity-empty">Nessuna attività ancora. Attiva un follow-up automatico su un preventivo per iniziare a vedere qui le interazioni dei clienti.</div>';
+    return;
+  }
+  box.innerHTML = allEvents.slice(0,15).map(ev=>`
+    <div class="e2-activity-row">
+      <div class="e2-activity-main"><b>${escapeHtml(ev.clienteNome||'—')}</b> (${escapeHtml(ev.numero||'—')}) — ${ACTIVITY_LABELS[ev.type] || ev.type}</div>
+      <div class="e2-activity-date">${formatEventDate(ev.at)}</div>
+    </div>
+  `).join('');
+}
+
+document.querySelectorAll('.e2-nav-item[data-e2-page]').forEach(btn=>{
+  btn.addEventListener('click', ()=>switchEstimly2Page(btn.getAttribute('data-e2-page')));
+});
+document.getElementById('e2NavImpostazioni').addEventListener('click', openSettingsModal);
+/* ===================== fine Menu Estimly 2.0 ===================== */
+
+/* ===================== Costruttore orizzontale (pagina Preventivo, Estimly 2.0) ===================== */
+let e2ActiveCategory = null;
+
+function renderE2HCategories(){
+  const row = document.getElementById('e2HCategoryRow');
+  if(!row) return;
+  const cats = categoryOrder.filter(c => catalog.some(i=>i.categoria===c));
+  if(!e2ActiveCategory || !cats.includes(e2ActiveCategory)) e2ActiveCategory = cats[0] || null;
+  row.innerHTML = cats.map(c=>`<div class="e2-h-cat-chip ${c===e2ActiveCategory?'active':''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</div>`).join('');
+  row.querySelectorAll('.e2-h-cat-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      e2ActiveCategory = chip.getAttribute('data-cat');
+      renderE2HCategories();
+      renderE2HItems();
+    });
+  });
+  renderE2HItems();
+}
+
+function renderE2HItems(){
+  const row = document.getElementById('e2HItemsRow');
+  if(!row) return;
+  const items = catalog.filter(i=>i.categoria===e2ActiveCategory);
+  row.innerHTML = items.map(it=>`
+    <div class="e2-h-item-card">
+      <div class="e2-h-item-name">${escapeHtml(it.prestazione)}</div>
+      <div class="e2-h-item-price">€ ${fmt(it.prezzo)}</div>
+      <button type="button" class="e2-h-item-add" data-h-add="${it.codice}">+ Aggiungi</button>
+    </div>
+  `).join('');
+  row.querySelectorAll('[data-h-add]').forEach(btn=>{
+    btn.addEventListener('click', ()=>addToCart(btn.getAttribute('data-h-add')));
+  });
+}
+
+function renderE2HCart(){
+  const row = document.getElementById('e2HCartRow');
+  if(!row) return;
+  if(cart.length === 0){
+    row.innerHTML = '<div class="e2-h-cart-empty">Nessuna voce ancora selezionata.</div>';
+  } else {
+    row.innerHTML = cart.map(l=>`
+      <div class="e2-h-cart-item">
+        <div class="e2-h-cart-item-top">
+          <span class="e2-h-cart-item-name">${escapeHtml(l.nome)}</span>
+          <span class="e2-h-cart-item-price">€ ${fmt(lineTotal(l))}</span>
+          <button type="button" data-h-remove="${l.id}" title="Rimuovi">&times;</button>
+        </div>
+        <div class="e2-h-cart-item-note">
+          <input type="text" data-h-note="${l.id}" value="${l.nota ? escapeHtml(l.nota) : ''}" placeholder="Nota per questa voce (facoltativa, stampata nel PDF)">
+        </div>
+      </div>
+    `).join('');
+    row.querySelectorAll('[data-h-remove]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = parseFloat(btn.getAttribute('data-h-remove'));
+        cart = cart.filter(l=>l.id!==id);
+        renderCart(); scheduleSave();
+      });
+    });
+    row.querySelectorAll('[data-h-note]').forEach(inp=>{
+      inp.addEventListener('input', ()=>{
+        const id = parseFloat(inp.getAttribute('data-h-note'));
+        const line = cart.find(l=>l.id===id);
+        if(line){ line.nota = inp.value; scheduleSave(); }
+      });
+    });
+  }
+  const total = cart.reduce((s,l)=>s+lineTotal(l),0);
+  document.getElementById('e2HCartTotal').textContent = 'Totale: € ' + fmt(total);
+}
+
+document.getElementById('e2HAddFreeBtn').addEventListener('click', ()=>{
+  const form = document.getElementById('customForm');
+  form.classList.add('open');
+  form.scrollIntoView({behavior:'smooth', block:'center'});
+});
+/* ===================== fine Costruttore orizzontale ===================== */
 
 /* ===================== Pagine extra del preventivo ===================== */
 function renderExtraPages(){
@@ -1975,6 +3131,7 @@ function applyStudioSettings(){
   document.documentElement.style.setProperty('--accent-hover', shadeColor(studioSettings.colorPrimary, -18));
   document.documentElement.style.setProperty('--accent-soft', hexToSoft(studioSettings.colorPrimary));
   document.documentElement.style.setProperty('--ink', studioSettings.colorInk);
+  updateCustomFontFace();
 
   populateContractSelect();
   renderContractTemplatesList();
@@ -1995,6 +3152,21 @@ function applyStudioSettings(){
   const hcTariffa = document.getElementById('hcTariffa');
   if(hcTariffa && (!hcTariffa.value || parseFloat(hcTariffa.value) === 0) && studioSettings.tariffaOrariaBase){
     hcTariffa.value = studioSettings.tariffaOrariaBase;
+  }
+}
+
+function updateCustomFontFace(){
+  let styleEl = document.getElementById('customFontFaceStyle');
+  if(!styleEl){
+    styleEl = document.createElement('style');
+    styleEl.id = 'customFontFaceStyle';
+    document.head.appendChild(styleEl);
+  }
+  if(studioSettings.customFontData){
+    const fmt = studioSettings.customFontFormat ? ` format('${studioSettings.customFontFormat}')` : '';
+    styleEl.textContent = `@font-face{ font-family:'EstimlyCustomFont'; src:url(${studioSettings.customFontData})${fmt}; font-weight:normal; font-style:normal; }`;
+  } else {
+    styleEl.textContent = '';
   }
 }
 
@@ -2037,6 +3209,9 @@ function renderPaymentBlock(){
 function openSettingsModal(){
   const s = studioSettings;
   renderTextBlocksList();
+  document.getElementById('sResendApiKey').value = s.resendApiKey || '';
+  document.getElementById('sResendFromEmail').value = s.resendFromEmail || '';
+  document.getElementById('sResendFromName').value = s.resendFromName || '';
   document.getElementById('sNome').value = s.nome || '';
   document.getElementById('sTagline').value = s.tagline || '';
   document.getElementById('sIndirizzo').value = s.indirizzo || '';
@@ -2067,6 +3242,10 @@ function openSettingsModal(){
   const removeBtn = document.getElementById('logoRemoveBtn');
   if(s.logo){ logoPreview.src = s.logo; logoPreview.style.display='inline-block'; removeBtn.style.display='inline-block'; }
   else{ logoPreview.style.display='none'; removeBtn.style.display='none'; }
+  const fontPreview = document.getElementById('customFontPreview');
+  const fontRemove = document.getElementById('customFontRemoveBtn');
+  if(s.customFontData){ fontPreview.textContent = s.customFontName || 'Font caricato'; fontPreview.style.display='inline-block'; fontRemove.style.display='inline-block'; }
+  else{ fontPreview.style.display='none'; fontRemove.style.display='none'; }
   document.getElementById('settingsModal').style.display = 'flex';
 }
 
@@ -2082,6 +3261,7 @@ async function initStorage(){
       cart = d.cart || [];
       idCounter = d.idCounter || (cart.length+1);
       document.getElementById('fCliente').value = d.client?.cliente || '';
+      document.getElementById('fClienteEmail').value = d.client?.clienteEmail || '';
       document.getElementById('fTipoCliente').value = d.client?.tipoCliente || 'Privato';
       document.getElementById('fIndirizzo').value = d.client?.indirizzo || '';
       document.getElementById('fCF').value = d.client?.cf || '';
@@ -2092,6 +3272,7 @@ async function initStorage(){
       document.getElementById('fRevisione').value = d.client?.revisione || 'Rev. 0';
       document.getElementById('fValidita').value = d.client?.validita ?? 30;
       document.getElementById('fSconto').value = d.client?.sconto ?? 0;
+      document.getElementById('fHidePrices').checked = !!(d.client?.hidePrices);
       document.getElementById('fNotePagamento').value = d.client?.notePagamento || '';
       extraPages = normalizeExtraPages(d.client?.pagineExtra); renderExtraPages();
       document.getElementById('fContributoLabel').value = d.client?.contributoLabel || '';
@@ -2107,6 +3288,7 @@ async function initStorage(){
   }
   renderCart();
   renderCartiglio();
+  updateQuoteClientSummary();
 }
 
 function setDefaults(){
@@ -2146,6 +3328,7 @@ async function saveDraft(){
     cart, idCounter,
     client:{
       cliente: document.getElementById('fCliente').value,
+      clienteEmail: document.getElementById('fClienteEmail').value,
       tipoCliente: document.getElementById('fTipoCliente').value,
       indirizzo: document.getElementById('fIndirizzo').value,
       cf: document.getElementById('fCF').value,
@@ -2161,7 +3344,8 @@ async function saveDraft(){
       contributoLabel: document.getElementById('fContributoLabel').value,
       contributoPct: parseFloat(document.getElementById('fContributoPct').value) || 0,
       regime: document.getElementById('fRegime').value,
-      aliquotaCustom: parseFloat(document.getElementById('fAliquotaCustom').value) || 22
+      aliquotaCustom: parseFloat(document.getElementById('fAliquotaCustom').value) || 22,
+      hidePrices: document.getElementById('fHidePrices').checked
     }
   };
   try{
@@ -2183,28 +3367,32 @@ function populateCategorySelect(){
 }
 
 function populateHourCalcCategorySelect(){
-  const sel = document.getElementById('hcCategoria');
-  if(!sel) return;
-  const current = sel.value;
-  const knownCats = getKnownCategories();
-  sel.innerHTML = knownCats.map(c=>`<option value="${c}">${c}</option>`).join('') +
-    `<option value="__new__">+ Nuova categoria...</option>`;
-  if(knownCats.includes(current)) sel.value = current;
+  ['hcCategoria'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const current = sel.value;
+    const knownCats = getKnownCategories();
+    sel.innerHTML = knownCats.map(c=>`<option value="${c}">${c}</option>`).join('') +
+      `<option value="__new__">+ Nuova categoria...</option>`;
+    if(knownCats.includes(current)) sel.value = current;
+  });
 }
 
 function populateHourCalcSelect(){
-  const sel = document.getElementById('hcItem');
-  if(!sel) return;
-  const current = sel.value;
-  const byCat = {};
-  catalog.forEach(i=>{ byCat[i.categoria] = byCat[i.categoria] || []; byCat[i.categoria].push(i); });
-  let cats = Object.keys(byCat);
-  cats.sort((a,b)=>{
-    return categorySortIndex(a) - categorySortIndex(b);
+  ['hcItem'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const current = sel.value;
+    const byCat = {};
+    catalog.forEach(i=>{ byCat[i.categoria] = byCat[i.categoria] || []; byCat[i.categoria].push(i); });
+    let cats = Object.keys(byCat);
+    cats.sort((a,b)=>{
+      return categorySortIndex(a) - categorySortIndex(b);
+    });
+    sel.innerHTML = '<option value="">— nessuna, voce libera —</option>' +
+      cats.map(cat=>`<optgroup label="${cat}">${byCat[cat].map(i=>`<option value="${i.codice}">${i.codice} — ${i.prestazione}</option>`).join('')}</optgroup>`).join('');
+    if(catalog.find(i=>i.codice===current)) sel.value = current;
   });
-  sel.innerHTML = '<option value="">— nessuna, voce libera —</option>' +
-    cats.map(cat=>`<optgroup label="${cat}">${byCat[cat].map(i=>`<option value="${i.codice}">${i.codice} — ${i.prestazione}</option>`).join('')}</optgroup>`).join('');
-  if(catalog.find(i=>i.codice===current)) sel.value = current;
 }
 
 function tierRank(p){
@@ -2360,6 +3548,10 @@ function renderCatalog(){
 function itemRow(item){
   const badge = `<span class="item-badge badge-${item.pacchetto||'Base'}">${item.pacchetto||'Base'}</span>`;
   const oreInfo = item.ore ? `<span class="item-um">${item.ore} h stimate</span>` : '';
+  // Nella pagina Listino di Estimly 2.0 non si possono aggiungere voci al preventivo:
+  // quella possibilità esiste solo nella pagina Preventivo (costruttore orizzontale).
+  const hideAdd = e2CurrentPage === 'listino';
+  const addBtn = hideAdd ? '' : `<button class="add-btn" data-add="${item.codice}">+ Aggiungi</button>`;
   return `
   <div class="item-row" data-row-for="${item.codice}" draggable="true">
     <div class="item-code"><span class="drag-handle" title="Trascina per riordinare">&#8942;&#8942;</span>${item.codice}</div>
@@ -2375,7 +3567,7 @@ function itemRow(item){
     <div class="item-row-actions">
       <button class="icon-btn" data-edit="${item.codice}" title="Modifica">&#9998;</button>
       <button class="icon-btn danger" data-delete="${item.codice}" title="Elimina">&#10005;</button>
-      <button class="add-btn" data-add="${item.codice}">+ Aggiungi</button>
+      ${addBtn}
     </div>
   </div>`;
 }
@@ -2425,7 +3617,11 @@ function editFormHtml(item){
       <div class="full"><label>Descrizione</label><input id="efDescrizione" value="${it.descrizione||''}"></div>
       <div><label>U.M.</label><input id="efUm" value="${it.um}"></div>
       <div><label>Ore stimate</label><input id="efOre" type="number" step="0.5" value="${it.ore||0}"></div>
-      <div><label>Prezzo €</label><input id="efPrezzo" type="number" step="0.01" value="${it.prezzo}"></div>
+      <div>
+        <label>Prezzo €</label>
+        <input id="efPrezzo" type="number" step="0.01" value="${it.prezzo}">
+        <button type="button" id="efUseRateBtn" class="secondary-btn" style="margin-top:6px; font-size:11px; padding:5px 9px;" title="Ricalcola il prezzo di questa voce come ore stimate × tariffa oraria salvata">🕐 Usa tariffa oraria salvata</button>
+      </div>
       <div>
         <label>Livello pacchetto</label>
         <select id="efPacchetto">
@@ -2453,6 +3649,13 @@ function bindEditFormEvents(){
     const isNew = catSelect.value === '__new__';
     catNewInput.style.display = isNew ? 'block' : 'none';
     if(isNew) catNewInput.focus();
+  });
+  document.getElementById('efUseRateBtn').addEventListener('click', ()=>{
+    const tariffa = studioSettings.tariffaOrariaBase;
+    if(!tariffa){ alert('Nessuna tariffa oraria salvata. Usa prima "Calcola il tuo costo orario" per calcolarla e salvarla.'); return; }
+    const ore = parseFloat(document.getElementById('efOre').value) || 0;
+    if(ore <= 0){ alert('Inserisci prima le ore stimate per questa voce.'); return; }
+    document.getElementById('efPrezzo').value = +(ore*tariffa).toFixed(2);
   });
 }
 
@@ -2549,6 +3752,7 @@ function renderCart(){
   renderTotals();
   renderCartiglio();
   renderAiSuggestions();
+  renderE2HCart();
 }
 
 function cartLineHtml(l){
@@ -2761,21 +3965,33 @@ function generateCatalogCode(categoria){
   return codice;
 }
 
-document.getElementById('hcAddListinoBtn').addEventListener('click', ()=>{
-  const codice = document.getElementById('hcItem').value;
+// Logica condivisa tra il calcolatore inline (pagina Preventivo) e la pagina
+// dedicata "Calcolatore" del menù: entrambi chiamano queste due funzioni.
+function hourCalcAddToListino({ codice, ore, tariffa, nomeLibero, categoriaSelectValue, categoriaNewValue }){
   const item = catalog.find(i=>i.codice===codice);
-  const ore = parseFloat(document.getElementById('hcOre').value) || 0;
-  const tariffa = parseFloat(document.getElementById('hcTariffa').value) || 0;
-  const nomeLibero = document.getElementById('hcNome').value.trim();
-  const catSelectEl = document.getElementById('hcCategoria');
-  const categoria = (catSelectEl.value === '__new__')
-    ? (document.getElementById('hcCategoriaNew').value.trim() || 'Senza categoria')
-    : catSelectEl.value;
+  const categoria = (categoriaSelectValue === '__new__')
+    ? ((categoriaNewValue||'').trim() || 'Senza categoria')
+    : categoriaSelectValue;
 
   if(ore <= 0 || tariffa <= 0){ alert('Inserisci ore lavorate e costo orario maggiori di zero.'); return; }
   if(!categoria){ alert('Scegli o crea una categoria per il listino.'); return; }
-  const nome = item ? item.prestazione : (nomeLibero || 'Lavorazione a ore');
 
+  if(item){
+    // Una voce esistente era selezionata nel calcolatore: aggiorna quella voce
+    // invece di crearne una nuova (evita di duplicarla nel listino).
+    item.ore = ore;
+    item.prezzo = +(ore*tariffa).toFixed(2);
+    item.categoria = categoria;
+    ensureCategoryInOrder(categoria);
+
+    populateCategorySelect();
+    renderCatalog();
+    scheduleCloudSave();
+    alert(`Voce "${item.prestazione}" (${item.codice}) aggiornata: nuovo prezzo € ${fmt(item.prezzo)}.`);
+    return;
+  }
+
+  const nome = nomeLibero || 'Lavorazione a ore';
   ensureCategoryInOrder(categoria);
   const newCodice = generateCatalogCode(categoria);
   catalog.push({
@@ -2787,16 +4003,11 @@ document.getElementById('hcAddListinoBtn').addEventListener('click', ()=>{
   renderCatalog();
   scheduleCloudSave();
   alert(`Aggiunto al listino come "${nome}" (${newCodice}) nella categoria "${categoria}".`);
-});
+}
 
-document.getElementById('hcAddBtn').addEventListener('click', ()=>{
-  const codice = document.getElementById('hcItem').value;
+function hourCalcAddToCart({ codice, ore, tariffa, nomeLibero }){
   const item = catalog.find(i=>i.codice===codice);
-  const ore = parseFloat(document.getElementById('hcOre').value) || 0;
-  const tariffa = parseFloat(document.getElementById('hcTariffa').value) || 0;
-  const nomeLibero = document.getElementById('hcNome').value.trim();
-
-  if(ore <= 0 || tariffa <= 0){ alert('Inserisci ore lavorate e costo orario maggiori di zero.'); return; }
+  if(ore <= 0 || tariffa <= 0){ alert('Inserisci ore lavorate e costo orario maggiori di zero.'); return false; }
   const nome = item ? item.prestazione : (nomeLibero || 'Lavorazione a ore');
 
   cart.push({
@@ -2811,20 +4022,103 @@ document.getElementById('hcAddBtn').addEventListener('click', ()=>{
     nota: ''
   });
 
+  renderCart(); scheduleSave();
+  return true;
+}
+
+document.getElementById('hcAddListinoBtn').addEventListener('click', ()=>{
+  const catSelectEl = document.getElementById('hcCategoria');
+  hourCalcAddToListino({
+    codice: document.getElementById('hcItem').value,
+    ore: parseFloat(document.getElementById('hcOre').value) || 0,
+    tariffa: parseFloat(document.getElementById('hcTariffa').value) || 0,
+    nomeLibero: document.getElementById('hcNome').value.trim(),
+    categoriaSelectValue: catSelectEl.value,
+    categoriaNewValue: document.getElementById('hcCategoriaNew').value
+  });
+});
+
+document.getElementById('hcAddBtn').addEventListener('click', ()=>{
+  const ok = hourCalcAddToCart({
+    codice: document.getElementById('hcItem').value,
+    ore: parseFloat(document.getElementById('hcOre').value) || 0,
+    tariffa: parseFloat(document.getElementById('hcTariffa').value) || 0,
+    nomeLibero: document.getElementById('hcNome').value.trim()
+  });
+  if(!ok) return;
+
   document.getElementById('hcItem').value = '';
   document.getElementById('hcNome').value = '';
   document.getElementById('hcNome').placeholder = 'Es. Sopralluogo extra';
   document.getElementById('hcOre').value = 1;
   document.getElementById('hcTariffa').value = 0;
   updateHourCalcTotal();
-  renderCart(); scheduleSave();
 });
+
+/* ===================== Calcola il tuo costo orario — pagina dedicata (wizard) ===================== */
+const WZ_FIELD_IDS = ['wzStipendio','wzCostiFissi','wzSettimane','wzGiorni','wzOreGiorno','wzFatturabile','wzMargine'];
+const WZ_STEP_IDS = ['wzStep1','wzStep2','wzStep3','wzStep4','wzStep5','wzStep6','wzStep7'];
+
+function updateWizardSteps(){
+  // Ogni step si mostra solo quando il campo dello step precedente è stato compilato.
+  let allFilled = true;
+  for(let i=1; i<WZ_STEP_IDS.length; i++){
+    const prevFieldVal = document.getElementById(WZ_FIELD_IDS[i-1]).value;
+    const show = prevFieldVal !== '';
+    document.getElementById(WZ_STEP_IDS[i]).style.display = show ? 'block' : 'none';
+    if(!show) allFilled = false;
+  }
+  const lastFieldVal = document.getElementById(WZ_FIELD_IDS[WZ_FIELD_IDS.length-1]).value;
+  const showFinal = allFilled && lastFieldVal !== '';
+  document.getElementById('wzStepFinale').style.display = showFinal ? 'block' : 'none';
+  if(showFinal) updateWizardResult();
+}
+
+function updateWizardResult(){
+  const v = {
+    stipendio: parseFloat(document.getElementById('wzStipendio').value) || 0,
+    costiFissi: parseFloat(document.getElementById('wzCostiFissi').value) || 0,
+    settimane: parseFloat(document.getElementById('wzSettimane').value) || 0,
+    giorni: parseFloat(document.getElementById('wzGiorni').value) || 0,
+    oreGiorno: parseFloat(document.getElementById('wzOreGiorno').value) || 0,
+    fatturabile: parseFloat(document.getElementById('wzFatturabile').value) || 0,
+    margine: parseFloat(document.getElementById('wzMargine').value) || 0
+  };
+  const { rate, oreFatturabiliAnnue, costoTotale } = computeHourlyRate(v);
+  wzLastComputedRate = rate;
+  document.getElementById('wzRateOut').textContent = '€ ' + fmt(rate) + ' /h';
+  document.getElementById('wzDetailOut').textContent =
+    `Basato su ${fmt(oreFatturabiliAnnue)} ore fatturabili/anno e € ${fmt(costoTotale)} da coprire complessivamente.`;
+}
+
+function resetWizardCalc(){
+  WZ_FIELD_IDS.forEach(id => { document.getElementById(id).value = ''; });
+  updateWizardSteps();
+  document.getElementById(WZ_FIELD_IDS[0]).focus();
+}
+
+let wzLastComputedRate = 0;
+
+WZ_FIELD_IDS.forEach(id => {
+  document.getElementById(id).addEventListener('input', updateWizardSteps);
+});
+
+document.getElementById('wzSaveRateBtn').addEventListener('click', ()=>{
+  studioSettings.tariffaOrariaBase = +wzLastComputedRate.toFixed(2);
+  saveStudioSettings();
+  scheduleCloudSave();
+  const hcTariffa = document.getElementById('hcTariffa');
+  if(hcTariffa) hcTariffa.value = studioSettings.tariffaOrariaBase;
+  alert(`Tariffa salvata: € ${fmt(studioSettings.tariffaOrariaBase)}/h. La trovi già pronta nel calcolatore a ore e nei pulsanti "Usa tariffa oraria salvata" del listino.`);
+});
+/* ===================== fine Calcola il tuo costo orario — pagina dedicata ===================== */
 
 ['fCliente','fTipoCliente','fIndirizzo','fCF','fPiva','fProgetto','fData','fNumero','fRevisione','fValidita','fNotePagamento'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>{ renderCartiglio(); scheduleSave(); });
   document.getElementById(id).addEventListener('change', ()=>{ renderCartiglio(); scheduleSave(); });
 });
 document.getElementById('fSconto').addEventListener('input', ()=>{ renderTotals(); scheduleSave(); });
+document.getElementById('fHidePrices').addEventListener('change', ()=>{ scheduleSave(); });
 document.getElementById('fRegime').addEventListener('change', ()=>{
   document.getElementById('regimeCustomField').style.display = document.getElementById('fRegime').value === 'custom' ? 'block' : 'none';
   renderTotals(); scheduleSave();
@@ -2851,6 +4145,7 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
   if(!confirm('Vuoi svuotare il preventivo corrente e iniziarne uno nuovo?')) return;
   cart = [];
   document.getElementById('fCliente').value='';
+  document.getElementById('fClienteEmail').value='';
   document.getElementById('fTipoCliente').value='Privato';
   document.getElementById('fIndirizzo').value='';
   document.getElementById('fCF').value='';
@@ -2861,6 +4156,7 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
   document.getElementById('fRevisione').value='Rev. 0';
   document.getElementById('fValidita').value=30;
   document.getElementById('fSconto').value=0;
+  document.getElementById('fHidePrices').checked=false;
   document.getElementById('fNotePagamento').value='';
   extraPages = []; renderExtraPages();
   document.getElementById('fContributoLabel').value='';
@@ -2869,6 +4165,9 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
   document.getElementById('fAliquotaCustom').value=22;
   document.getElementById('regimeCustomField').style.display='none';
   renderCart();
+  renderFollowupSection();
+  updateQuoteClientSummary();
+  renderCartiglio();
   await saveDraft();
 });
 
@@ -2914,6 +4213,14 @@ function letterheadFooterHtml(){
   return (useCustomLetterhead && s.letterheadFooter) ? `<img src="${s.letterheadFooter}" class="pd-letterhead-footer">` : '';
 }
 
+function buildContractPageHtml(){
+  const templateId = document.getElementById('contractTemplateSelect').value;
+  if(!templateId) return '';
+  const template = (studioSettings.contractTemplates||[]).find(t=>t.id===templateId);
+  if(!template) return '';
+  return `<div class="pd-contract-page">${buildContractPrintHtml(template)}</div>`;
+}
+
 function buildPrintDoc(){
   const s = studioSettings;
   const cliente = document.getElementById('fCliente').value || '—';
@@ -2943,12 +4250,14 @@ function buildPrintDoc(){
     return categorySortIndex(a) - categorySortIndex(b);
   });
 
+  const hidePrices = document.getElementById('fHidePrices').checked;
+  const colCount = hidePrices ? 3 : 5;
   let rowsHtml = '';
   if(cart.length === 0){
-    rowsHtml = `<tr><td colspan="5" class="pd-empty">Nessuna voce inserita.</td></tr>`;
+    rowsHtml = `<tr><td colspan="${colCount}" class="pd-empty">Nessuna voce inserita.</td></tr>`;
   } else {
     cats.forEach(cat=>{
-      rowsHtml += `<tr class="pd-cat-row"><td colspan="5">${escapeHtml(cat)}</td></tr>`;
+      rowsHtml += `<tr class="pd-cat-row"><td colspan="${colCount}">${escapeHtml(cat)}</td></tr>`;
       byCat[cat].forEach(l=>{
         const isOrario = l.modalita === 'orario';
         const qty = isOrario ? `${fmt(l.ore)} h` : `${l.qty} ${l.um||'cad'}`;
@@ -2961,8 +4270,9 @@ function buildPrintDoc(){
             ${l.nota ? `<div class="pd-item-note">Nota: ${escapeHtml(l.nota)}</div>` : ''}
           </td>
           <td class="pd-num">${qty}</td>
+          ${hidePrices ? '' : `
           <td class="pd-num">€ ${fmt(unit)}</td>
-          <td class="pd-num pd-strong">€ ${fmt(lineTotal(l))}</td>
+          <td class="pd-num pd-strong">€ ${fmt(lineTotal(l))}</td>`}
         </tr>`;
       });
     });
@@ -3008,17 +4318,25 @@ function buildPrintDoc(){
 
   document.getElementById('printDoc').setAttribute('data-font', s.fontPairing || 'moderno');
   document.getElementById('printDoc').setAttribute('data-layout', s.pdfLayout || 'classico');
+  document.getElementById('printDoc').toggleAttribute('data-custom-font', !!s.customFontData);
 
-  const pagineExtraHtml = extraPages
-    .map(p => (p.testo||'').trim())
-    .filter(Boolean)
-    .map(testo => `
+  const pagineExtraTesti = extraPages.map(p => (p.testo||'').trim()).filter(Boolean);
+  const pagineExtraHtml = pagineExtraTesti
+    .map((testo, idx) => `
       <div class="pd-extra-pages">
-        ${escapeHtml(testo).split(/\n{2,}/).map(par=>`<p>${par.replace(/\n/g,'<br>')}</p>`).join('')}
+        ${buildLetterheadHtml('Allegato', [
+          ['Rif. preventivo', escapeHtml(numero)],
+          ['Pagina', `${idx+1} di ${pagineExtraTesti.length}`]
+        ])}
+        <div class="pd-extra-pages-body">
+          ${escapeHtml(testo).split(/\n{2,}/).map(par=>`<p>${par.replace(/\n/g,'<br>')}</p>`).join('')}
+        </div>
+        ${letterheadFooterHtml()}
       </div>
     `).join('');
 
   document.getElementById('printDoc').innerHTML = `
+    ${buildContractPageHtml()}
     ${headerHtml}
 
     <div class="pd-parties">
@@ -3032,7 +4350,7 @@ function buildPrintDoc(){
     </div>
 
     <table class="pd-table">
-      <thead><tr><th>Codice</th><th>Descrizione</th><th>Qt&agrave;/Ore</th><th>Prezzo unit.</th><th>Totale</th></tr></thead>
+      <thead><tr><th>Codice</th><th>Descrizione</th><th>Qt&agrave;/Ore</th>${hidePrices ? '' : '<th>Prezzo unit.</th><th>Totale</th>'}</tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>
 
@@ -3044,13 +4362,8 @@ function buildPrintDoc(){
   `;
 }
 
-window.addEventListener('beforeprint', ()=>{ if(printTarget === 'quote') buildPrintDoc(); });
-document.getElementById('printBtn').addEventListener('click', async ()=>{
-  const templateId = document.getElementById('contractTemplateSelect').value;
-  if(templateId){
-    await generateContract(templateId);
-  }
-  printTarget = 'quote';
+window.addEventListener('beforeprint', ()=>{ buildPrintDoc(); });
+document.getElementById('printBtn').addEventListener('click', ()=>{
   buildPrintDoc();
   window.print();
 });
@@ -3162,11 +4475,46 @@ document.getElementById('savedQuotesCloseBtn').addEventListener('click', closeSa
 document.getElementById('savedQuotesModal').addEventListener('click', (e)=>{
   if(e.target.id === 'savedQuotesModal') closeSavedQuotesModal();
 });
-document.getElementById('savedQuotesList').addEventListener('click', (e)=>{
-  const openId = e.target.getAttribute('data-open-quote');
-  const delId = e.target.getAttribute('data-delete-quote');
-  if(openId) loadQuoteById(openId);
-  if(delId) deleteQuoteById(delId);
+document.getElementById('savedQuotesList').addEventListener('click', handleSavedQuotesListClick);
+document.getElementById('e2SalvatiList').addEventListener('click', handleSavedQuotesListClick);
+
+/* ===================== Rubrica clienti: bind UI ===================== */
+document.getElementById('selectClientBtn').addEventListener('click', openClientPickerModal);
+document.getElementById('clientPickerClose').addEventListener('click', closeClientPickerModal);
+document.getElementById('clientPickerCloseBtn').addEventListener('click', closeClientPickerModal);
+document.getElementById('clientPickerModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'clientPickerModal') closeClientPickerModal();
+});
+document.getElementById('clientPickerNewBtn').addEventListener('click', ()=>{
+  openClientFormModal(null, { fromPicker: true });
+});
+document.getElementById('addClientBtn').addEventListener('click', ()=>{
+  openClientFormModal(null, null);
+});
+document.getElementById('clientFormClose').addEventListener('click', closeClientFormModal);
+document.getElementById('clientFormCancelBtn').addEventListener('click', closeClientFormModal);
+document.getElementById('clientFormModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'clientFormModal') closeClientFormModal();
+});
+document.getElementById('clientFormSaveBtn').addEventListener('click', async ()=>{
+  const nome = document.getElementById('cfCliente').value.trim();
+  if(!nome){ alert('Inserisci almeno il nome del cliente.'); return; }
+  const clientData = {
+    id: document.getElementById('cfId').value || undefined,
+    cliente: nome,
+    tipoCliente: document.getElementById('cfTipoCliente').value,
+    cf: document.getElementById('cfCF').value.trim(),
+    indirizzo: document.getElementById('cfIndirizzo').value.trim(),
+    piva: document.getElementById('cfPiva').value.trim(),
+    email: document.getElementById('cfEmail').value.trim()
+  };
+  const saved = await saveClientToRubrica(clientData);
+  const wasFromPicker = clientPickerContext === 'picker';
+  closeClientFormModal();
+  if(wasFromPicker && saved){
+    applyClientToQuote(saved);
+    closeClientPickerModal();
+  }
 });
 
 document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
@@ -3226,6 +4574,39 @@ function wireImageUpload(inputId, previewId, removeBtnId, pendingKey, maxMb){
 wireImageUpload('letterheadHeaderInput', 'letterheadHeaderPreview', 'letterheadHeaderRemoveBtn', '_pendingLetterheadHeader', 2);
 wireImageUpload('letterheadFooterInput', 'letterheadFooterPreview', 'letterheadFooterRemoveBtn', '_pendingLetterheadFooter', 2);
 
+function fontFormatFromName(name){
+  const ext = (name.split('.').pop()||'').toLowerCase();
+  if(ext === 'woff2') return 'woff2';
+  if(ext === 'woff') return 'woff';
+  if(ext === 'otf') return 'opentype';
+  if(ext === 'ttf') return 'truetype';
+  return '';
+}
+document.getElementById('customFontInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(file.size > 4*1024*1024){ alert('Il file del font è troppo grande. Usa un file sotto 4MB.'); e.target.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const dataUrl = ev.target.result;
+    document.getElementById('customFontPreview').textContent = file.name;
+    document.getElementById('customFontPreview').style.display = 'inline-block';
+    document.getElementById('customFontRemoveBtn').style.display = 'inline-block';
+    studioSettings._pendingCustomFontData = dataUrl;
+    studioSettings._pendingCustomFontName = file.name;
+    studioSettings._pendingCustomFontFormat = fontFormatFromName(file.name);
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('customFontRemoveBtn').addEventListener('click', ()=>{
+  document.getElementById('customFontPreview').style.display = 'none';
+  document.getElementById('customFontRemoveBtn').style.display = 'none';
+  document.getElementById('customFontInput').value = '';
+  studioSettings._pendingCustomFontData = '';
+  studioSettings._pendingCustomFontName = '';
+  studioSettings._pendingCustomFontFormat = '';
+});
+
 document.getElementById('settingsSave').addEventListener('click', async ()=>{
   studioSettings = Object.assign({}, studioSettings, {
     nome: document.getElementById('sNome').value.trim() || 'Studio',
@@ -3244,7 +4625,10 @@ document.getElementById('settingsSave').addEventListener('click', async ()=>{
     colorInk: document.getElementById('sColorInk').value,
     letterheadMode: document.getElementById('sLetterheadMode').value,
     fontPairing: document.getElementById('sFontPairing').value,
-    pdfLayout: document.getElementById('sPdfLayout').value
+    pdfLayout: document.getElementById('sPdfLayout').value,
+    resendApiKey: document.getElementById('sResendApiKey').value.trim(),
+    resendFromEmail: document.getElementById('sResendFromEmail').value.trim(),
+    resendFromName: document.getElementById('sResendFromName').value.trim()
   });
   if(studioSettings._pendingLogo !== undefined){
     studioSettings.logo = studioSettings._pendingLogo;
@@ -3257,6 +4641,14 @@ document.getElementById('settingsSave').addEventListener('click', async ()=>{
   if(studioSettings._pendingLetterheadFooter !== undefined){
     studioSettings.letterheadFooter = studioSettings._pendingLetterheadFooter;
     delete studioSettings._pendingLetterheadFooter;
+  }
+  if(studioSettings._pendingCustomFontData !== undefined){
+    studioSettings.customFontData = studioSettings._pendingCustomFontData;
+    studioSettings.customFontName = studioSettings._pendingCustomFontName;
+    studioSettings.customFontFormat = studioSettings._pendingCustomFontFormat;
+    delete studioSettings._pendingCustomFontData;
+    delete studioSettings._pendingCustomFontName;
+    delete studioSettings._pendingCustomFontFormat;
   }
   applyStudioSettings();
   await saveStudioSettings();
@@ -3271,6 +4663,7 @@ renderCatalog();
 loadStudioSettings();
 initStorage();
 loadSavedQuotesLocal();
+loadClientsLocal().then(()=>{ renderRubricaList(); renderClientPickerList(); });
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
@@ -3325,9 +4718,13 @@ if('serviceWorker' in navigator){
         if(!opts.silent) localStorage.setItem(TERMS_ACCEPTED_STORAGE, TERMS_VERSION);
         estimlyAiEnabled = !!data.aiEnabled;
         applyAiVisibility();
+        followupFeatureEnabled = !!data.followupEnabled;
+        applyFollowupVisibility();
         hideGate();
         loadCloudData();
         loadSavedQuotesCloud();
+        loadFollowupsCloud();
+        loadClientsCloud();
         return true;
       }
       if(!opts.silent) showError('Chiave non valida o revocata.');
