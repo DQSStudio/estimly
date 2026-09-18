@@ -1,7 +1,7 @@
 import { getStore } from '@netlify/blobs';
 
 const MAX_SAVED_QUOTES_BASE = 10;
-const MAX_SAVED_QUOTES_ESTIMLY2 = 20;
+const MAX_SAVED_QUOTES_ESTIMLY2 = 100;
 
 export default async (req) => {
   if (req.method !== 'POST') {
@@ -78,7 +78,8 @@ export default async (req) => {
       savedAt: new Date().toISOString(),
       cart: Array.isArray(body.quote.cart) ? body.quote.cart : [],
       idCounter: body.quote.idCounter || 1,
-      client: body.quote.client || {}
+      client: body.quote.client || {},
+      vinto: false
     };
     const updated = [entry, ...savedQuotes].slice(0, maxSavedQuotes);
     const record = {
@@ -91,6 +92,30 @@ export default async (req) => {
     };
     await dataStore.setJSON(key, record);
     return new Response(JSON.stringify({ ok: true, savedQuotes: updated }), { status: 200 });
+  }
+
+  if (body.action === 'updateQuote') {
+    if (!body.id) {
+      return new Response(JSON.stringify({ error: 'missing id' }), { status: 400 });
+    }
+    const existing = (await dataStore.get(key, { type: 'json' })) || {};
+    const savedQuotes = Array.isArray(existing.savedQuotes) ? existing.savedQuotes : [];
+    const idx = savedQuotes.findIndex((q) => q.id === body.id);
+    if (idx === -1) {
+      return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+    }
+    const patch = (body.patch && typeof body.patch === 'object') ? body.patch : {};
+    savedQuotes[idx] = { ...savedQuotes[idx], ...patch };
+    const record = {
+      catalog: existing.catalog || [],
+      studioSettings: existing.studioSettings || {},
+      categoryOrder: existing.categoryOrder || [],
+      savedQuotes,
+      clients: Array.isArray(existing.clients) ? existing.clients : [],
+      updatedAt: new Date().toISOString()
+    };
+    await dataStore.setJSON(key, record);
+    return new Response(JSON.stringify({ ok: true, savedQuotes }), { status: 200 });
   }
 
   if (body.action === 'deleteQuote') {

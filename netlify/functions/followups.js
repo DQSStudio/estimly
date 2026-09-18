@@ -67,6 +67,87 @@ export default async (req) => {
     return new Response(JSON.stringify({ ok: true, followup: entry }), { status: 200 });
   }
 
+  if (body.action === 'send') {
+    const f = body.followup || {};
+    if (!f.quoteRef || !f.clienteEmail || !f.html) {
+      return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+    }
+
+    const dataStore = getStore('studio-data');
+    const studioData = await dataStore.get(key, { type: 'json' });
+    const settings = (studioData && studioData.studioSettings) || {};
+    const resendKey = settings.resendApiKey;
+    const fromEmail = settings.resendFromEmail;
+    const fromName = settings.resendFromName || settings.nome || 'Studio';
+    if (!resendKey || !fromEmail) {
+      return new Response(JSON.stringify({ error: 'email_not_configured' }), { status: 400 });
+    }
+
+    const now = new Date().toISOString();
+    let entry = list.find((x) => x.quoteRef === f.quoteRef);
+    if (!entry) {
+      entry = {
+        id: 'fu_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8),
+        quoteRef: f.quoteRef,
+        numero: f.numero || '',
+        clienteNome: f.clienteNome || '',
+        clienteEmail: f.clienteEmail,
+        oggetto: f.oggetto || '',
+        totale: f.totale || '',
+        status: 'freddo',
+        step: 0,
+        active: true,
+        startedAt: now,
+        nextDueAt: addDaysIso(now, SEQUENCE_DAYS[0]),
+        events: []
+      };
+      list.push(entry);
+    } else {
+      // Un nuovo invio del preventivo riparte con il conteggio dei promemoria automatici,
+      // ma mantiene tutta la cronologia eventi precedente.
+      entry.clienteEmail = f.clienteEmail;
+      entry.clienteNome = f.clienteNome || entry.clienteNome;
+      entry.numero = f.numero || entry.numero;
+      entry.oggetto = f.oggetto || entry.oggetto;
+      entry.totale = f.totale || entry.totale;
+      entry.step = 0;
+      entry.active = true;
+      entry.startedAt = now;
+      entry.nextDueAt = addDaysIso(now, SEQUENCE_DAYS[0]);
+    }
+
+    const subject = f.subject || `Preventivo${f.numero ? ' n. ' + f.numero : ''}`;
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${resendKey}`
+        },
+        body: JSON.stringify({
+          from: `${fromName} <${fromEmail}>`,
+          to: f.clienteEmail,
+          subject,
+          html: f.html,
+          tags: [
+            { name: 'followup_id', value: entry.id },
+            { name: 'license_key', value: key.toLowerCase() }
+          ]
+        })
+      });
+      if (!res.ok) {
+        const detail = await res.text();
+        return new Response(JSON.stringify({ error: 'send_failed', detail }), { status: 502 });
+      }
+    } catch (e) {
+      return new Response(JSON.stringify({ error: 'send_failed', detail: String(e) }), { status: 502 });
+    }
+
+    entry.events.push({ type: 'inviato_preventivo', at: now });
+    await followupsStore.setJSON(key, list);
+    return new Response(JSON.stringify({ ok: true, followup: entry }), { status: 200 });
+  }
+
   if (body.action === 'updateStatus') {
     const { followupId, newStatus } = body;
     const entry = list.find(x => x.id === followupId);
