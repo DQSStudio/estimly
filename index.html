@@ -613,6 +613,15 @@ header.top{
   .pd-letterhead-footer{ display:block; width:100%; max-height:120px; object-fit:contain; margin-top:18px; }
   .pd-meta-standalone{ text-align:left; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #ddd; }
 
+  /* Wrapper di stampa per carta intestata personalizzata: thead/tfoot di una tabella
+     si ripetono automaticamente su ogni pagina stampata, così l'immagine di intestazione
+     e quella di piè di pagina restano sempre nella stessa posizione su tutte le pagine
+     (invece di comparire una sola volta dove capitano nel flusso del contenuto). */
+  .pd-doc-table{ width:100%; border-collapse:collapse; border-spacing:0; }
+  .pd-doc-table > thead{ display:table-header-group; }
+  .pd-doc-table > tfoot{ display:table-footer-group; }
+  .pd-doc-table td{ padding:0; margin:0; border:none; }
+
   /* Combinazioni font */
   #printDoc[data-font="minimale"] .pd-brand-name,
   #printDoc[data-font="minimale"] .pd-doc-title{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
@@ -777,9 +786,26 @@ header.top{
         <div class="e2-stat-value" id="e2StatTotal">€ 0,00</div>
       </div>
       <div class="e2-stat-card">
+        <div class="e2-stat-label">🏆 Preventivi vinti</div>
+        <div class="e2-stat-value" id="e2StatWon">0</div>
+      </div>
+      <div class="e2-stat-card">
+        <div class="e2-stat-label">📧 Inviati via email</div>
+        <div class="e2-stat-value" id="e2StatSent">0</div>
+      </div>
+      <div class="e2-stat-card">
+        <div class="e2-stat-label">👁 Letti dal cliente</div>
+        <div class="e2-stat-value" id="e2StatOpened">0</div>
+      </div>
+      <div class="e2-stat-card">
         <div class="e2-stat-label">Follow-up attivi</div>
         <div class="e2-stat-value" id="e2StatFollowupsActive">0</div>
       </div>
+    </div>
+
+    <div class="e2-activity-card">
+      <div class="e2-activity-head">Preventivi per cliente</div>
+      <div id="e2TopClientsList"></div>
     </div>
 
     <div class="e2-activity-card">
@@ -946,10 +972,11 @@ header.top{
       <div class="totals" id="totalsBlock"></div>
 
       <div class="followup-section" id="followupSection">
-        <div class="field-section-label" style="margin-top:18px;">Follow-up automatico</div>
+        <div class="field-section-label" style="margin-top:18px;">Invio email &amp; follow-up automatico</div>
+        <div style="font-size:11px; color:var(--ink-soft); margin-bottom:8px;">Invia il preventivo via email direttamente da qui: il cliente lo riceve subito e da quel momento Estimly traccia automaticamente quando l'email viene aperta, oltre a mandare promemoria (dopo 3, 7 e 14 giorni) finché non accetta, rifiuta, o disattivi il follow-up. Richiede l'email del cliente e un account Resend collegato in Impostazioni Studio.</div>
+        <button type="button" id="sendQuoteEmailBtn" class="btn-save" style="padding:8px 16px; font-size:12.5px; margin-bottom:8px;">📧 Invia preventivo via email</button>
         <div id="followupInactive">
-          <div style="font-size:11px; color:var(--ink-soft); margin-bottom:8px;">Se il cliente non risponde, Estimly manda promemoria automatici (dopo 3, 7 e 14 giorni) finché non accetta, rifiuta, o disattivi il follow-up. Richiede l'email del cliente e un account Resend collegato in Impostazioni Studio.</div>
-          <button type="button" id="activateFollowupBtn" class="btn-cancel" style="padding:7px 14px; font-size:12px;">Attivare follow-up automatico?</button>
+          <button type="button" id="activateFollowupBtn" class="btn-cancel" style="padding:7px 14px; font-size:12px;">Ho già inviato il preventivo altrove: attiva solo il follow-up</button>
         </div>
         <div id="followupActive" style="display:none;">
           <div id="followupStatusBadge"></div>
@@ -1018,7 +1045,7 @@ header.top{
 
 <div id="e2PageContratti" class="e2-page">
   <div class="e2-dash-wrap">
-  <div class="contract-manager" style="max-width:1000px;">
+  <div class="contract-manager" id="contractManagerBox" style="max-width:1000px;">
     <div class="field-section-label" style="margin-top:0;">Contratti</div>
     <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">
       Scrivi qui i tuoi modelli di contratto, divisi in sezioni. Alla stampa useranno automaticamente la stessa intestazione/logo del preventivo. Segnaposto disponibili tra graffe:
@@ -1275,9 +1302,9 @@ header.top{
       <textarea id="newTextBlockContent" rows="4" placeholder="Testo del blocco..." style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:12.5px; background:var(--surface); color:var(--ink); resize:vertical; margin-bottom:8px;"></textarea>
       <button type="button" id="addTextBlockBtn" class="btn-cancel" style="padding:8px 16px;">+ Salva blocco</button>
 
-      <div class="field-section-label">Follow-up automatico &mdash; account email</div>
+      <div class="field-section-label">Invio email &amp; follow-up automatico &mdash; account email</div>
       <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">
-        Per inviare i promemoria automatici serve un tuo account Resend (gratuito fino a 3.000 email/mese, nessuna carta richiesta) &mdash; ogni studio usa il proprio, così le email restano sempre gratuite indipendentemente da chi altro usa Estimly.
+        Per inviare il preventivo via email dalla pagina Preventivo e i promemoria automatici serve un tuo account Resend (gratuito fino a 3.000 email/mese, nessuna carta richiesta) &mdash; ogni studio usa il proprio, così le email restano sempre gratuite indipendentemente da chi altro usa Estimly.
         <a href="https://resend.com/signup" target="_blank" rel="noopener">Crea un account Resend &rarr;</a>
       </div>
       <div class="field-grid" style="padding:0;">
@@ -1387,8 +1414,11 @@ header.top{
       <div style="font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:14px;">
         Estimly 2.0 aggiunge alla tua licenza: una dashboard con lo storico delle attività, la Rubrica clienti, i follow-up automatici sui preventivi inviati, più spazio per i preventivi salvati e il nuovo Calcolatore lavorazione a ore come pagina dedicata.
       </div>
-      <div style="font-size:12.5px; color:var(--ink-soft); line-height:1.6;">
+      <div id="unlockEstimly2RequestText" style="font-size:12.5px; color:var(--ink-soft); line-height:1.6;">
         Per attivarlo sulla tua licenza scrivici indicando il nome del tuo studio: ti risponderemo con i dettagli per l'attivazione.
+      </div>
+      <div id="unlockEstimly2TestNotice" style="font-size:12.5px; color:var(--ink-soft); line-height:1.6; padding:10px 12px; background:var(--surface-alt); border-radius:var(--radius-sm); display:none;">
+        Estimly 2.0 è al momento in fase di test: non è ancora possibile richiederne l'attivazione. Ti faremo sapere non appena sarà disponibile.
       </div>
       <div id="unlockEstimly2Error" style="font-size:12px; color:var(--danger); margin-top:10px; display:none;"></div>
     </div>
@@ -1649,7 +1679,7 @@ function scheduleCloudSave(){
 let savedQuotes = [];
 const SAVED_QUOTES_LOCAL_KEY = 'preventivi-salvati';
 const MAX_SAVED_QUOTES_BASE = 10;
-const MAX_SAVED_QUOTES_ESTIMLY2 = 20;
+const MAX_SAVED_QUOTES_ESTIMLY2 = 100;
 function getMaxSavedQuotes(){
   return (FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? MAX_SAVED_QUOTES_ESTIMLY2 : MAX_SAVED_QUOTES_BASE;
 }
@@ -1929,47 +1959,132 @@ async function loadSavedQuotesCloud(){
   }
 }
 
-function renderSavedQuotesList(){
-  // Renderizza sia nel modal (utenti base) sia nella pagina Estimly 2.0 (sidebar > Preventivi salvati)
-  const targets = [
-    { list: document.getElementById('savedQuotesList'), empty: document.getElementById('savedQuotesEmpty') },
-    { list: document.getElementById('e2SalvatiList'), empty: document.getElementById('e2SalvatiEmpty') }
-  ].filter(t => t.list);
-  if(!targets.length) return;
+function savedQuoteSendStatusHtml(q){
+  // Cerca un follow-up collegato a questo preventivo (match per numero) per mostrare
+  // in un colpo d'occhio se è stato inviato via email e se è stato aperto dal cliente.
+  const numero = q.client && q.client.numero;
+  if(!numero) return '';
+  const f = followupsList.find(x=>x.quoteRef===numero);
+  if(!f) return '';
+  const inviato = (f.events||[]).find(e=>e.type==='inviato_preventivo');
+  if(!inviato) return '';
+  const aperto = (f.events||[]).find(e=>e.type==='aperto');
+  const parts = [`📧 Inviato il ${formatEventDate(inviato.at)}`];
+  parts.push(aperto ? `👁 Letto il ${formatEventDate(aperto.at)}` : '👁 Non ancora letto');
+  return `<div style="font-size:11px; color:var(--ink-faint); margin-top:2px;">${parts.join(' · ')}</div>`;
+}
 
-  if(!savedQuotes.length){
-    targets.forEach(t=>{ t.list.innerHTML = ''; if(t.empty) t.empty.style.display = 'block'; });
-    return;
+function savedQuoteRowHtml(q){
+  const totale = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
+  let dataLabel = '—';
+  if(q.client && q.client.data){
+    const d = new Date(q.client.data + 'T00:00:00');
+    if(!isNaN(d.getTime())) dataLabel = d.toLocaleDateString('it-IT');
   }
-  const html = savedQuotes.map(q=>{
-    const totale = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
-    let dataLabel = '—';
-    if(q.client && q.client.data){
-      const d = new Date(q.client.data + 'T00:00:00');
-      if(!isNaN(d.getTime())) dataLabel = d.toLocaleDateString('it-IT');
+  const numero = (q.client && q.client.numero) ? q.client.numero : 'Senza numero';
+  const cliente = (q.client && q.client.cliente) ? q.client.cliente : 'Cliente non specificato';
+  return `
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-weight:600; font-size:13px; display:flex; align-items:center; gap:7px;">
+          ${numero} — ${escapeHtml(cliente)}
+          ${q.vinto ? '<span style="font-size:10.5px; font-weight:700; color:#0F766E; background:#E5F5F3; padding:2px 8px; border-radius:999px;">🏆 Vinto</span>' : ''}
+        </div>
+        <div style="font-size:12px; color:var(--ink-soft);">${dataLabel} · € ${fmt(totale)}</div>
+        ${savedQuoteSendStatusHtml(q)}
+      </div>
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <button data-toggle-vinto="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${q.vinto ? 'Segna come non vinto' : 'Segna come vinto'}">${q.vinto ? '🏆 Vinto' : 'Segna vinto'}</button>
+        <button data-open-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;">Apri</button>
+        <button data-delete-quote="${q.id}" class="btn-cancel" style="padding:6px 10px; color:var(--danger);">Elimina</button>
+      </div>
+    </div>`;
+}
+
+function renderSavedQuotesList(){
+  // Renderizza sia nel modal (utenti base, lista piatta) sia nella pagina Estimly 2.0
+  // (sidebar > Preventivi salvati, raggruppata per cliente).
+  const flatTarget = { list: document.getElementById('savedQuotesList'), empty: document.getElementById('savedQuotesEmpty') };
+  const groupedTarget = { list: document.getElementById('e2SalvatiList'), empty: document.getElementById('e2SalvatiEmpty') };
+
+  if(flatTarget.list){
+    if(!savedQuotes.length){
+      flatTarget.list.innerHTML = '';
+      if(flatTarget.empty) flatTarget.empty.style.display = 'block';
+    } else {
+      flatTarget.list.innerHTML = savedQuotes.map(savedQuoteRowHtml).join('');
+      if(flatTarget.empty) flatTarget.empty.style.display = 'none';
     }
-    const numero = (q.client && q.client.numero) ? q.client.numero : 'Senza numero';
-    const cliente = (q.client && q.client.cliente) ? q.client.cliente : 'Cliente non specificato';
-    return `
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);">
-        <div>
-          <div style="font-weight:600; font-size:13px;">${numero} — ${cliente}</div>
-          <div style="font-size:12px; color:var(--ink-soft);">${dataLabel} · € ${fmt(totale)}</div>
-        </div>
-        <div style="display:flex; gap:6px; flex-shrink:0;">
-          <button data-open-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;">Apri</button>
-          <button data-delete-quote="${q.id}" class="btn-cancel" style="padding:6px 10px; color:var(--danger);">Elimina</button>
-        </div>
-      </div>`;
-  }).join('');
-  targets.forEach(t=>{ t.list.innerHTML = html; if(t.empty) t.empty.style.display = 'none'; });
+  }
+
+  if(groupedTarget.list){
+    if(!savedQuotes.length){
+      groupedTarget.list.innerHTML = '';
+      if(groupedTarget.empty) groupedTarget.empty.style.display = 'block';
+    } else {
+      // Raggruppa per nome cliente (testuale: non esiste un id rubrica collegato al preventivo).
+      const groups = [];
+      const groupByName = new Map();
+      savedQuotes.forEach(q=>{
+        const nome = ((q.client && q.client.cliente) || '').trim() || 'Cliente non specificato';
+        const keyName = nome.toLowerCase();
+        let group = groupByName.get(keyName);
+        if(!group){
+          group = { nome, quotes: [] };
+          groupByName.set(keyName, group);
+          groups.push(group);
+        }
+        group.quotes.push(q);
+      });
+      // Ordina i gruppi mettendo prima quelli con il preventivo più recente.
+      groups.sort((a,b)=>{
+        const aLatest = a.quotes[0] ? a.quotes[0].savedAt : '';
+        const bLatest = b.quotes[0] ? b.quotes[0].savedAt : '';
+        return new Date(bLatest) - new Date(aLatest);
+      });
+      groupedTarget.list.innerHTML = groups.map(g=>{
+        const vinti = g.quotes.filter(q=>q.vinto).length;
+        const countLabel = `${g.quotes.length} preventiv${g.quotes.length===1?'o':'i'}${vinti ? ` · 🏆 ${vinti} vint${vinti===1?'o':'i'}` : ''}`;
+        return `
+          <div style="margin-bottom:20px;">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:2px solid var(--border); margin-bottom:4px;">
+              <div style="font-weight:700; font-size:13.5px;">${escapeHtml(g.nome)}</div>
+              <div style="font-size:11.5px; color:var(--ink-faint);">${countLabel}</div>
+            </div>
+            ${g.quotes.map(savedQuoteRowHtml).join('')}
+          </div>`;
+      }).join('');
+      if(groupedTarget.empty) groupedTarget.empty.style.display = 'none';
+    }
+  }
 }
 
 function handleSavedQuotesListClick(e){
   const openId = e.target.getAttribute('data-open-quote');
   const delId = e.target.getAttribute('data-delete-quote');
+  const vintoId = e.target.getAttribute('data-toggle-vinto');
   if(openId) loadQuoteById(openId);
   if(delId) deleteQuoteById(delId);
+  if(vintoId) toggleQuoteVinto(vintoId);
+}
+
+async function toggleQuoteVinto(id){
+  const q = savedQuotes.find(x=>x.id===id);
+  if(!q) return;
+  q.vinto = !q.vinto;
+  await persistSavedQuotesLocal();
+  renderSavedQuotesList();
+  if(document.getElementById('e2StatWon')) renderDashboard();
+  const key = getLicenseKey();
+  if(key){
+    try{
+      await fetch('/.netlify/functions/sync-data', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ key, action:'updateQuote', id, patch:{ vinto: q.vinto } })
+      });
+    }catch(err){ console.error('Impossibile aggiornare lo stato vinto del preventivo', err); }
+  }
 }
 
 async function saveCurrentQuote(){
@@ -1979,7 +2094,8 @@ async function saveCurrentQuote(){
     savedAt: new Date().toISOString(),
     cart: state.cart,
     idCounter: state.idCounter,
-    client: state.client
+    client: state.client,
+    vinto: false
   };
   savedQuotes = [entry, ...savedQuotes].slice(0, getMaxSavedQuotes());
   await persistSavedQuotesLocal();
@@ -2108,6 +2224,16 @@ function applyFollowupVisibility(){
   if(active) switchEstimly2Page('dashboard');
   if(active) renderFollowupSection();
   updateSavedQuotesLimitText();
+  if(!active){
+    // Estimly classico (non 2.0): la sezione Contratti non ha una pagina di menù dedicata,
+    // quindi la spostiamo sotto il listino invece di lasciarla come blocco a larghezza piena
+    // sotto tutto il layout (dove finiva in fondo alla pagina se il preventivo si allungava).
+    const contractBox = document.getElementById('contractManagerBox');
+    const catalogRoot = document.getElementById('catalogRoot');
+    if(contractBox && catalogRoot && catalogRoot.parentNode){
+      catalogRoot.parentNode.appendChild(contractBox);
+    }
+  }
 }
 /* ===================== fine Follow-up automatico (interruttore) ===================== */
 
@@ -2294,14 +2420,28 @@ document.querySelectorAll('.ai-improve-btn').forEach(btn=>{
 // dello studio e della licenza, da inviare per attivare manualmente il flag
 // followupEnabled da /admin.html. Sostituisci l'indirizzo sotto con la tua email reale.
 const UNLOCK_ESTIMLY2_EMAIL = 'info@desearq.it';
+// Estimly 2.0 è ancora in fase di test: metti a true quando vorrai riaprire le
+// richieste di attivazione via email (il pulsante mailto tornerà visibile).
+const ESTIMLY2_UNLOCK_REQUESTABLE = false;
 
 function openUnlockEstimly2Modal(){
-  const studioNome = (studioSettings && studioSettings.nome) ? studioSettings.nome : 'Studio';
-  const key = getLicenseKey();
-  const subject = `Attivazione Estimly 2.0 — ${studioNome}`;
-  const body = `Ciao,\n\nvorrei attivare Estimly 2.0 sulla mia licenza.\n\nStudio: ${studioNome}\nChiave di licenza: ${key || '(non disponibile)'}\n\nGrazie!`;
-  document.getElementById('unlockEstimly2MailBtn').href =
-    `mailto:${UNLOCK_ESTIMLY2_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const mailBtn = document.getElementById('unlockEstimly2MailBtn');
+  const requestText = document.getElementById('unlockEstimly2RequestText');
+  const testNotice = document.getElementById('unlockEstimly2TestNotice');
+  if(ESTIMLY2_UNLOCK_REQUESTABLE){
+    const studioNome = (studioSettings && studioSettings.nome) ? studioSettings.nome : 'Studio';
+    const key = getLicenseKey();
+    const subject = `Attivazione Estimly 2.0 — ${studioNome}`;
+    const body = `Ciao,\n\nvorrei attivare Estimly 2.0 sulla mia licenza.\n\nStudio: ${studioNome}\nChiave di licenza: ${key || '(non disponibile)'}\n\nGrazie!`;
+    mailBtn.href = `mailto:${UNLOCK_ESTIMLY2_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    mailBtn.style.display = 'inline-flex';
+    requestText.style.display = 'block';
+    testNotice.style.display = 'none';
+  } else {
+    mailBtn.style.display = 'none';
+    requestText.style.display = 'none';
+    testNotice.style.display = 'block';
+  }
   document.getElementById('unlockEstimly2Error').style.display = 'none';
   document.getElementById('unlockEstimly2Modal').style.display = 'flex';
 }
@@ -2446,7 +2586,7 @@ function substitutePlaceholders(text, data){
   return out;
 }
 
-function buildContractPrintHtml(template){
+function buildContractPrintHtml(template, skipImages){
   const data = getContractData();
   const sections = (template.sections||[]).filter(sec => (sec.titolo||'').trim() || (sec.corpo||'').trim());
   const bodyHtml = sections.map(sec => `
@@ -2457,9 +2597,9 @@ function buildContractPrintHtml(template){
   const headerHtml = buildLetterheadHtml('Contratto', [
     ['Rif. preventivo', escapeHtml(data.numero_preventivo)],
     ['Data', data.data]
-  ]);
+  ], {skipImage: skipImages});
 
-  return `${headerHtml}<div class="pd-contract-body">${bodyHtml}</div>${letterheadFooterHtml()}`;
+  return `${headerHtml}<div class="pd-contract-body">${bodyHtml}</div>${letterheadFooterHtml(skipImages)}`;
 }
 
 function renderContractTemplatesList(){
@@ -2698,6 +2838,7 @@ const FOLLOWUP_STATUS_META = {
 
 const FOLLOWUP_EVENT_LABELS = {
   attivato: 'Follow-up attivato',
+  inviato_preventivo: '📧 Preventivo inviato via email',
   aperto: '👁 Email visualizzata',
   cliccato: '🔗 Link aperto',
   non_recapitato: '⚠ Email non recapitata',
@@ -2781,6 +2922,130 @@ async function updateFollowupStatus(newStatus){
   }catch(err){ alert('Impossibile aggiornare lo stato del follow-up.'); }
 }
 
+function buildQuoteEmailHtml(){
+  const s = studioSettings;
+  const cliente = document.getElementById('fCliente').value || '—';
+  const progetto = document.getElementById('fProgetto').value || '';
+  const numero = document.getElementById('fNumero').value || '—';
+  const dataRaw = document.getElementById('fData').value;
+  const dataFmt = dataRaw ? new Date(dataRaw+'T00:00:00').toLocaleDateString('it-IT') : '—';
+  const hidePrices = document.getElementById('fHidePrices').checked;
+
+  const byCat = {};
+  cart.forEach(l=>{
+    const cat = l.categoria || 'Altro';
+    byCat[cat] = byCat[cat] || [];
+    byCat[cat].push(l);
+  });
+  let cats = Object.keys(byCat);
+  cats.sort((a,b)=>{
+    if(a==='Voci libere') return 1;
+    if(b==='Voci libere') return -1;
+    return categorySortIndex(a) - categorySortIndex(b);
+  });
+
+  let rowsHtml = '';
+  cats.forEach(cat=>{
+    rowsHtml += `<tr><td colspan="${hidePrices?2:3}" style="background:#F3F0FF; padding:8px 10px; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.4px; color:#4338CA;">${escapeHtml(cat)}</td></tr>`;
+    byCat[cat].forEach(l=>{
+      const isOrario = l.modalita === 'orario';
+      const qty = isOrario ? `${fmt(l.ore)} h` : `${l.qty} ${l.um||'cad'}`;
+      rowsHtml += `<tr>
+        <td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#222;">${escapeHtml(l.nome)}${l.descrizione?`<div style="font-size:11px;color:#888;margin-top:2px;">${escapeHtml(l.descrizione)}</div>`:''}</td>
+        <td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#555; text-align:right; white-space:nowrap;">${qty}</td>
+        ${hidePrices ? '' : `<td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#111; text-align:right; white-space:nowrap; font-weight:600;">€ ${fmt(lineTotal(l))}</td>`}
+      </tr>`;
+    });
+  });
+
+  const imponibile = cart.reduce((sum,l)=>sum+lineTotal(l),0);
+  const scontoPct = parseFloat(document.getElementById('fSconto').value)||0;
+  const sconto = imponibile*scontoPct/100;
+  const netto = imponibile - sconto;
+  const contributoPct = parseFloat(document.getElementById('fContributoPct').value) || 0;
+  const contributo = netto * contributoPct/100;
+  const baseIva = netto + contributo;
+  const regime = getRegimeAttivo();
+  const iva = baseIva*regime.rate;
+  const totale = baseIva + iva;
+
+  const logoHtml = s.logo ? `<img src="${s.logo}" alt="" style="max-height:44px; display:block; margin-bottom:10px;">` : '';
+
+  return `
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; max-width:600px; margin:0 auto; color:#222;">
+    ${logoHtml}
+    <p style="font-size:14px; line-height:1.6;">Gentile ${escapeHtml(cliente)},</p>
+    <p style="font-size:14px; line-height:1.6;">in allegato trova il riepilogo del preventivo${numero!=='—'?` n. <b>${escapeHtml(numero)}</b>`:''}${progetto?` per "${escapeHtml(progetto)}"`:''}, redatto da ${escapeHtml(s.nome||'il nostro studio')} in data ${dataFmt}.</p>
+    <table style="width:100%; border-collapse:collapse; margin:18px 0;">
+      <thead>
+        <tr>
+          <th style="text-align:left; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid #4338CA;">Descrizione</th>
+          <th style="text-align:right; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid #4338CA;">Qt&agrave;/Ore</th>
+          ${hidePrices ? '' : '<th style="text-align:right; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid #4338CA;">Totale</th>'}
+        </tr>
+      </thead>
+      <tbody>${rowsHtml || `<tr><td colspan="3" style="padding:14px; text-align:center; color:#999;">Nessuna voce inserita.</td></tr>`}</tbody>
+    </table>
+    ${hidePrices ? '' : `
+    <table style="width:100%; max-width:280px; margin-left:auto; font-size:13px;">
+      <tr><td style="padding:2px 0; color:#555;">Imponibile</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(imponibile)}</td></tr>
+      ${scontoPct>0?`<tr><td style="padding:2px 0; color:#555;">Sconto (${fmt(scontoPct)}%)</td><td style="padding:2px 0; text-align:right;">&minus; &euro; ${fmt(sconto)}</td></tr>`:''}
+      ${contributoPct>0?`<tr><td style="padding:2px 0; color:#555;">Contributo (${fmt(contributoPct)}%)</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(contributo)}</td></tr>`:''}
+      <tr><td style="padding:2px 0; color:#555;">${escapeHtml(regime.label)}</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(iva)}</td></tr>
+      <tr><td style="padding:8px 0 0; font-weight:700; font-size:16px; border-top:2px solid #4338CA;">Totale</td><td style="padding:8px 0 0; font-weight:700; font-size:16px; text-align:right; border-top:2px solid #4338CA; color:#4338CA;">&euro; ${fmt(totale)}</td></tr>
+    </table>`}
+    <p style="font-size:13px; line-height:1.6; color:#555; margin-top:22px;">Resto a disposizione per qualsiasi chiarimento.<br>Cordiali saluti,<br><b>${escapeHtml(s.nome||'Studio')}</b></p>
+  </div>`;
+}
+
+document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=>{
+  const numero = document.getElementById('fNumero').value.trim();
+  const cliente = document.getElementById('fCliente').value.trim();
+  const clienteEmail = document.getElementById('fClienteEmail').value.trim();
+  const progetto = document.getElementById('fProgetto').value.trim();
+  if(!numero || !cliente){ alert('Compila almeno numero preventivo e nome cliente prima di inviare l\'email.'); return; }
+  if(!clienteEmail){ alert('Inserisci l\'email del cliente per inviare il preventivo via email.'); return; }
+  if(cart.length === 0){ alert('Aggiungi almeno una voce al preventivo prima di inviarlo.'); return; }
+  if(!studioSettings.resendApiKey || !studioSettings.resendFromEmail){
+    alert('Prima collega un account Resend in Impostazioni Studio → Follow-up automatico.');
+    return;
+  }
+  if(!confirm(`Inviare il preventivo n. ${numero} a ${clienteEmail}?`)) return;
+  const key = getLicenseKey();
+  const totaleEl = document.querySelector('.total-row.grand .val');
+  const totale = totaleEl ? totaleEl.textContent.trim() : '';
+  const html = buildQuoteEmailHtml();
+  const subject = `Preventivo n. ${numero}${progetto ? ' — ' + progetto : ''}`;
+  const btn = document.getElementById('sendQuoteEmailBtn');
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Invio in corso...';
+  try{
+    const res = await fetch('/.netlify/functions/followups', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        key, action:'send',
+        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html }
+      })
+    });
+    const data = await res.json();
+    if(data && data.ok){
+      await loadFollowupsCloud();
+      alert(`Preventivo inviato a ${clienteEmail}.`);
+    } else if(data && data.error === 'email_not_configured'){
+      alert('Prima collega un account Resend in Impostazioni Studio → Follow-up automatico.');
+    } else {
+      alert('Impossibile inviare l\'email. Riprova tra poco.');
+    }
+  }catch(err){
+    alert('Errore di connessione durante l\'invio.');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+});
+
 document.getElementById('activateFollowupBtn').addEventListener('click', async ()=>{
   const numero = document.getElementById('fNumero').value.trim();
   const cliente = document.getElementById('fCliente').value.trim();
@@ -2835,6 +3100,12 @@ function renderFollowupsPanel(){
     const opens = f.events.filter(e=>e.type==='aperto').length;
     const clicks = f.events.filter(e=>e.type==='cliccato').length;
     const hint = clicks>0 ? `Ha aperto il link ${clicks} volt${clicks===1?'a':'e'}` : (opens>0 ? `Ha visualizzato l'email ${opens} volt${opens===1?'a':'e'}` : 'Ancora nessuna interazione');
+    const inviato = f.events.find(e=>e.type==='inviato_preventivo');
+    const primaApertura = f.events.find(e=>e.type==='aperto');
+    const agendaBits = [];
+    if(inviato) agendaBits.push(`📧 Inviato il ${formatEventDate(inviato.at)}`);
+    if(primaApertura) agendaBits.push(`👁 Letto il ${formatEventDate(primaApertura.at)}`);
+    else if(inviato) agendaBits.push('👁 Non ancora letto');
     return `
       <div style="border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin-bottom:8px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -2842,6 +3113,7 @@ function renderFollowupsPanel(){
           <span style="font-size:11px; font-weight:600; color:${meta.color}; background:${meta.bg}; padding:3px 9px; border-radius:999px;">${meta.emoji} ${meta.label.split(' — ')[0]}</span>
         </div>
         <div style="font-size:11.5px; color:var(--ink-soft);">Preventivo ${escapeHtml(f.numero)}${f.totale?(' — '+escapeHtml(f.totale)):''}</div>
+        ${agendaBits.length ? `<div style="font-size:11px; color:var(--ink-faint); margin-top:3px;">${agendaBits.join(' · ')}</div>` : ''}
         <div style="font-size:11.5px; color:var(--ink-soft); margin-top:2px;">${hint}</div>
       </div>`;
   }
@@ -2921,10 +3193,38 @@ function renderDashboard(){
   const total = savedQuotes.reduce((sum, q) => sum + (q.cart||[]).reduce((s,l)=>s+lineTotal(l),0), 0);
   document.getElementById('e2StatCount').textContent = count;
   document.getElementById('e2StatTotal').textContent = '€ ' + fmt(total);
+  document.getElementById('e2StatWon').textContent = savedQuotes.filter(q=>q.vinto).length;
+  document.getElementById('e2StatSent').textContent = followupsList.filter(f=>(f.events||[]).some(e=>e.type==='inviato_preventivo')).length;
+  document.getElementById('e2StatOpened').textContent = followupsList.filter(f=>(f.events||[]).some(e=>e.type==='aperto')).length;
   document.getElementById('e2StatFollowupsActive').textContent = followupsList.filter(f=>f.active).length;
+
+  // Preventivi per cliente: quanti ne sono stati fatti, e quanti vinti, per ciascun cliente.
+  const topClientsBox = document.getElementById('e2TopClientsList');
+  if(topClientsBox){
+    const byClient = new Map();
+    savedQuotes.forEach(q=>{
+      const nome = ((q.client && q.client.cliente) || '').trim() || 'Cliente non specificato';
+      const keyName = nome.toLowerCase();
+      let entry = byClient.get(keyName);
+      if(!entry){ entry = { nome, count:0, vinti:0 }; byClient.set(keyName, entry); }
+      entry.count += 1;
+      if(q.vinto) entry.vinti += 1;
+    });
+    const clients = Array.from(byClient.values()).sort((a,b)=> b.count - a.count);
+    if(clients.length === 0){
+      topClientsBox.innerHTML = '<div class="e2-activity-empty">Nessun preventivo salvato ancora.</div>';
+    } else {
+      topClientsBox.innerHTML = clients.slice(0,10).map(c=>`
+        <div class="e2-activity-row">
+          <div class="e2-activity-main"><b>${escapeHtml(c.nome)}</b> — ${c.count} preventiv${c.count===1?'o':'i'}${c.vinti ? ` · 🏆 ${c.vinti} vint${c.vinti===1?'o':'i'}` : ''}</div>
+        </div>
+      `).join('');
+    }
+  }
 
   const ACTIVITY_LABELS = {
     attivato: 'Follow-up attivato',
+    inviato_preventivo: '📧 preventivo inviato via email',
     aperto: '👁 ha visualizzato l\'email',
     cliccato: '🔗 ha aperto il link',
     inviato_followup_1: 'Follow-up #1 inviato',
@@ -4175,14 +4475,15 @@ function escapeHtml(str){
   return String(str==null?'':str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function buildLetterheadHtml(docTitle, metaPairs){
+function buildLetterheadHtml(docTitle, metaPairs, opts){
+  const skipImage = !!(opts && opts.skipImage);
   const s = studioSettings;
   const useCustomLetterhead = s.letterheadMode === 'custom' && s.letterheadHeader;
   const studioBits = [s.indirizzo, s.piva?('P.IVA '+s.piva):'', s.cf?('CF '+s.cf):'', s.telefono, s.email].filter(Boolean).map(escapeHtml).join(' &middot; ');
   const metaGrid = metaPairs.map(([label,val])=>`<span>${label}</span><b>${val}</b>`).join('');
   if(useCustomLetterhead){
     return `
-      <img src="${s.letterheadHeader}" class="pd-letterhead-header">
+      ${skipImage ? '' : `<img src="${s.letterheadHeader}" class="pd-letterhead-header">`}
       <div class="pd-meta pd-meta-standalone">
         <div class="pd-doc-title">${docTitle}</div>
         <div class="pd-meta-grid">${metaGrid}</div>
@@ -4207,9 +4508,10 @@ function buildLetterheadHtml(docTitle, metaPairs){
   `;
 }
 
-function letterheadFooterHtml(){
+function letterheadFooterHtml(skipImage){
   const s = studioSettings;
   const useCustomLetterhead = s.letterheadMode === 'custom' && s.letterheadHeader;
+  if(skipImage) return '';
   return (useCustomLetterhead && s.letterheadFooter) ? `<img src="${s.letterheadFooter}" class="pd-letterhead-footer">` : '';
 }
 
@@ -4218,7 +4520,9 @@ function buildContractPageHtml(){
   if(!templateId) return '';
   const template = (studioSettings.contractTemplates||[]).find(t=>t.id===templateId);
   if(!template) return '';
-  return `<div class="pd-contract-page">${buildContractPrintHtml(template)}</div>`;
+  const s = studioSettings;
+  const useCustomLH = s.letterheadMode === 'custom' && !!s.letterheadHeader;
+  return `<div class="pd-contract-page">${buildContractPrintHtml(template, useCustomLH)}</div>`;
 }
 
 function buildPrintDoc(){
@@ -4309,16 +4613,19 @@ function buildPrintDoc(){
     paymentHtml = `<div class="pd-payment"><b>Pagamento</b> — ${bits.join(' &nbsp;&middot;&nbsp; ')}${notePagamento?`<br>${escapeHtml(notePagamento)}`:''}</div>`;
   }
 
+  const useCustomLH = s.letterheadMode === 'custom' && !!s.letterheadHeader;
+
   const headerHtml = buildLetterheadHtml('Preventivo', [
     ['N.', escapeHtml(numero)],
     ['Data', dataFmt],
     ['Rev.', escapeHtml(revisione)],
     ['Valido fino al', validita]
-  ]);
+  ], {skipImage: useCustomLH});
 
   document.getElementById('printDoc').setAttribute('data-font', s.fontPairing || 'moderno');
   document.getElementById('printDoc').setAttribute('data-layout', s.pdfLayout || 'classico');
   document.getElementById('printDoc').toggleAttribute('data-custom-font', !!s.customFontData);
+  document.getElementById('printDoc').toggleAttribute('data-custom-letterhead', useCustomLH);
 
   const pagineExtraTesti = extraPages.map(p => (p.testo||'').trim()).filter(Boolean);
   const pagineExtraHtml = pagineExtraTesti
@@ -4327,15 +4634,15 @@ function buildPrintDoc(){
         ${buildLetterheadHtml('Allegato', [
           ['Rif. preventivo', escapeHtml(numero)],
           ['Pagina', `${idx+1} di ${pagineExtraTesti.length}`]
-        ])}
+        ], {skipImage: useCustomLH})}
         <div class="pd-extra-pages-body">
           ${escapeHtml(testo).split(/\n{2,}/).map(par=>`<p>${par.replace(/\n/g,'<br>')}</p>`).join('')}
         </div>
-        ${letterheadFooterHtml()}
+        ${letterheadFooterHtml(useCustomLH)}
       </div>
     `).join('');
 
-  document.getElementById('printDoc').innerHTML = `
+  const printBodyHtml = `
     ${buildContractPageHtml()}
     ${headerHtml}
 
@@ -4357,9 +4664,26 @@ function buildPrintDoc(){
     <div class="pd-totals">${totalsHtml}</div>
     ${regime.nota ? `<div class="pd-nota">${escapeHtml(regime.nota)}</div>` : ''}
     ${paymentHtml}
-    ${letterheadFooterHtml()}
+    ${letterheadFooterHtml(useCustomLH)}
     ${pagineExtraHtml}
   `;
+
+  if(useCustomLH){
+    // Carta intestata personalizzata: intestazione e piè di pagina restano bloccati
+    // nella stessa posizione su OGNI pagina stampata (non solo dove capitano nel flusso),
+    // sfruttando la ripetizione automatica di <thead>/<tfoot> di una tabella in stampa
+    // (lo stesso meccanismo già usato per le intestazioni di colonna del listino).
+    const footerImgHtml = s.letterheadFooter ? `<img src="${s.letterheadFooter}" class="pd-letterhead-footer">` : '';
+    document.getElementById('printDoc').innerHTML = `
+      <table class="pd-doc-table">
+        <thead><tr><td><img src="${s.letterheadHeader}" class="pd-letterhead-header"></td></tr></thead>
+        ${footerImgHtml ? `<tfoot><tr><td>${footerImgHtml}</td></tr></tfoot>` : ''}
+        <tbody><tr><td>${printBodyHtml}</td></tr></tbody>
+      </table>
+    `;
+  } else {
+    document.getElementById('printDoc').innerHTML = printBodyHtml;
+  }
 }
 
 window.addEventListener('beforeprint', ()=>{ buildPrintDoc(); });
