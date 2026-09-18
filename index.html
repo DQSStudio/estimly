@@ -782,7 +782,7 @@ header.top{
         <div class="e2-stat-value" id="e2StatCount">0</div>
       </div>
       <div class="e2-stat-card">
-        <div class="e2-stat-label">Valore totale preventivi</div>
+        <div class="e2-stat-label">Valore preventivi in essere</div>
         <div class="e2-stat-value" id="e2StatTotal">€ 0,00</div>
       </div>
       <div class="e2-stat-card">
@@ -1983,17 +1983,22 @@ function savedQuoteRowHtml(q){
   }
   const numero = (q.client && q.client.numero) ? q.client.numero : 'Senza numero';
   const cliente = (q.client && q.client.cliente) ? q.client.cliente : 'Cliente non specificato';
+  // Un preventivo senza campo 'valido' (versioni salvate prima di questa funzione) è considerato
+  // valido di default, così il totale in dashboard non cambia finché non si escludono a mano le versioni superate.
+  const isValido = q.valido !== false;
   return `
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); ${isValido ? '' : 'opacity:0.6;'}">
       <div>
         <div style="font-weight:600; font-size:13px; display:flex; align-items:center; gap:7px;">
           ${numero} — ${escapeHtml(cliente)}
           ${q.vinto ? '<span style="font-size:10.5px; font-weight:700; color:#0F766E; background:#E5F5F3; padding:2px 8px; border-radius:999px;">🏆 Vinto</span>' : ''}
+          ${isValido ? '' : '<span style="font-size:10.5px; font-weight:700; color:#6B7280; background:#F1F1F1; padding:2px 8px; border-radius:999px;">Escluso dal totale</span>'}
         </div>
-        <div style="font-size:12px; color:var(--ink-soft);">${dataLabel} · € ${fmt(totale)}</div>
+        <div style="font-size:12px; color:var(--ink-soft); ${isValido ? '' : 'text-decoration:line-through;'}">${dataLabel} · € ${fmt(totale)}</div>
         ${savedQuoteSendStatusHtml(q)}
       </div>
       <div style="display:flex; gap:6px; flex-shrink:0;">
+        <button data-toggle-valido="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${isValido ? 'Escludi questa versione dal totale preventivi in essere (es. superata da una più recente)' : 'Includi di nuovo questa versione nel totale preventivi in essere'}">${isValido ? '✔ Valido' : 'Includi nel totale'}</button>
         <button data-toggle-vinto="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${q.vinto ? 'Segna come non vinto' : 'Segna come vinto'}">${q.vinto ? '🏆 Vinto' : 'Segna vinto'}</button>
         <button data-open-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;">Apri</button>
         <button data-delete-quote="${q.id}" class="btn-cancel" style="padding:6px 10px; color:var(--danger);">Elimina</button>
@@ -2044,7 +2049,9 @@ function renderSavedQuotesList(){
       });
       groupedTarget.list.innerHTML = groups.map(g=>{
         const vinti = g.quotes.filter(q=>q.vinto).length;
-        const countLabel = `${g.quotes.length} preventiv${g.quotes.length===1?'o':'i'}${vinti ? ` · 🏆 ${vinti} vint${vinti===1?'o':'i'}` : ''}`;
+        const validi = g.quotes.filter(q=>q.valido !== false).length;
+        const validiLabel = validi < g.quotes.length ? ` · ${validi} valid${validi===1?'o':'i'} per il totale` : '';
+        const countLabel = `${g.quotes.length} preventiv${g.quotes.length===1?'o':'i'}${validiLabel}${vinti ? ` · 🏆 ${vinti} vint${vinti===1?'o':'i'}` : ''}`;
         return `
           <div style="margin-bottom:20px;">
             <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:2px solid var(--border); margin-bottom:4px;">
@@ -2063,9 +2070,32 @@ function handleSavedQuotesListClick(e){
   const openId = e.target.getAttribute('data-open-quote');
   const delId = e.target.getAttribute('data-delete-quote');
   const vintoId = e.target.getAttribute('data-toggle-vinto');
+  const validoId = e.target.getAttribute('data-toggle-valido');
   if(openId) loadQuoteById(openId);
   if(delId) deleteQuoteById(delId);
   if(vintoId) toggleQuoteVinto(vintoId);
+  if(validoId) toggleQuoteValido(validoId);
+}
+
+async function toggleQuoteValido(id){
+  const q = savedQuotes.find(x=>x.id===id);
+  if(!q) return;
+  // Se il campo non esiste ancora (preventivi salvati prima di questa funzione) si parte da "valido".
+  const wasValido = q.valido !== false;
+  q.valido = !wasValido;
+  await persistSavedQuotesLocal();
+  renderSavedQuotesList();
+  if(document.getElementById('e2StatTotal')) renderDashboard();
+  const key = getLicenseKey();
+  if(key){
+    try{
+      await fetch('/.netlify/functions/sync-data', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ key, action:'updateQuote', id, patch:{ valido: q.valido } })
+      });
+    }catch(err){ console.error('Impossibile aggiornare lo stato valido del preventivo', err); }
+  }
 }
 
 async function toggleQuoteVinto(id){
@@ -2095,7 +2125,8 @@ async function saveCurrentQuote(){
     cart: state.cart,
     idCounter: state.idCounter,
     client: state.client,
-    vinto: false
+    vinto: false,
+    valido: true
   };
   savedQuotes = [entry, ...savedQuotes].slice(0, getMaxSavedQuotes());
   await persistSavedQuotesLocal();
@@ -3190,7 +3221,10 @@ function switchEstimly2Page(pageId){
 
 function renderDashboard(){
   const count = savedQuotes.length;
-  const total = savedQuotes.reduce((sum, q) => sum + (q.cart||[]).reduce((s,l)=>s+lineTotal(l),0), 0);
+  // Il valore totale conta solo i preventivi marcati come "validi": un cliente può avere più
+  // versioni salvate dello stesso preventivo, ma solo quelle correnti devono pesare sul totale.
+  const validQuotes = savedQuotes.filter(q => q.valido !== false);
+  const total = validQuotes.reduce((sum, q) => sum + (q.cart||[]).reduce((s,l)=>s+lineTotal(l),0), 0);
   document.getElementById('e2StatCount').textContent = count;
   document.getElementById('e2StatTotal').textContent = '€ ' + fmt(total);
   document.getElementById('e2StatWon').textContent = savedQuotes.filter(q=>q.vinto).length;
@@ -3206,19 +3240,26 @@ function renderDashboard(){
       const nome = ((q.client && q.client.cliente) || '').trim() || 'Cliente non specificato';
       const keyName = nome.toLowerCase();
       let entry = byClient.get(keyName);
-      if(!entry){ entry = { nome, count:0, vinti:0 }; byClient.set(keyName, entry); }
+      if(!entry){ entry = { nome, count:0, validi:0, vinti:0, totaleValido:0 }; byClient.set(keyName, entry); }
       entry.count += 1;
       if(q.vinto) entry.vinti += 1;
+      if(q.valido !== false){
+        entry.validi += 1;
+        entry.totaleValido += (q.cart||[]).reduce((s,l)=>s+lineTotal(l),0);
+      }
     });
     const clients = Array.from(byClient.values()).sort((a,b)=> b.count - a.count);
     if(clients.length === 0){
       topClientsBox.innerHTML = '<div class="e2-activity-empty">Nessun preventivo salvato ancora.</div>';
     } else {
-      topClientsBox.innerHTML = clients.slice(0,10).map(c=>`
+      topClientsBox.innerHTML = clients.slice(0,10).map(c=>{
+        const countBit = c.validi < c.count ? `${c.count} preventivi (${c.validi} valid${c.validi===1?'o':'i'})` : `${c.count} preventiv${c.count===1?'o':'i'}`;
+        return `
         <div class="e2-activity-row">
-          <div class="e2-activity-main"><b>${escapeHtml(c.nome)}</b> — ${c.count} preventiv${c.count===1?'o':'i'}${c.vinti ? ` · 🏆 ${c.vinti} vint${c.vinti===1?'o':'i'}` : ''}</div>
+          <div class="e2-activity-main"><b>${escapeHtml(c.nome)}</b> — ${countBit} · € ${fmt(c.totaleValido)}${c.vinti ? ` · 🏆 ${c.vinti} vint${c.vinti===1?'o':'i'}` : ''}</div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
   }
 
