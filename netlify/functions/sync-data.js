@@ -79,7 +79,8 @@ export default async (req) => {
       cart: Array.isArray(body.quote.cart) ? body.quote.cart : [],
       idCounter: body.quote.idCounter || 1,
       client: body.quote.client || {},
-      vinto: false
+      vinto: false,
+      valido: true
     };
     const updated = [entry, ...savedQuotes].slice(0, maxSavedQuotes);
     const record = {
