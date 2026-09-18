@@ -23,6 +23,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Estimly">
 <link href="vendor/fonts/fonts.css" rel="stylesheet">
+<!-- Font Raleway, usato solo nel "guscio" di Estimly 2.0 (sidebar, hero, dashboard) per allinearsi
+     alla palette DSM condivisa nell'ecosistema Desearq (DSM, Gestionale Edile, Portale Clienti, ecc.) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="vendor/xlsx.full.min.js"></script>
 <style>
 :root{
@@ -60,52 +65,74 @@ body.estimly2-theme{
   --sage-soft:#DCEEE1;
   --radius:22px;
   --radius-sm:12px;
+
+  /* Token DSM (dal mockup "Dashboard DSM"), riservati al guscio di Estimly 2.0:
+     sidebar, hero, dashboard e badge/stat-card. Non toccano lo stile di listino/preventivo
+     né il colore accento personalizzabile dello studio (var(--accent) sopra, invariato). */
+  --e2-bg:#F6F3EC;
+  --e2-surface:#FFFFFF;
+  --e2-surface-muted:#F9F8F7;
+  --e2-ink:#16160F;
+  --e2-ink-soft:#54503F;
+  --e2-muted:#8C8776;
+  --e2-line:#E9E3D5;
+  --e2-accent:#862D2D;
+  --e2-accent-contrast:#FFFFFF;
+  --e2-accent-track:#DDDAD7;
+  --e2-radius-sm:8px;
+  --e2-radius-md:12px;
+  --e2-radius-lg:16px;
+  --e2-radius-full:999px;
+  --e2-font:'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
 #e2Sidebar{ display:none; }
 body.estimly2-theme #e2Sidebar{
   display:flex; flex-direction:column; gap:2px;
   position:fixed; top:0; left:0; bottom:0; width:212px; padding:20px 14px;
-  background:var(--bg); border-right:1px solid var(--border); z-index:600; overflow-y:auto;
+  background:var(--e2-surface-muted); border-right:1px solid var(--e2-line); z-index:600; overflow-y:auto;
+  font-family:var(--e2-font);
 }
 body.estimly2-theme{ padding-left:212px; }
 @media print{ body.estimly2-theme{ padding-left:0 !important; } #e2Sidebar{ display:none !important; } }
 .e2-sidebar-brand{ display:flex; align-items:center; gap:9px; font-weight:700; font-size:15px; margin:4px 4px 18px; }
 .e2-sidebar-brand-badge{
-  flex-shrink:0; width:30px; height:30px; border-radius:50%; background:#0D0D0D; color:#fff;
+  flex-shrink:0; width:30px; height:30px; border-radius:50%; background:var(--e2-ink); color:var(--e2-accent-contrast);
   display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;
 }
-.e2-sidebar-brand span{ color:var(--sage); }
+.e2-sidebar-brand span{ color:var(--e2-accent); }
 .e2-nav-item{
   display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:none; border:none; cursor:pointer;
-  padding:10px 12px; border-radius:999px; font-size:13px; font-weight:500; color:var(--ink);
-  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  padding:10px 12px; border-radius:var(--e2-radius-full); font-size:13px; font-weight:500; color:var(--e2-ink);
+  font-family:var(--e2-font);
 }
 .e2-nav-item svg{ flex-shrink:0; opacity:0.7; }
 .e2-nav-item.active svg{ opacity:1; }
-.e2-nav-item:hover{ background:var(--surface-alt); }
-.e2-nav-item.active{ background:#0D0D0D; color:#fff; }
-.e2-sidebar-sep{ height:1px; background:var(--border); margin:10px 4px; }
+.e2-nav-item:hover{ background:var(--e2-surface); }
+.e2-nav-item.active{ background:var(--e2-ink); color:var(--e2-bg); }
+.e2-sidebar-sep{ height:1px; background:var(--e2-line); margin:10px 4px; }
 .e2-page{ }
-.e2-dash-wrap{ padding:28px 36px; max-width:none; }
+/* Font Raleway + token DSM solo sul contenuto della Dashboard (guscio), non su .e2-page in
+   generale: preventivo/listino/rubrica/ecc. restano con il font e i colori attuali. */
+.e2-dash-wrap{ padding:28px 36px; max-width:none; font-family:var(--e2-font); }
 .e2-hero-card{
   padding:0; margin-bottom:26px;
 }
-.e2-hero-eyebrow{ font-size:11px; text-transform:uppercase; letter-spacing:0.6px; font-weight:700; color:var(--sage); margin-bottom:6px; }
-.e2-hero-title{ font-size:34px; font-weight:700; margin-bottom:6px; color:var(--ink); }
-.e2-hero-sub{ font-size:13.5px; color:var(--ink-soft); }
+.e2-hero-eyebrow{ font-size:11px; text-transform:uppercase; letter-spacing:0.6px; font-weight:700; color:var(--e2-accent); margin-bottom:6px; }
+.e2-hero-title{ font-size:34px; font-weight:700; margin-bottom:6px; color:var(--e2-ink); }
+.e2-hero-sub{ font-size:13.5px; color:var(--e2-ink-soft); }
 .e2-dashboard-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px; }
-.e2-stat-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-sm); }
-.e2-stat-label{ font-size:12.5px; color:var(--ink-soft); margin-bottom:8px; }
-.e2-stat-value{ font-size:32px; font-weight:700; color:var(--ink); }
-.e2-activity-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow-sm); }
-.e2-activity-head{ font-size:15px; font-weight:700; margin-bottom:14px; }
-.e2-activity-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--border-soft); }
+.e2-stat-card{ background:var(--e2-surface); border:1px solid var(--e2-line); border-radius:var(--e2-radius-lg); padding:20px; box-shadow:var(--shadow-sm); }
+.e2-stat-label{ font-size:12.5px; color:var(--e2-ink-soft); margin-bottom:8px; }
+.e2-stat-value{ font-size:32px; font-weight:700; color:var(--e2-ink); }
+.e2-activity-card{ background:var(--e2-surface); border:1px solid var(--e2-line); border-radius:var(--e2-radius-lg); padding:22px; box-shadow:var(--shadow-sm); }
+.e2-activity-head{ font-size:15px; font-weight:700; margin-bottom:14px; color:var(--e2-ink); }
+.e2-activity-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--e2-line); }
 .e2-activity-row:first-child{ border-top:none; }
-.e2-activity-main{ font-size:13px; }
+.e2-activity-main{ font-size:13px; color:var(--e2-ink); }
 .e2-activity-main b{ font-weight:600; }
-.e2-activity-date{ font-size:11.5px; color:var(--ink-faint); white-space:nowrap; }
-.e2-activity-empty{ font-size:13px; color:var(--ink-faint); text-align:center; padding:20px 0; }
+.e2-activity-date{ font-size:11.5px; color:var(--e2-muted); white-space:nowrap; }
+.e2-activity-empty{ font-size:13px; color:var(--e2-muted); text-align:center; padding:20px 0; }
 
 #e2HorizontalBuilder{ margin-bottom:16px; }
 .e2-h-scroll{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width:thin; }
@@ -728,10 +755,10 @@ header.top{
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.3L19 9l-5.1 1.7L12 16l-1.9-5.3L5 9l5.1-1.7L12 2z"/></svg>
         EstimlyAI
       </span>
-      <span id="estimly2Badge" style="display:none; align-items:center; background:var(--sage-soft); color:var(--sage); font-size:10.5px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; padding:4px 11px; border-radius:999px; margin-left:6px;">
+      <span id="estimly2Badge" style="display:none; align-items:center; background:var(--e2-accent-track, var(--sage-soft)); color:var(--e2-accent, var(--sage)); font-family:var(--e2-font, inherit); font-size:10.5px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; padding:4px 11px; border-radius:999px; margin-left:6px;">
         Estimly 2.0
       </span>
-      <button type="button" id="unlockEstimly2Btn" style="display:none; align-items:center; gap:5px; background:transparent; color:var(--sage); border:1px dashed var(--sage); font-size:10.5px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; padding:4px 11px; border-radius:999px; margin-left:6px; cursor:pointer;">
+      <button type="button" id="unlockEstimly2Btn" style="display:none; align-items:center; gap:5px; background:transparent; color:var(--e2-accent, var(--sage)); border:1px dashed var(--e2-accent, var(--sage)); font-family:var(--e2-font, inherit); font-size:10.5px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; padding:4px 11px; border-radius:999px; margin-left:6px; cursor:pointer;">
         🔓 Sblocca Estimly 2.0
       </button>
     </div>
