@@ -69,7 +69,7 @@ body.estimly2-theme{
   /* Token DSM (dal mockup "Dashboard DSM"), riservati al guscio di Estimly 2.0:
      sidebar, hero, dashboard e badge/stat-card. Non toccano lo stile di listino/preventivo
      né il colore accento personalizzabile dello studio (var(--accent) sopra, invariato). */
-  --e2-bg:#F6F3EC;
+  --e2-bg:#F7F6F4;
   --e2-surface:#FFFFFF;
   --e2-surface-muted:#F9F8F7;
   --e2-ink:#16160F;
@@ -114,7 +114,10 @@ body.estimly2-theme{ padding-left:212px; }
 .e2-page{ }
 /* Font Raleway + token DSM solo sul contenuto della Dashboard (guscio), non su .e2-page in
    generale: preventivo/listino/rubrica/ecc. restano con il font e i colori attuali. */
-.e2-dash-wrap{ padding:28px 36px; max-width:none; font-family:var(--e2-font); }
+.e2-dash-wrap{ padding:28px 36px; max-width:none; font-family:var(--e2-font); background:var(--e2-bg); min-height:100%; }
+/* "Fascia in alto" (header + selettore pacchetto): stesso tono neutro di sidebar/contenuto invece
+   del bianco puro, per allinearsi al Portale Clienti (niente striscia bianca che spezza il fondo). */
+body.estimly2-theme header.top{ background:var(--e2-bg); border-bottom-color:var(--e2-line); }
 .e2-hero-card{
   padding:0; margin-bottom:26px;
 }
@@ -133,6 +136,33 @@ body.estimly2-theme{ padding-left:212px; }
 .e2-activity-main b{ font-weight:600; }
 .e2-activity-date{ font-size:11.5px; color:var(--e2-muted); white-space:nowrap; }
 .e2-activity-empty{ font-size:13px; color:var(--e2-muted); text-align:center; padding:20px 0; }
+
+/* "Costo orario" (Estimly 2.0): fa parte del guscio (vive dentro .e2-dash-wrap, punto 17),
+   quindi il titolo di pagina e il riepilogo finale seguono i token DSM invece del vecchio verde
+   --sage. Selettori scoperti a #e2PageCalcolatore per non toccare .field-section-label/.hour-calc
+   dove sono riusate altrove (es. pannello Preventivo). */
+body.estimly2-theme #e2PageCalcolatore .field-section-label{ color:var(--e2-accent); }
+body.estimly2-theme #e2PageCalcolatore .hour-calc::before{ background:var(--e2-accent); }
+.wz-recap-box{
+  margin-top:10px; background:var(--e2-surface, var(--surface)); border:1px solid var(--e2-line, var(--border));
+  border-radius:var(--e2-radius-md, var(--radius-sm)); padding:2px 16px;
+}
+.wz-recap-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:10px 0; border-bottom:1px solid var(--e2-line, var(--border-soft)); font-size:13px;
+}
+.wz-recap-row:last-child{ border-bottom:none; }
+.wz-recap-label{ display:flex; align-items:center; gap:8px; color:var(--e2-ink-soft, var(--ink-soft)); }
+.wz-recap-label::before{ content:""; width:8px; height:8px; border-radius:50%; border:1.5px solid var(--e2-muted, var(--ink-faint)); flex-shrink:0; }
+.wz-recap-value{ font-weight:700; color:var(--e2-ink, var(--ink)); }
+.wz-result-box{ margin-top:16px; padding:16px 4px 4px; }
+.wz-result-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.6px; color:var(--e2-ink-soft, var(--ink-soft)); font-weight:700; margin-bottom:4px; }
+.wz-result-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.wz-result-value{ font-size:30px; font-weight:800; color:var(--e2-accent, var(--accent)); }
+.wz-result-icon{ color:var(--e2-accent, var(--accent)); flex-shrink:0; }
+.wz-result-detail{ font-size:11.5px; color:var(--e2-muted, var(--ink-faint)); margin-top:6px; }
+/* Il pulsante "Salva questa tariffa" è styled direttamente su #wzSaveRateBtn (vedi sopra, vicino
+   alle altre regole id-based del wizard) invece che sulla classe .wz-save-btn, per specificità. */
 
 #e2HorizontalBuilder{ margin-bottom:16px; }
 .e2-h-scroll{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width:thin; }
@@ -388,11 +418,14 @@ header.top{
   font-size:12.5px; font-weight:500; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 #hcAddListinoBtn:hover{background:var(--accent-soft);}
+/* Vive solo dentro #e2PageCalcolatore (Estimly 2.0): usa i token DSM invece del colore
+   accento personalizzabile dello studio, coerente col resto del "resoconto" (vedi .wz-* sopra). */
 #wzSaveRateBtn{
-  background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); padding:9px 18px;
-  font-size:12.5px; font-weight:500; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background:var(--e2-accent, var(--accent)); color:var(--e2-accent-contrast, #fff); border:none;
+  border-radius:var(--e2-radius-full, var(--radius-sm)); padding:11px 22px;
+  font-size:13px; font-weight:600; cursor:pointer; font-family:var(--e2-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif);
 }
-#wzSaveRateBtn:hover{background:var(--accent-hover);}
+#wzSaveRateBtn:hover{ opacity:0.9; }
 .wz-intro{ font-size:13px; color:var(--ink-soft); line-height:1.6; max-width:640px; margin-bottom:20px; }
 .wz-step-desc{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; max-width:520px; margin-bottom:12px; }
 .wz-step{ animation:wzFadeIn 0.25s ease; }
@@ -1196,10 +1229,19 @@ header.top{
       <div class="hour-calc-head">
         <span class="hour-calc-title">Ecco la tua tariffa oraria minima</span>
       </div>
-      <div id="wzResultBox" style="margin-top:6px; padding:14px; background:var(--accent-soft); border-radius:var(--radius-sm);">
-        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--accent); font-weight:600; margin-bottom:4px;">Tariffa oraria minima</div>
-        <div style="font-size:26px; font-weight:700; color:var(--accent);" id="wzRateOut">€ 0,00 /h</div>
-        <div style="font-size:11.5px; color:var(--ink-soft); margin-top:6px;" id="wzDetailOut"></div>
+      <!-- Riepilogo dei dati inseriti nei 7 step, in stile "resoconto" (mockup DSM). -->
+      <div id="wzRecapBox" class="wz-recap-box"></div>
+      <div id="wzResultBox" class="wz-result-box">
+        <div class="wz-result-label">Il tuo costo orario</div>
+        <div class="wz-result-row">
+          <div class="wz-result-value" id="wzRateOut">€ 0,00 /h</div>
+          <svg width="34" height="24" viewBox="0 0 34 24" fill="none" class="wz-result-icon">
+            <rect x="1" y="14" width="6" height="9" rx="1.5" fill="currentColor" opacity="0.55"/>
+            <rect x="10" y="8" width="6" height="15" rx="1.5" fill="currentColor" opacity="0.75"/>
+            <rect x="19" y="3" width="6" height="20" rx="1.5" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="wz-result-detail" id="wzDetailOut"></div>
       </div>
       <div class="hour-calc-footer">
         <div></div>
@@ -4457,6 +4499,23 @@ function updateWizardResult(){
   document.getElementById('wzRateOut').textContent = '€ ' + fmt(rate) + ' /h';
   document.getElementById('wzDetailOut').textContent =
     `Basato su ${fmt(oreFatturabiliAnnue)} ore fatturabili/anno e € ${fmt(costoTotale)} da coprire complessivamente.`;
+
+  // Riepilogo dei 7 valori inseriti, in stile "resoconto" (mockup DSM) sopra il risultato.
+  const recapRows = [
+    ['Stipendio netto desiderato (annuo)', '€ ' + fmt(v.stipendio)],
+    ['Costi fissi studio (annuo)', '€ ' + fmt(v.costiFissi)],
+    ['Settimane lavorate all\'anno', fmt(v.settimane)],
+    ['Giorni lavorativi a settimana', fmt(v.giorni)],
+    ['Ore lavorative al giorno', fmt(v.oreGiorno)],
+    ['Quota di tempo fatturabile', fmt(v.fatturabile) + '%'],
+    ['Margine per imprevisti/utile', fmt(v.margine) + '%']
+  ];
+  document.getElementById('wzRecapBox').innerHTML = recapRows.map(([label, value]) => `
+    <div class="wz-recap-row">
+      <span class="wz-recap-label">${escapeHtml(label)}</span>
+      <span class="wz-recap-value">${escapeHtml(value)}</span>
+    </div>
+  `).join('');
 }
 
 function resetWizardCalc(){
