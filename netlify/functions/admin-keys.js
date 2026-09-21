@@ -49,6 +49,7 @@ export default async (req) => {
       status: 'active',
       aiEnabled: !!body.aiEnabled,
       followupEnabled: !!body.followupEnabled,
+      costCalcEnabled: !!body.costCalcEnabled,
       createdAt: new Date().toISOString(),
       validationCount: 0
     };
@@ -85,6 +86,17 @@ export default async (req) => {
       return new Response(JSON.stringify({ error: 'not found' }), { status: 404 });
     }
     record.followupEnabled = !!body.followupEnabled;
+    await store.setJSON(key, record);
+    return new Response(JSON.stringify({ key, ...record }), { status: 200 });
+  }
+
+  if (action === 'setCostCalc') {
+    const key = (body.key || '').trim().toUpperCase();
+    const record = await store.get(key, { type: 'json' });
+    if (!record) {
+      return new Response(JSON.stringify({ error: 'not found' }), { status: 404 });
+    }
+    record.costCalcEnabled = !!body.costCalcEnabled;
     await store.setJSON(key, record);
     return new Response(JSON.stringify({ key, ...record }), { status: 200 });
   }
