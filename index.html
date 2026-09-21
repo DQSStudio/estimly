@@ -210,21 +210,6 @@ body.estimly2-theme #e2PageCalcolatore .hour-calc::before{ background:var(--e2-a
   font-weight:600; cursor:pointer;
 }
 #e2HCartRow{ display:flex; flex-direction:column; gap:8px; overflow-x:visible; }
-.e2-h-cart-item{
-  border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); padding:10px 12px;
-}
-.e2-h-cart-item-top{ display:flex; align-items:center; gap:8px; }
-.e2-h-cart-item-name{ flex:1; font-size:12.5px; font-weight:600; color:var(--ink); }
-.e2-h-cart-item-price{ font-size:12.5px; font-weight:700; color:var(--accent); white-space:nowrap; }
-.e2-h-cart-item-top button{
-  flex-shrink:0; border:none; background:rgba(0,0,0,0.08); color:var(--ink); width:20px; height:20px; border-radius:50%;
-  cursor:pointer; font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;
-}
-.e2-h-cart-item-note{ margin-top:6px; }
-.e2-h-cart-item-note input{
-  width:100%; padding:6px 8px; border:1px solid var(--border); border-radius:var(--radius-sm);
-  font-size:11.5px; font-family:inherit; color:var(--ink); background:var(--bg);
-}
 .e2-h-cart-empty{ font-size:12.5px; color:var(--ink-faint); padding:10px 0; }
 .e2-h-cart-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
 .e2-h-cart-footer span{ font-weight:700; font-size:14px; }
@@ -3532,36 +3517,11 @@ function renderE2HItems(){
 function renderE2HCart(){
   const row = document.getElementById('e2HCartRow');
   if(!row) return;
-  if(cart.length === 0){
-    row.innerHTML = '<div class="e2-h-cart-empty">Nessuna voce ancora selezionata.</div>';
-  } else {
-    row.innerHTML = cart.map(l=>`
-      <div class="e2-h-cart-item">
-        <div class="e2-h-cart-item-top">
-          <span class="e2-h-cart-item-name">${escapeHtml(l.nome)}</span>
-          <span class="e2-h-cart-item-price">€ ${fmt(lineTotal(l))}</span>
-          <button type="button" data-h-remove="${l.id}" title="Rimuovi">&times;</button>
-        </div>
-        <div class="e2-h-cart-item-note">
-          <input type="text" data-h-note="${l.id}" value="${l.nota ? escapeHtml(l.nota) : ''}" placeholder="Nota per questa voce (facoltativa, stampata nel PDF)">
-        </div>
-      </div>
-    `).join('');
-    row.querySelectorAll('[data-h-remove]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const id = parseFloat(btn.getAttribute('data-h-remove'));
-        cart = cart.filter(l=>l.id!==id);
-        renderCart(); scheduleSave();
-      });
-    });
-    row.querySelectorAll('[data-h-note]').forEach(inp=>{
-      inp.addEventListener('input', ()=>{
-        const id = parseFloat(inp.getAttribute('data-h-note'));
-        const line = cart.find(l=>l.id===id);
-        if(line){ line.nota = inp.value; scheduleSave(); }
-      });
-    });
-  }
+  // Stessa vista dettagliata ed editabile del preventivo in Estimly normale (categorie,
+  // prezzo/qtà o tariffa/ore, note, totale riga) invece del chip compatto di prima — richiesta
+  // esplicita di Nicola per poter vedere e correggere ogni voce anche dal builder di Estimly 2.0.
+  row.innerHTML = buildCartGroupsHtml('<div class="e2-h-cart-empty">Nessuna voce ancora selezionata.</div>');
+  bindCartLineEvents('e2HCartRow');
   const total = cart.reduce((s,l)=>s+lineTotal(l),0);
   document.getElementById('e2HCartTotal').textContent = 'Totale: € ' + fmt(total);
 }
@@ -4248,34 +4208,35 @@ function addToCart(codice){
   renderCart(); scheduleSave();
 }
 
+function buildCartGroupsHtml(emptyHtml){
+  if(cart.length === 0) return emptyHtml;
+  const byCat = {};
+  cart.forEach(l=>{
+    const cat = l.categoria || 'Altro';
+    byCat[cat] = byCat[cat] || [];
+    byCat[cat].push(l);
+  });
+  let cats = Object.keys(byCat);
+  cats.sort((a,b)=>{
+    if(a==='Voci libere') return 1;
+    if(b==='Voci libere') return -1;
+    return categorySortIndex(a) - categorySortIndex(b);
+  });
+  return cats.map(cat=>{
+    const lines = byCat[cat];
+    const subtotal = lines.reduce((s,l)=>s+lineTotal(l),0);
+    return `
+    <div class="cart-group">
+      <div class="cart-group-head"><span>${cat}</span><span>€ ${fmt(subtotal)}</span></div>
+      ${lines.map(l=>cartLineHtml(l)).join('')}
+    </div>`;
+  }).join('');
+}
+
 function renderCart(){
   const root = document.getElementById('cartList');
-  if(cart.length === 0){
-    root.innerHTML = '<div class="cart-empty">Nessuna voce selezionata.<br>Aggiungi prestazioni dal catalogo a sinistra.</div>';
-  } else {
-    const byCat = {};
-    cart.forEach(l=>{
-      const cat = l.categoria || 'Altro';
-      byCat[cat] = byCat[cat] || [];
-      byCat[cat].push(l);
-    });
-    let cats = Object.keys(byCat);
-    cats.sort((a,b)=>{
-      if(a==='Voci libere') return 1;
-      if(b==='Voci libere') return -1;
-      return categorySortIndex(a) - categorySortIndex(b);
-    });
-    root.innerHTML = cats.map(cat=>{
-      const lines = byCat[cat];
-      const subtotal = lines.reduce((s,l)=>s+lineTotal(l),0);
-      return `
-      <div class="cart-group">
-        <div class="cart-group-head"><span>${cat}</span><span>€ ${fmt(subtotal)}</span></div>
-        ${lines.map(l=>cartLineHtml(l)).join('')}
-      </div>`;
-    }).join('');
-  }
-  bindCartLineEvents();
+  root.innerHTML = buildCartGroupsHtml('<div class="cart-empty">Nessuna voce selezionata.<br>Aggiungi prestazioni dal catalogo a sinistra.</div>');
+  bindCartLineEvents('cartList');
   renderTotals();
   renderCartiglio();
   renderAiSuggestions();
@@ -4316,8 +4277,9 @@ function cartLineHtml(l){
   </div>`;
 }
 
-function bindCartLineEvents(){
-  const root = document.getElementById('cartList');
+function bindCartLineEvents(rootId){
+  const root = document.getElementById(rootId || 'cartList');
+  if(!root) return;
   root.querySelectorAll('[data-remove]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const id = parseFloat(btn.getAttribute('data-remove'));
@@ -4343,6 +4305,8 @@ function bindCartLineEvents(){
         const cartLineEl = inp.closest('.cart-line');
         cartLineEl.querySelector('.cart-line-total span').textContent = '€ ' + fmt(lineTotal(line));
         renderTotals();
+        const e2Total = document.getElementById('e2HCartTotal');
+        if(e2Total){ e2Total.textContent = 'Totale: € ' + fmt(cart.reduce((s,l)=>s+lineTotal(l),0)); }
         scheduleSave();
       }
     });
