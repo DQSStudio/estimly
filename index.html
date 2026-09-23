@@ -764,28 +764,82 @@ header.top{
   .e2-dashboard-grid{ grid-template-columns:1fr; }
 }
 
+/* ===================== Schermata di accesso (licenseGate) — stile Desearq Lab ===================== */
+#licenseGate{
+  --lg-paper:#f7f5ef; --lg-ink:#090909; --lg-muted:#77756f;
+  --lg-line:#d8d4cc; --lg-bordeaux:#6e2635; --lg-dark:#171411;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  padding:0 !important;
+}
+#licenseGate .lg-wrap{ min-height:100vh; width:100%; display:grid; grid-template-columns:1fr 1fr; }
+#licenseGate .lg-side{ padding:56px; display:flex; flex-direction:column; justify-content:space-between; box-sizing:border-box; }
+#licenseGate .lg-side.lg-dark{ background:var(--lg-dark); color:#f4eee5; }
+#licenseGate .lg-side.lg-light{ background:var(--lg-paper); align-items:center; justify-content:center; display:flex; }
+#licenseGate .lg-eyebrow{ font-size:11px; text-transform:uppercase; letter-spacing:.18em; color:var(--lg-muted); }
+#licenseGate .lg-dark .lg-eyebrow{ color:#aaa39a; }
+#licenseGate .lg-copy h1{ font-size:52px; font-weight:400; letter-spacing:-.045em; line-height:.98; margin:22px 0 20px; max-width:480px; }
+#licenseGate .lg-copy p{ font-size:16px; line-height:1.55; color:#c9c2b8; max-width:420px; margin:0; }
+#licenseGate .lg-orb{ width:110px; aspect-ratio:1; border:1px solid #4a453e; border-radius:50%; position:relative; }
+#licenseGate .lg-orb:before,#licenseGate .lg-orb:after{ content:""; position:absolute; border:1px solid #4a453e; border-radius:50%; }
+#licenseGate .lg-orb:before{ inset:16%; } #licenseGate .lg-orb:after{ inset:33%; }
+#licenseGate .lg-card{ width:100%; max-width:400px; }
+#licenseGate .lg-card .lg-eyebrow{ margin-bottom:18px; }
+#licenseGate .lg-card h2{ font-size:34px; font-weight:400; letter-spacing:-.03em; margin:0 0 14px; color:var(--lg-bordeaux); }
+#licenseGate .lg-card > p{ font-size:15px; line-height:1.55; color:#5d5952; margin:0 0 32px; max-width:360px; }
+#licenseGate .lg-field label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--lg-muted); margin-bottom:10px; }
+#licenseGate .lg-field input{ width:100%; border:0; border-bottom:1px solid var(--lg-line); background:transparent; padding:10px 0; font-size:17px; font-family:'JetBrains Mono',ui-monospace,monospace; letter-spacing:.03em; text-transform:uppercase; color:var(--lg-ink); box-sizing:border-box; border-radius:0; }
+#licenseGate .lg-field input::placeholder{ font-family:'JetBrains Mono',ui-monospace,monospace; color:#b8b3a8; }
+#licenseGate .lg-field input:focus{ outline:0; border-bottom-color:var(--lg-ink); }
+#licenseGate .lg-legal{ font-size:12px; line-height:1.55; color:#726e67; margin:18px 0 0; }
+#licenseGate .lg-legal a{ color:var(--lg-bordeaux); border-bottom:1px solid currentColor; }
+#licenseGate .lg-checks{ display:flex; flex-direction:column; gap:12px; margin-top:16px; }
+#licenseGate .lg-check{ display:flex; align-items:flex-start; gap:10px; cursor:pointer; }
+#licenseGate .lg-check input{ margin-top:3px; flex-shrink:0; width:15px; height:15px; accent-color:var(--lg-bordeaux); }
+#licenseGate .lg-check span{ font-size:12px; line-height:1.5; color:#5d5952; }
+#licenseGate .lg-check a{ color:var(--lg-bordeaux); border-bottom:1px solid currentColor; }
+#licenseGate .lg-submit{ display:flex; align-items:center; justify-content:center; gap:16px; padding:16px; border:1px solid var(--lg-ink); background:var(--lg-ink); color:#fff; font-size:12px; text-transform:uppercase; letter-spacing:.09em; width:100%; cursor:not-allowed; margin-top:22px; font-family:inherit; border-radius:0; opacity:.5; box-sizing:border-box; }
+#licenseGate .lg-submit:not(:disabled):hover{ transform:translateY(-1px); }
+#licenseGate .lg-arrow{ display:inline-grid; place-items:center; width:20px; height:20px; border:1px solid currentColor; border-radius:50%; font-size:12px; }
+#licenseGate .lg-foot{ margin-top:30px; font-size:11px; color:var(--lg-muted); text-align:center; text-transform:uppercase; letter-spacing:.08em; }
+#licenseGate #licenseError{ color:var(--lg-bordeaux) !important; font-size:12px; margin-top:14px; }
+@media (max-width:800px){
+  #licenseGate .lg-wrap{ grid-template-columns:1fr; }
+  #licenseGate .lg-side{ padding:32px; }
+  #licenseGate .lg-side.lg-dark{ min-height:220px; }
+  #licenseGate .lg-copy h1{ font-size:38px; }
+}
+
 </style>
 </head>
 <body>
 
-<div id="licenseGate" style="position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
-  <div style="max-width:360px; width:100%; padding:32px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-md);">
-    <div class="display" style="font-weight:700; font-size:20px; margin-bottom:6px;">DESEARQ — Preventivatore</div>
-    <div style="font-size:13px; color:var(--ink-soft); margin-bottom:20px;">Inserisci la chiave di licenza per continuare</div>
-    <input id="licenseKeyInput" placeholder="DQSS-XXXX-XXXX-XXXX" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-bottom:14px; background:var(--surface); color:var(--ink);">
-    <div style="font-size:12px; color:var(--ink-soft); margin-bottom:12px; line-height:1.5;">
-      Proseguendo dichiari di aver preso visione dell'<a href="privacy.html" target="_blank" rel="noopener">Informativa Privacy</a>.
+<div id="licenseGate" style="position:fixed; inset:0; background:var(--bg); z-index:9999;">
+  <div class="lg-wrap">
+    <div class="lg-side lg-dark">
+      <div></div>
+      <div class="lg-copy">
+        <div class="lg-eyebrow">DESEARQ LAB&nbsp; — ESTIMLY</div>
+        <h1>Benvenuto su Estimly.</h1>
+        <p>Scopri il costo reale del tuo tempo e costruisci preventivi consapevoli.</p>
+      </div>
+      <div class="lg-orb"></div>
     </div>
-    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:10px; cursor:pointer; line-height:1.4;">
-      <input type="checkbox" id="acceptTos" style="margin-top:2px;">
-      <span>Ho letto e accetto i <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
-    </label>
-    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-soft); margin-bottom:16px; cursor:pointer; line-height:1.4;">
-      <input type="checkbox" id="acceptVessatorie" style="margin-top:2px;">
-      <span>Approvo specificamente, ai sensi degli artt. 1341-1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
-    </label>
-    <button id="licenseSubmitBtn" disabled style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); cursor:not-allowed; opacity:0.5; font-weight:500; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;">Sblocca</button>
-    <div id="licenseError" style="color:var(--danger); font-size:12px; margin-top:10px; display:none;"></div>
+    <div class="lg-side lg-light">
+      <div class="lg-card">
+        <div class="lg-eyebrow">Accesso</div>
+        <h2>Sblocca Estimly</h2>
+        <p>Inserisci la chiave di licenza del tuo studio per continuare.</p>
+        <div class="lg-field"><label for="licenseKeyInput">Chiave di licenza</label><input id="licenseKeyInput" placeholder="DQSS-XXXX-XXXX-XXXX"></div>
+        <p class="lg-legal">Proseguendo dichiari di aver preso visione dell'<a href="privacy.html" target="_blank" rel="noopener">Informativa Privacy</a>.</p>
+        <div class="lg-checks">
+          <label class="lg-check"><input type="checkbox" id="acceptTos"><span>Ho letto e accetto i <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span></label>
+          <label class="lg-check"><input type="checkbox" id="acceptVessatorie"><span>Approvo specificamente, ai sensi degli artt. 1341-1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span></label>
+        </div>
+        <button id="licenseSubmitBtn" disabled class="lg-submit">Sblocca <span class="lg-arrow">→</span></button>
+        <div id="licenseError" style="display:none;"></div>
+        <div class="lg-foot">© 2026 Desearq Lab</div>
+      </div>
+    </div>
   </div>
 </div>
 
