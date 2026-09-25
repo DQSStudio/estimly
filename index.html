@@ -1039,6 +1039,7 @@ header.top{
         </div>
       </div>
 
+      <div id="estimly3CaratteristicheBlock" style="display:none;">
       <div class="field-section-label">Caratteristiche progetto <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink-faint);">(per la stima ore — facoltativo)</span></div>
       <div class="field-grid">
         <div class="field">
@@ -1091,6 +1092,7 @@ header.top{
           <button type="button" id="cpStimaBtn" class="btn-save" style="padding:9px 16px; font-size:12.5px;">Stima ore e durata →</button>
           <div id="cpStimaResult" class="estimly3-result-box" style="display:none;"></div>
         </div>
+      </div>
       </div>
 
       <div class="field-grid">
@@ -2333,9 +2335,9 @@ function savedQuoteRowHtml(q){
       <div style="display:flex; gap:6px; flex-shrink:0;">
         <button data-toggle-valido="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${isValido ? 'Escludi questa versione dal totale preventivi in essere (es. superata da una più recente)' : 'Includi di nuovo questa versione nel totale preventivi in essere'}">${isValido ? '✔ Valido' : 'Includi nel totale'}</button>
         <button data-toggle-vinto="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${q.vinto ? 'Segna come non vinto' : 'Segna come vinto'}">${q.vinto ? '🏆 Vinto' : 'Segna vinto'}</button>
-        ${q.concluso
+        ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? (q.concluso
           ? '<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:6px 10px; border-radius:6px;">✓ Concluso</span>'
-          : `<button data-close-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Registra ore/durata reali e confronta con la stima">Concludi progetto</button>`}
+          : `<button data-close-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Registra ore/durata reali e confronta con la stima">Concludi progetto</button>`) : ''}
         <button data-open-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;">Apri</button>
         <button data-delete-quote="${q.id}" class="btn-cancel" style="padding:6px 10px; color:var(--danger);">Elimina</button>
       </div>
@@ -2592,6 +2594,16 @@ function applyFollowupVisibility(){
   if(active) switchEstimly2Page('dashboard');
   if(active) renderFollowupSection();
   updateSavedQuotesLimitText();
+  // Stima ore/durata (Estimly 3.0): funzione esclusiva di Estimly 2.0, non dell'Estimly classico.
+  const caratteristicheBlock = document.getElementById('estimly3CaratteristicheBlock');
+  if(caratteristicheBlock) caratteristicheBlock.style.display = active ? '' : 'none';
+  if(!active){
+    const hoursAlertBox = document.getElementById('estimlyHoursAlert');
+    if(hoursAlertBox){ hoursAlertBox.style.display = 'none'; hoursAlertBox.innerHTML = ''; }
+  } else if(typeof estimlyUpdateHoursAlert === 'function'){
+    estimlyUpdateHoursAlert();
+  }
+  if(typeof renderSavedQuotesList === 'function') renderSavedQuotesList();
   if(!active){
     // Estimly classico (non 2.0): la sezione Contratti non ha una pagina di menù dedicata,
     // quindi la spostiamo sotto il listino invece di lasciarla come blocco a larghezza piena
@@ -5682,7 +5694,13 @@ if('serviceWorker' in navigator){
     box.innerHTML = html;
   }
 
+  function estimly3IsActive(){
+    return (typeof FOLLOWUP_FEATURE_LIVE !== 'undefined' && FOLLOWUP_FEATURE_LIVE) &&
+      (typeof followupFeatureEnabled !== 'undefined' && followupFeatureEnabled);
+  }
+
   async function estimly3Stima(){
+    if(!estimly3IsActive()) return;
     const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
     if(!key){ alert('Chiave di licenza non trovata.'); return; }
     const c = estimly3GetCaratteristiche();
@@ -5727,6 +5745,7 @@ if('serviceWorker' in navigator){
   function estimlyUpdateHoursAlert(){
     const box = document.getElementById('estimlyHoursAlert');
     if(!box) return;
+    if(!estimly3IsActive()){ box.style.display = 'none'; box.innerHTML=''; return; }
     const stima = estimly3State.stima;
     const cartLen = (typeof cart !== 'undefined' && Array.isArray(cart)) ? cart.length : 0;
     if(!stima || stima.oreMin==null || stima.oreMax==null || !cartLen){
@@ -5767,6 +5786,7 @@ if('serviceWorker' in navigator){
   // ---------- Modale: aggiungi progetto storico ----------
 
   function estimly3OpenHistoricalModal(){
+    if(!estimly3IsActive()) return;
     const tp = document.getElementById('hpTipoProgetto'); if(tp) tp.value='Appartamento';
     const sup = document.getElementById('hpSuperficie'); if(sup) sup.value='';
     document.querySelectorAll('#hpInterventoChips .chip').forEach((c,i)=>c.classList.toggle('active', i===0));
@@ -5834,6 +5854,7 @@ if('serviceWorker' in navigator){
   // ---------- Modale: concludi progetto (confronto preventivato / stimato / reale) ----------
 
   function estimly3OpenCloseProjectModal(id){
+    if(!estimly3IsActive()) return;
     if(typeof savedQuotes === 'undefined') return;
     const q = savedQuotes.find(x=>x.id===id);
     if(!q) return;
