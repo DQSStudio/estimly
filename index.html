@@ -2337,6 +2337,7 @@ function savedQuoteRowHtml(q){
       <div style="display:flex; gap:6px; flex-shrink:0;">
         <button data-toggle-valido="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${isValido ? 'Escludi questa versione dal totale preventivi in essere (es. superata da una più recente)' : 'Includi di nuovo questa versione nel totale preventivi in essere'}">${isValido ? '✔ Valido' : 'Includi nel totale'}</button>
         <button data-toggle-vinto="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${q.vinto ? 'Segna come non vinto' : 'Segna come vinto'}">${q.vinto ? '🏆 Vinto' : 'Segna vinto'}</button>
+        ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? `<button data-client-link="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Genera/copia il link che il cliente apre per vedere il preventivo e firmare">Link cliente</button>` : ''}
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? (q.concluso
           ? '<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:6px 10px; border-radius:6px;">✓ Concluso</span>'
           : `<button data-close-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Registra ore/durata reali e confronta con la stima">Concludi progetto</button>`) : ''}
@@ -6077,6 +6078,30 @@ if('serviceWorker' in navigator){
   }
   window.estimly3RenderDashboard = estimly3RenderDashboard;
 
+  // ---------- Link pubblico preventivo (firma cliente) ----------
+
+  async function estimlyOpenClientLink(quoteId){
+    if(!estimly3IsActive()) return;
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    if(!key){ alert('Chiave di licenza non trovata.'); return; }
+    try{
+      const res = await fetch('/.netlify/functions/public-quote', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'create-link', key, quoteId })
+      });
+      const data = await res.json();
+      if(data.error || !data.token){
+        alert('Non è stato possibile generare il link. Riprova.');
+        return;
+      }
+      const url = `${window.location.origin}/preventivo.html?t=${data.token}`;
+      window.prompt('Link per il cliente (copialo e invialo, ad es. via email):', url);
+    }catch(err){
+      console.error('Errore generazione link cliente', err);
+      alert('Errore di connessione. Riprova.');
+    }
+  }
+
   // ---------- Collegamento eventi ----------
 
   function estimly3Init(){
@@ -6119,6 +6144,8 @@ if('serviceWorker' in navigator){
     function estimly3HandleCloseQuoteClick(e){
       const id = e.target.getAttribute('data-close-quote');
       if(id) estimly3OpenCloseProjectModal(id);
+      const linkId = e.target.getAttribute('data-client-link');
+      if(linkId) estimlyOpenClientLink(linkId);
     }
     const list1 = document.getElementById('savedQuotesList');
     if(list1) list1.addEventListener('click', estimly3HandleCloseQuoteClick);

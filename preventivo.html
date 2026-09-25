@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preventivo</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root{
+    --accent:#4338CA; --accent-soft:#EEEDFB; --ink:#17181C; --ink-soft:#7A7C85; --ink-faint:#B4B5BD;
+    --border:#E6E6E9; --surface:#FFFFFF; --surface-alt:#F3F3F6; --radius:16px; --radius-sm:10px;
+    --danger:#C0392B; --success:#0F8A5F;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; background:#FAFAFA; color:var(--ink); }
+  .wrap{ max-width:560px; margin:0 auto; padding:24px 16px 60px; }
+  .center-msg{ text-align:center; padding:80px 20px; color:var(--ink-soft); font-size:14px; }
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:0 8px 24px -8px rgba(23,24,28,0.10); overflow:hidden; }
+  .card-head{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--border); gap:10px; }
+  .card-head .studio-name{ font-size:14px; font-weight:700; letter-spacing:-0.01em; }
+  .card-head .doc-tag{ font-size:10.5px; font-weight:600; color:var(--ink-soft); background:var(--surface-alt); padding:4px 10px; border-radius:20px; white-space:nowrap; }
+  .card-body{ padding:20px 18px 22px; }
+  .doc-title{ font-size:17px; font-weight:700; margin-bottom:12px; }
+  .summary-row{ display:flex; justify-content:space-between; gap:10px; font-size:12.5px; padding:6px 0; border-bottom:1px solid #F1F1F3; }
+  .summary-row:last-child{ border-bottom:none; }
+  .summary-row .k{ color:var(--ink-soft); }
+  .summary-row .v{ color:var(--ink); font-weight:600; text-align:right; }
+  .items{ margin-top:18px; }
+  .item-row{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid #F1F1F3; font-size:12.5px; }
+  .item-row .desc{ color:var(--ink); }
+  .item-row .cat{ font-size:10.5px; color:var(--ink-faint); margin-top:1px; }
+  .item-row .val{ font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .totals{ margin-top:16px; background:var(--surface-alt); border-radius:var(--radius-sm); padding:12px 14px; }
+  .total-row{ display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0; }
+  .total-row.grand{ font-size:15px; font-weight:700; border-top:1px solid var(--border); margin-top:6px; padding-top:8px; }
+  .total-row .val{ font-variant-numeric:tabular-nums; }
+  .note-block{ margin-top:14px; font-size:11.5px; color:var(--ink-soft); line-height:1.5; white-space:pre-wrap; }
+  .section-label{ font-size:11px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.05em; margin:20px 0 10px; }
+  .sign-pad-wrap{ border:1.5px dashed #C7C9D1; border-radius:14px; background:#FCFCFD; position:relative; touch-action:none; }
+  .sign-pad-wrap canvas{ display:block; width:100%; height:140px; border-radius:14px; }
+  .sign-hint{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:14px; pointer-events:none; }
+  .sign-actions{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+  .link-btn{ background:none; border:none; color:var(--accent); font-size:11.5px; font-weight:600; cursor:pointer; padding:4px 0; }
+  .field{ margin-top:12px; }
+  .field label{ display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; }
+  .field input[type=text]{ width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; font-family:inherit; background:#fff; color:var(--ink); }
+  .check-row{ display:flex; align-items:flex-start; gap:8px; margin-top:16px; font-size:11.5px; color:var(--ink-soft); line-height:1.5; cursor:pointer; }
+  .check-row input{ margin-top:2px; width:15px; height:15px; accent-color:var(--accent); flex-shrink:0; }
+  .btn-primary{ width:100%; padding:13px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-size:14px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:16px; }
+  .btn-primary:disabled{ opacity:0.5; cursor:not-allowed; }
+  .btn-secondary{ width:100%; padding:11px; border:1px solid var(--border); border-radius:10px; background:#fff; color:var(--ink); font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; margin-top:8px; }
+  .hint-row{ font-size:11px; color:var(--ink-faint); line-height:1.5; margin-top:10px; text-align:center; }
+  .error-box{ font-size:12px; color:var(--danger); background:#FDEEEC; border-radius:var(--radius-sm); padding:10px 12px; margin-top:10px; }
+  .signed-badge{ display:flex; align-items:center; gap:8px; background:#E7F6EF; color:var(--success); border-radius:var(--radius-sm); padding:14px; font-size:13px; font-weight:600; margin-top:18px; }
+  .signed-sub{ font-size:11.5px; font-weight:400; color:#0F8A5F; margin-top:3px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="center-msg" id="loadingMsg">Caricamento preventivo…</div>
+</div>
+
+<script>
+(function(){
+  const REGIMI_FISCALI = {
+    ord22:{label:'IVA ordinaria 22%', rate:0.22},
+    rid10:{label:'IVA ridotta 10%', rate:0.10},
+    rid4:{label:'IVA ridotta 4%', rate:0.04},
+    esente:{label:'Esente IVA', rate:0},
+    forfettario:{label:'Regime forfettario', rate:0},
+    reverse:{label:'Reverse charge', rate:0},
+    custom:{label:'Aliquota personalizzata', rate:null}
+  };
+
+  function fmt(n){
+    return new Intl.NumberFormat('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}).format(n || 0);
+  }
+  function esc(s){
+    const d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+  }
+  function lineTotal(l){
+    return l.modalita === 'orario' ? (l.ore||0)*(l.tariffa||0) : (l.qty||0)*(l.prezzo||0);
+  }
+  function regimeAttivo(quote){
+    const r = REGIMI_FISCALI[quote.regime] || REGIMI_FISCALI.ord22;
+    if(quote.regime === 'custom') return { label:`IVA ${fmt(quote.aliquotaCustom)}%`, rate:(quote.aliquotaCustom||0)/100 };
+    return r;
+  }
+  function computeTotals(quote){
+    const imponibile = quote.cart.reduce((s,l)=>s+lineTotal(l),0);
+    const sconto = imponibile * (quote.sconto||0) / 100;
+    const netto = imponibile - sconto;
+    const contributo = netto * (quote.contributoPct||0) / 100;
+    const baseIva = netto + contributo;
+    const regime = regimeAttivo(quote);
+    const iva = baseIva * regime.rate;
+    const totale = baseIva + iva;
+    return { imponibile, sconto, contributo, iva, totale, regime };
+  }
+
+  function getToken(){
+    const params = new URLSearchParams(window.location.search);
+    return (params.get('t') || '').trim();
+  }
+
+  const app = document.getElementById('app');
+  const token = getToken();
+
+  function renderError(message){
+    app.innerHTML = `<div class="center-msg">${esc(message)}</div>`;
+  }
+
+  if(!token){
+    renderError('Link non valido. Controlla di aver copiato l\'indirizzo completo ricevuto dallo studio.');
+    return;
+  }
+
+  fetch('/.netlify/functions/public-quote', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ mode:'get', token })
+  }).then(r=>r.json()).then(data=>{
+    if(data.error){
+      renderError('Non riusciamo a trovare questo preventivo. Il link potrebbe non essere più valido: contatta lo studio per riceverne uno nuovo.');
+      return;
+    }
+    render(data.studio, data.quote);
+  }).catch(()=>{
+    renderError('Errore di connessione. Riprova tra poco.');
+  });
+
+  function render(studio, quote){
+    const totals = computeTotals(quote);
+    const dataLabel = quote.data ? new Date(quote.data+'T00:00:00').toLocaleDateString('it-IT') : '—';
+
+    const itemsHtml = quote.hidePrices ? '' : quote.cart.map(l => `
+      <div class="item-row">
+        <div>
+          <div class="desc">${esc(l.nome)}</div>
+          ${l.categoria ? `<div class="cat">${esc(l.categoria)}</div>` : ''}
+        </div>
+        <div class="val">€ ${fmt(lineTotal(l))}</div>
+      </div>`).join('');
+
+    app.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <span class="studio-name">${esc(studio.nome)}</span>
+          <span class="doc-tag">Preventivo ${esc(quote.numero || '—')}${quote.revisione ? ' · '+esc(quote.revisione) : ''}</span>
+        </div>
+        <div class="card-body">
+          <div class="doc-title">${esc(quote.progetto || quote.cliente || 'Preventivo')}</div>
+          <div class="summary-row"><span class="k">Cliente</span><span class="v">${esc(quote.cliente || '—')}</span></div>
+          <div class="summary-row"><span class="k">Data</span><span class="v">${dataLabel}</span></div>
+          <div class="summary-row"><span class="k">Validità offerta</span><span class="v">${esc(quote.validita)} giorni</span></div>
+          ${quote.hidePrices ? '' : `
+          <div class="items">${itemsHtml}</div>
+          <div class="totals">
+            <div class="total-row"><span>Imponibile</span><span class="val">€ ${fmt(totals.imponibile)}</span></div>
+            ${totals.sconto > 0 ? `<div class="total-row"><span>Sconto</span><span class="val">− € ${fmt(totals.sconto)}</span></div>` : ''}
+            ${quote.contributoPct > 0 ? `<div class="total-row"><span>${esc(quote.contributoLabel || 'Contributo')} (${fmt(quote.contributoPct)}%)</span><span class="val">€ ${fmt(totals.contributo)}</span></div>` : ''}
+            <div class="total-row"><span>${esc(totals.regime.label)}</span><span class="val">€ ${fmt(totals.iva)}</span></div>
+            <div class="total-row grand"><span>Totale</span><span class="val">€ ${fmt(totals.totale)}</span></div>
+          </div>`}
+          ${quote.notePagamento ? `<div class="note-block">${esc(quote.notePagamento)}</div>` : ''}
+
+          <div id="signArea"></div>
+        </div>
+      </div>
+    `;
+
+    renderSignArea(quote);
+  }
+
+  function renderSignArea(quote){
+    const area = document.getElementById('signArea');
+    if(quote.firma && quote.firma.firmato){
+      const firmatoLabel = quote.firma.firmatoAt ? new Date(quote.firma.firmatoAt).toLocaleString('it-IT') : '';
+      area.innerHTML = `
+        <div class="signed-badge">
+          <span>✓</span>
+          <div>
+            Preventivo firmato da ${esc(quote.firma.firmatarioNome)}
+            <div class="signed-sub">${firmatoLabel}</div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    area.innerHTML = `
+      <div class="section-label">Firma per accettazione</div>
+      <div class="sign-pad-wrap" id="signPadWrap">
+        <canvas id="signCanvas"></canvas>
+        <div class="sign-hint" id="signHint">Firma qui col dito o col mouse</div>
+      </div>
+      <div class="sign-actions">
+        <button type="button" class="link-btn" id="clearSignBtn">Cancella</button>
+        <button type="button" class="link-btn" id="typeNameBtn">Digita il nome invece di firmare</button>
+      </div>
+      <div class="field" id="typedNameField" style="display:none;">
+        <label>Nome e cognome</label>
+        <input type="text" id="typedNameInput" placeholder="Es. Mario Rossi">
+      </div>
+      <label class="check-row">
+        <input type="checkbox" id="acceptCheck">
+        <span>Ho letto e accetto le condizioni del preventivo e i termini di pagamento indicati.</span>
+      </label>
+      <button type="button" class="btn-primary" id="confirmSignBtn" disabled>Conferma e firma</button>
+      <div class="hint-row">Firma elettronica semplice ai sensi del Regolamento eIDAS (UE) 910/2014 — data/ora, indirizzo IP e impronta del documento vengono registrati come prova. Riceverai una conferma via email.</div>
+      <div id="signErrorBox"></div>
+    `;
+
+    setupSignaturePad(quote);
+  }
+
+  function setupSignaturePad(quote){
+    const canvas = document.getElementById('signCanvas');
+    const wrap = document.getElementById('signPadWrap');
+    const hint = document.getElementById('signHint');
+    const ctx = canvas.getContext('2d');
+    let drawing = false, hasDrawn = false;
+    let typedMode = false;
+
+    function resizeCanvas(){
+      const rect = wrap.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = rect.width * ratio;
+      canvas.height = 140 * ratio;
+      ctx.scale(ratio, ratio);
+      ctx.strokeStyle = '#17181C';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+    }
+    resizeCanvas();
+
+    function pos(e){
+      const rect = canvas.getBoundingClientRect();
+      const p = e.touches ? e.touches[0] : e;
+      return { x: p.clientX - rect.left, y: p.clientY - rect.top };
+    }
+    function start(e){
+      e.preventDefault();
+      drawing = true; hasDrawn = true;
+      hint.style.display = 'none';
+      const p = pos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+    }
+    function move(e){
+      if(!drawing) return;
+      e.preventDefault();
+      const p = pos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      updateConfirmState();
+    }
+    function end(){ drawing = false; }
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', start, {passive:false});
+    canvas.addEventListener('touchmove', move, {passive:false});
+    canvas.addEventListener('touchend', end);
+
+    document.getElementById('clearSignBtn').addEventListener('click', ()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      hasDrawn = false;
+      hint.style.display = 'flex';
+      updateConfirmState();
+    });
+
+    document.getElementById('typeNameBtn').addEventListener('click', (e)=>{
+      typedMode = !typedMode;
+      document.getElementById('typedNameField').style.display = typedMode ? 'block' : 'none';
+      e.target.textContent = typedMode ? 'Firma disegnata invece del nome' : 'Digita il nome invece di firmare';
+      wrap.style.display = typedMode ? 'none' : 'block';
+      document.querySelector('.sign-actions').style.display = typedMode ? 'flex' : 'flex';
+      document.getElementById('clearSignBtn').style.display = typedMode ? 'none' : 'inline';
+      updateConfirmState();
+    });
+
+    document.getElementById('typedNameInput').addEventListener('input', updateConfirmState);
+    document.getElementById('acceptCheck').addEventListener('change', updateConfirmState);
+
+    function updateConfirmState(){
+      const check = document.getElementById('acceptCheck').checked;
+      const ready = typedMode
+        ? (document.getElementById('typedNameInput').value.trim().length > 2 && check)
+        : (hasDrawn && check);
+      document.getElementById('confirmSignBtn').disabled = !ready;
+    }
+
+    document.getElementById('confirmSignBtn').addEventListener('click', async ()=>{
+      const btn = document.getElementById('confirmSignBtn');
+      const errBox = document.getElementById('signErrorBox');
+      errBox.innerHTML = '';
+      let firmatarioNome, metodo, firmaImage = '';
+      if(typedMode){
+        firmatarioNome = document.getElementById('typedNameInput').value.trim();
+        metodo = 'nome_digitato';
+      } else {
+        firmatarioNome = window.prompt('Conferma il tuo nome e cognome per completare la firma:', '') || '';
+        firmatarioNome = firmatarioNome.trim();
+        if(!firmatarioNome){ return; }
+        metodo = 'disegnata';
+        firmaImage = canvas.toDataURL('image/png');
+      }
+      if(!firmatarioNome){
+        errBox.innerHTML = '<div class="error-box">Inserisci nome e cognome.</div>';
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Firma in corso…';
+      try{
+        const res = await fetch('/.netlify/functions/public-quote', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ mode:'sign', token, firmatarioNome, metodo, firmaImage, accettaCondizioni:true })
+        });
+        const data = await res.json();
+        if(data.error){
+          errBox.innerHTML = `<div class="error-box">Non è stato possibile registrare la firma. Riprova o contatta lo studio.</div>`;
+          btn.disabled = false; btn.textContent = 'Conferma e firma';
+          return;
+        }
+        quote.firma = { firmato:true, firmatarioNome, firmatoAt:data.firmatoAt, metodo };
+        renderSignArea(quote);
+      }catch(err){
+        errBox.innerHTML = '<div class="error-box">Errore di connessione. Riprova.</div>';
+        btn.disabled = false; btn.textContent = 'Conferma e firma';
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>
