@@ -62,12 +62,36 @@ function randomId(){
   return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 }
 
-async function loadStudioRecord(dataStore, key){
+export async function loadStudioRecord(dataStore, key){
   return (await dataStore.get(key, { type: 'json' })) || null;
 }
 
-async function saveStudioRecord(dataStore, key, record){
+export async function saveStudioRecord(dataStore, key, record){
   await dataStore.setJSON(key, { ...record, updatedAt: new Date().toISOString() });
+}
+
+// Usata sia dal ritorno del cliente su preventivo.html (confirmPayment) sia dal webhook Stripe
+// (stripe-webhook.js): segna una richiesta di pagamento come pagata, in modo idempotente.
+export async function markPaymentPaid(dataStore, licenseKeyUpper, quoteId, paymentId){
+  const record = await loadStudioRecord(dataStore, licenseKeyUpper);
+  const savedQuotes = (record && Array.isArray(record.savedQuotes)) ? record.savedQuotes : [];
+  const idx = savedQuotes.findIndex(q => q.id === quoteId);
+  if(idx === -1) return { error: 'not_found' };
+
+  const quote = savedQuotes[idx];
+  const pagamenti = Array.isArray(quote.client && quote.client.pagamenti) ? quote.client.pagamenti : [];
+  const pIdx = pagamenti.findIndex(p => p.id === paymentId);
+  if(pIdx === -1) return { error: 'not_found' };
+
+  if(pagamenti[pIdx].stato === 'pagato'){
+    return { ok: true, alreadyPaid: true };
+  }
+
+  pagamenti[pIdx] = { ...pagamenti[pIdx], stato: 'pagato', paidAt: new Date().toISOString() };
+  quote.client = { ...quote.client, pagamenti };
+  savedQuotes[idx] = quote;
+  await saveStudioRecord(dataStore, licenseKeyUpper, { ...record, savedQuotes });
+  return { ok: true, alreadyPaid: false };
 }
 
 async function requireEstimly2(licenses, key){
@@ -271,12 +295,10 @@ async function confirmPayment(licenses, dataStore, body){
     return { ok: true, pagamenti, confirmed: false };
   }
 
-  pagamenti[pIdx] = { ...pagamenti[pIdx], stato: 'pagato', paidAt: new Date().toISOString() };
-  quote.client = { ...quote.client, pagamenti };
-  savedQuotes[idx] = quote;
-  await saveStudioRecord(dataStore, resolved.link.key, { ...record, savedQuotes });
-
-  return { ok: true, pagamenti, confirmed: true };
+  await markPaymentPaid(dataStore, resolved.link.key, quote.id, paymentId);
+  const updatedRecord = await loadStudioRecord(dataStore, resolved.link.key);
+  const updatedQuote = (updatedRecord.savedQuotes || []).find(q => q.id === quote.id);
+  return { ok: true, pagamenti: (updatedQuote && updatedQuote.client && updatedQuote.client.pagamenti) || pagamenti, confirmed: true };
 }
 
 async function connectDisconnect(licenses, dataStore, body){
