@@ -764,6 +764,41 @@ header.top{
   .e2-dashboard-grid{ grid-template-columns:1fr; }
 }
 
+/* ===================== Estimly 3.0: stima ore, alert, statistiche ===================== */
+.estimly3-servizi-grid{ display:grid; grid-template-columns:1fr 1fr; gap:2px 12px; }
+.estimly3-servizio{ display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink); padding:5px 0; cursor:pointer; font-weight:400; }
+.estimly3-servizio input{ width:15px; height:15px; accent-color:var(--accent); }
+.estimly3-result-box{ margin-top:12px; padding:14px; background:var(--surface-alt); border-radius:var(--radius-sm); }
+.estimly3-result-row{ display:flex; justify-content:space-between; align-items:baseline; padding:4px 0; }
+.estimly3-result-label{ font-size:11px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; }
+.estimly3-result-val{ font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
+.estimly3-result-sub{ font-size:11px; color:var(--ink-faint); margin-top:6px; }
+.estimly3-note{ font-size:12px; color:var(--ink-soft); line-height:1.5; }
+#estimlyHoursAlert .estimly3-banner{ border:1px solid #F0D9A8; background:#FBF0DD; border-radius:var(--radius-sm); padding:12px 14px; margin-top:10px; }
+#estimlyHoursAlert .estimly3-banner-title{ font-size:12px; font-weight:700; color:#8A5E08; margin-bottom:4px; }
+#estimlyHoursAlert .estimly3-banner-text{ font-size:11.5px; color:#7A5A16; line-height:1.5; }
+.estimly3-stats-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.estimly3-panel{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.estimly3-panel-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
+.estimly3-panel-title{ font-size:13px; font-weight:700; }
+.estimly3-panel-pill{ font-size:10.5px; font-weight:600; padding:3px 8px; border-radius:999px; }
+.estimly3-pill-private{ color:var(--accent); background:var(--accent-soft); }
+.estimly3-pill-collective{ color:#0F8A5F; background:#E7F6EF; }
+.estimly3-panel-body{ padding:16px; }
+.estimly3-stat-row{ display:flex; justify-content:space-between; align-items:baseline; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+.estimly3-stat-row:last-child{ border-bottom:none; }
+.estimly3-stat-row .k{ color:var(--ink-soft); }
+.estimly3-stat-row .v{ font-weight:700; font-variant-numeric:tabular-nums; }
+.estimly3-bar-row{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+.estimly3-bar-label{ width:110px; flex-shrink:0; font-size:11.5px; color:var(--ink); }
+.estimly3-bar-track{ flex:1; height:18px; background:var(--surface-alt); border-radius:6px; }
+.estimly3-bar-fill{ height:100%; border-radius:6px; background:var(--accent); }
+.estimly3-bar-val{ width:70px; flex-shrink:0; text-align:right; font-size:11.5px; font-weight:700; font-variant-numeric:tabular-nums; }
+.estimly3-compare-grid{ display:flex; gap:8px; margin-top:14px; }
+.estimly3-compare-tile{ flex:1; border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; background:var(--surface-alt); text-align:center; }
+.estimly3-compare-tile .lbl{ font-size:10px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:4px; }
+.estimly3-compare-tile .val{ font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
+@media (max-width:820px){ .estimly3-stats-grid{ grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -838,6 +873,7 @@ header.top{
   <button type="button" class="e2-nav-item" id="e2NavSalvati" data-e2-page="salvati"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Preventivi salvati</button>
   <button type="button" class="e2-nav-item" id="e2NavSeguire" data-e2-page="seguire"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Da seguire</button>
   <button type="button" class="e2-nav-item" data-e2-page="calcolatore"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Costo orario</button>
+  <button type="button" class="e2-nav-item" id="e2NavStatistiche" data-e2-page="statistiche"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Statistiche</button>
   <button type="button" class="e2-nav-item" id="e2NavImpostazioni"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Impostazioni studio</button>
 </nav>
 
@@ -1001,6 +1037,63 @@ header.top{
           </label>
           <input id="fProgetto" placeholder="Es. Appartamento Milano centro">
         </div>
+      </div>
+
+      <div class="field-section-label">Caratteristiche progetto <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink-faint);">(per la stima ore — facoltativo)</span></div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Tipo di progetto</label>
+          <select id="cpTipoProgetto">
+            <option value="Appartamento">Appartamento</option>
+            <option value="Villa">Villa</option>
+            <option value="Ufficio">Ufficio</option>
+            <option value="Negozio">Negozio</option>
+            <option value="Hotel">Hotel</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Superficie (m²)</label>
+          <input id="cpSuperficie" type="number" min="0" step="1" placeholder="Es. 130">
+        </div>
+        <div class="field full">
+          <label>Intervento</label>
+          <div class="chip-group" id="cpInterventoChips">
+            <div class="chip active" data-cp-intervento="Ristrutturazione completa">Ristrutturazione completa</div>
+            <div class="chip" data-cp-intervento="Ristrutturazione parziale">Ristrutturazione parziale</div>
+            <div class="chip" data-cp-intervento="Nuova costruzione">Nuova costruzione</div>
+            <div class="chip" data-cp-intervento="Interior design">Interior design</div>
+          </div>
+          <input type="hidden" id="cpIntervento" value="Ristrutturazione completa">
+        </div>
+        <div class="field full">
+          <label>Servizi richiesti</label>
+          <div class="estimly3-servizi-grid">
+            <label class="estimly3-servizio"><input type="checkbox" class="cp-servizio" value="Concept">Concept</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="cp-servizio" value="Progetto">Progetto</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="cp-servizio" value="Pratiche">Pratiche</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="cp-servizio" value="Computo">Computo</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="cp-servizio" value="Direzione lavori">Direzione lavori</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="cp-servizio" value="Interior">Interior</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="cp-servizio" value="Arredi">Arredi</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="cp-servizio" value="Rendering">Rendering</label>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Complessità</label>
+          <div class="chip-group" id="cpComplessitaChips">
+            <div class="chip active" data-cp-complessita="Standard">Standard</div>
+            <div class="chip" data-cp-complessita="Alta">Alta</div>
+            <div class="chip" data-cp-complessita="Molto alta">Molto alta</div>
+          </div>
+          <input type="hidden" id="cpComplessita" value="Standard">
+        </div>
+        <div class="field full">
+          <button type="button" id="cpStimaBtn" class="btn-save" style="padding:9px 16px; font-size:12.5px;">Stima ore e durata →</button>
+          <div id="cpStimaResult" class="estimly3-result-box" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="field-grid">
         <div class="field"><label>Data</label><input id="fData" type="date"></div>
         <div class="field"><label>N. preventivo</label><input id="fNumero"></div>
         <div class="field"><label>Revisione</label><input id="fRevisione" placeholder="Rev. 0"></div>
@@ -1055,6 +1148,7 @@ header.top{
       </div>
 
       <div class="totals" id="totalsBlock"></div>
+      <div id="estimlyHoursAlert" style="display:none;"></div>
 
       <div class="followup-section" id="followupSection">
         <div class="field-section-label" style="margin-top:18px;">Invio email &amp; follow-up automatico</div>
@@ -1165,6 +1259,32 @@ header.top{
   <div class="e2-dash-wrap">
     <div class="field-section-label" style="margin-top:0;">Da seguire</div>
     <div id="e2SeguireBody"></div>
+  </div>
+</div>
+
+<div id="e2PageStatistiche" class="e2-page" style="display:none;">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+    <div>
+      <div class="display" style="font-weight:700; font-size:18px;">Statistiche</div>
+      <div style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Le tue statistiche private e il confronto anonimo con la rete di studi che usano Estimly.</div>
+    </div>
+    <button type="button" id="e2AddHistoricalBtn" class="btn-save" style="padding:9px 16px; font-size:12.5px;">+ Aggiungi progetto concluso</button>
+  </div>
+  <div class="estimly3-stats-grid">
+    <div class="estimly3-panel">
+      <div class="estimly3-panel-head">
+        <span class="estimly3-panel-title">Le tue statistiche</span>
+        <span class="estimly3-panel-pill estimly3-pill-private">Privato · solo tu</span>
+      </div>
+      <div id="e3StatsPrivate" class="estimly3-panel-body"></div>
+    </div>
+    <div class="estimly3-panel">
+      <div class="estimly3-panel-head">
+        <span class="estimly3-panel-title">Benchmark Desearq</span>
+        <span class="estimly3-panel-pill estimly3-pill-collective">Anonimo · rete studi</span>
+      </div>
+      <div id="e3StatsCollective" class="estimly3-panel-body"></div>
+    </div>
   </div>
 </div>
 
@@ -1549,6 +1669,123 @@ header.top{
     </div>
     <div class="modal-actions">
       <button id="followupsPanelCloseBtn" class="btn-cancel">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div id="historicalProjectModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="max-width:520px;">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Aggiungi progetto concluso</div>
+      <button id="historicalModalClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:14px; line-height:1.5;">Hai un progetto già finito? Inseriscilo in 30 secondi: aiuta a rendere più precisa la stima per te e per tutti gli studi Estimly. I dati restano anonimi: nessun nome cliente o indirizzo viene condiviso.</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Tipo di progetto</label>
+          <select id="hpTipoProgetto">
+            <option value="Appartamento">Appartamento</option>
+            <option value="Villa">Villa</option>
+            <option value="Ufficio">Ufficio</option>
+            <option value="Negozio">Negozio</option>
+            <option value="Hotel">Hotel</option>
+          </select>
+        </div>
+        <div class="field"><label>Superficie (m²)</label><input id="hpSuperficie" type="number" min="0" step="1" placeholder="Es. 95"></div>
+        <div class="field full">
+          <label>Intervento</label>
+          <div class="chip-group" id="hpInterventoChips">
+            <div class="chip active" data-hp-intervento="Ristrutturazione completa">Ristrutturazione completa</div>
+            <div class="chip" data-hp-intervento="Ristrutturazione parziale">Ristrutturazione parziale</div>
+            <div class="chip" data-hp-intervento="Nuova costruzione">Nuova costruzione</div>
+            <div class="chip" data-hp-intervento="Interior design">Interior design</div>
+          </div>
+          <input type="hidden" id="hpIntervento" value="Ristrutturazione completa">
+        </div>
+        <div class="field full">
+          <label>Servizi inclusi</label>
+          <div class="estimly3-servizi-grid">
+            <label class="estimly3-servizio"><input type="checkbox" class="hp-servizio" value="Concept">Concept</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="hp-servizio" value="Progetto">Progetto</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="hp-servizio" value="Pratiche">Pratiche</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="hp-servizio" value="Computo">Computo</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="hp-servizio" value="Direzione lavori">Direzione lavori</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="hp-servizio" value="Interior">Interior</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="hp-servizio" value="Arredi">Arredi</label>
+            <label class="estimly3-servizio"><input type="checkbox" class="hp-servizio" value="Rendering">Rendering</label>
+          </div>
+        </div>
+        <div class="field"><label>Zona (città/regione, facoltativo)</label><input id="hpZona" placeholder="Es. Milano"></div>
+        <div class="field">
+          <label>Complessità</label>
+          <div class="chip-group" id="hpComplessitaChips">
+            <div class="chip active" data-hp-complessita="Standard">Standard</div>
+            <div class="chip" data-hp-complessita="Alta">Alta</div>
+            <div class="chip" data-hp-complessita="Molto alta">Molto alta</div>
+          </div>
+          <input type="hidden" id="hpComplessita" value="Standard">
+        </div>
+      </div>
+      <div style="height:1px; background:var(--border); margin:14px 0;"></div>
+      <div class="field">
+        <label>Quante ore, secondo te, all'incirca?</label>
+        <div class="chip-group" id="hpOreChips">
+          <div class="chip" data-hp-ore="0,50">&lt;50h</div>
+          <div class="chip" data-hp-ore="50,100">50–100h</div>
+          <div class="chip active" data-hp-ore="100,200">100–200h</div>
+          <div class="chip" data-hp-ore="200,400">200–400h</div>
+          <div class="chip" data-hp-ore="400,600">&gt;400h</div>
+        </div>
+        <div style="font-size:11px; color:var(--ink-faint); margin-top:6px;">Una stima a spanne va benissimo: non serve aver segnato nulla.</div>
+      </div>
+      <div class="field">
+        <label style="color:var(--accent);">Conosci il numero esatto? (facoltativo, più affidabile)</label>
+        <input id="hpOrePrecise" type="number" min="0" step="1" placeholder="Es. 187">
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Inizio progetto (mese/anno)</label><input id="hpPeriodoInizio" type="month"></div>
+        <div class="field"><label>Fine progetto (mese/anno)</label><input id="hpPeriodoFine" type="month"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="historicalModalCancel" class="btn-cancel">Annulla</button>
+      <button id="historicalModalSave" class="btn-save">Salva nel database Desearq</button>
+    </div>
+  </div>
+</div>
+
+<div id="closeProjectModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="max-width:480px;">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Concludi progetto</div>
+      <button id="closeProjectModalClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="cpjSummary" style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;"></div>
+      <div class="field">
+        <label>Quante ore, secondo te, all'incirca?</label>
+        <div class="chip-group" id="cpjOreChips">
+          <div class="chip" data-cpj-ore="0,50">&lt;50h</div>
+          <div class="chip" data-cpj-ore="50,100">50–100h</div>
+          <div class="chip active" data-cpj-ore="100,200">100–200h</div>
+          <div class="chip" data-cpj-ore="200,400">200–400h</div>
+          <div class="chip" data-cpj-ore="400,600">&gt;400h</div>
+        </div>
+      </div>
+      <div class="field">
+        <label style="color:var(--accent);">Conosci il numero esatto? (facoltativo, più affidabile)</label>
+        <input id="cpjOrePrecise" type="number" min="0" step="1" placeholder="Es. 187">
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Inizio progetto (mese/anno)</label><input id="cpjPeriodoInizio" type="month"></div>
+        <div class="field"><label>Fine progetto (mese/anno)</label><input id="cpjPeriodoFine" type="month"></div>
+      </div>
+      <div id="cpjCompareBox" style="display:none;"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="closeProjectModalCancel" class="btn-cancel">Annulla</button>
+      <button id="closeProjectModalSave" class="btn-save">Salva confronto</button>
     </div>
   </div>
 </div>
@@ -2013,7 +2250,9 @@ function currentQuoteState(){
       contributoPct: parseFloat(document.getElementById('fContributoPct').value) || 0,
       regime: document.getElementById('fRegime').value,
       aliquotaCustom: parseFloat(document.getElementById('fAliquotaCustom').value) || 22,
-      hidePrices: document.getElementById('fHidePrices').checked
+      hidePrices: document.getElementById('fHidePrices').checked,
+      caratteristiche: (typeof estimly3State !== 'undefined' && estimly3State.caratteristiche) ? estimly3State.caratteristiche : null,
+      stima: (typeof estimly3State !== 'undefined' && estimly3State.stima) ? estimly3State.stima : null
     }
   };
 }
@@ -2094,6 +2333,9 @@ function savedQuoteRowHtml(q){
       <div style="display:flex; gap:6px; flex-shrink:0;">
         <button data-toggle-valido="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${isValido ? 'Escludi questa versione dal totale preventivi in essere (es. superata da una più recente)' : 'Includi di nuovo questa versione nel totale preventivi in essere'}">${isValido ? '✔ Valido' : 'Includi nel totale'}</button>
         <button data-toggle-vinto="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${q.vinto ? 'Segna come non vinto' : 'Segna come vinto'}">${q.vinto ? '🏆 Vinto' : 'Segna vinto'}</button>
+        ${q.concluso
+          ? '<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:6px 10px; border-radius:6px;">✓ Concluso</span>'
+          : `<button data-close-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Registra ore/durata reali e confronta con la stima">Concludi progetto</button>`}
         <button data-open-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;">Apri</button>
         <button data-delete-quote="${q.id}" class="btn-cancel" style="padding:6px 10px; color:var(--danger);">Elimina</button>
       </div>
@@ -2269,6 +2511,7 @@ function loadQuoteById(id){
   document.getElementById('fRegime').value = c.regime || 'ord22';
   document.getElementById('fAliquotaCustom').value = c.aliquotaCustom ?? 22;
   document.getElementById('regimeCustomField').style.display = document.getElementById('fRegime').value === 'custom' ? 'block' : 'none';
+  if(typeof estimly3LoadCaratteristiche === 'function') estimly3LoadCaratteristiche(c.caratteristiche, c.stima);
   renderCart();
   renderCartiglio();
   renderFollowupSection();
@@ -3358,6 +3601,8 @@ function switchEstimly2Page(pageId){
   document.getElementById('e2PageSalvati').style.display = pageId === 'salvati' ? 'block' : 'none';
   document.getElementById('e2PageSeguire').style.display = pageId === 'seguire' ? 'block' : 'none';
   document.getElementById('e2PageCalcolatore').style.display = pageId === 'calcolatore' ? 'block' : 'none';
+  document.getElementById('e2PageStatistiche').style.display = pageId === 'statistiche' ? 'block' : 'none';
+  if(pageId === 'statistiche') estimly3RenderDashboard();
   const preventivoPage = document.getElementById('e2PagePreventivo');
   const quotePanel = document.querySelector('.quote-panel');
   const catalogPanel = document.querySelector('.catalog');
@@ -4679,6 +4924,7 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
   document.getElementById('fRegime').value='ord22';
   document.getElementById('fAliquotaCustom').value=22;
   document.getElementById('regimeCustomField').style.display='none';
+  if(typeof estimly3ResetCaratteristiche === 'function') estimly3ResetCaratteristiche();
   renderCart();
   renderFollowupSection();
   updateQuoteClientSummary();
@@ -5325,5 +5571,545 @@ if('serviceWorker' in navigator){
   initLicenseGate();
 })();
 </script>
+<script>
+(function(){
+  // ===================== Estimly 3.0: stima ore, alert, statistiche =====================
+  let estimly3State = { caratteristiche: null, stima: null };
+  let estimly3ClosingQuoteId = null;
+
+  function estimly3BindChipGroup(containerId, hiddenInputId, dataAttr){
+    const container = document.getElementById(containerId);
+    if(!container) return;
+    container.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        container.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        chip.classList.add('active');
+        const hidden = document.getElementById(hiddenInputId);
+        if(hidden) hidden.value = chip.getAttribute(dataAttr);
+      });
+    });
+  }
+
+  function estimly3BindChipToggleOnly(containerId){
+    const container = document.getElementById(containerId);
+    if(!container) return;
+    container.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        container.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+  }
+
+  // ---------- Caratteristiche progetto (form preventivo) ----------
+
+  function estimly3GetCaratteristiche(){
+    const servizi = Array.from(document.querySelectorAll('.cp-servizio:checked')).map(el=>el.value);
+    return {
+      tipoProgetto: document.getElementById('cpTipoProgetto').value,
+      superficie: parseFloat(document.getElementById('cpSuperficie').value) || null,
+      intervento: document.getElementById('cpIntervento').value,
+      servizi,
+      complessita: document.getElementById('cpComplessita').value
+    };
+  }
+
+  function estimly3ResetCaratteristiche(){
+    const tp = document.getElementById('cpTipoProgetto');
+    const sup = document.getElementById('cpSuperficie');
+    if(tp) tp.value = 'Appartamento';
+    if(sup) sup.value = '';
+    document.querySelectorAll('#cpInterventoChips .chip').forEach((c,i)=>c.classList.toggle('active', i===0));
+    const interv = document.getElementById('cpIntervento');
+    if(interv) interv.value = 'Ristrutturazione completa';
+    document.querySelectorAll('.cp-servizio').forEach(el=>{ el.checked = false; });
+    document.querySelectorAll('#cpComplessitaChips .chip').forEach((c,i)=>c.classList.toggle('active', i===0));
+    const compl = document.getElementById('cpComplessita');
+    if(compl) compl.value = 'Standard';
+    const box = document.getElementById('cpStimaResult');
+    if(box){ box.style.display='none'; box.innerHTML=''; }
+    estimly3State.caratteristiche = null;
+    estimly3State.stima = null;
+    estimlyUpdateHoursAlert();
+  }
+
+  function estimly3LoadCaratteristiche(c, stima){
+    estimly3ResetCaratteristiche();
+    if(c){
+      if(c.tipoProgetto) document.getElementById('cpTipoProgetto').value = c.tipoProgetto;
+      if(c.superficie) document.getElementById('cpSuperficie').value = c.superficie;
+      if(c.intervento){
+        document.querySelectorAll('#cpInterventoChips .chip').forEach(chip=>{
+          chip.classList.toggle('active', chip.getAttribute('data-cp-intervento')===c.intervento);
+        });
+        document.getElementById('cpIntervento').value = c.intervento;
+      }
+      document.querySelectorAll('.cp-servizio').forEach(el=>{ el.checked = (c.servizi||[]).includes(el.value); });
+      if(c.complessita){
+        document.querySelectorAll('#cpComplessitaChips .chip').forEach(chip=>{
+          chip.classList.toggle('active', chip.getAttribute('data-cp-complessita')===c.complessita);
+        });
+        document.getElementById('cpComplessita').value = c.complessita;
+      }
+    }
+    estimly3State.caratteristiche = c || null;
+    estimly3State.stima = stima || null;
+    if(stima) estimly3RenderStimaResult(stima);
+    estimlyUpdateHoursAlert();
+  }
+
+  function estimly3AffidabilitaLabel(a){
+    if(a==='alta') return 'Affidabilità alta';
+    if(a==='media') return 'Affidabilità media';
+    if(a==='bassa') return 'Affidabilità bassa (pochi dati simili)';
+    return 'Nessun dato simile ancora disponibile';
+  }
+
+  function estimly3RenderStimaResult(data){
+    const box = document.getElementById('cpStimaResult');
+    if(!box) return;
+    box.style.display = 'block';
+    if(data.oreMin==null){
+      box.innerHTML = `<div class="estimly3-note">Non ci sono ancora abbastanza dati simili nel database per calcolare una stima. Aggiungi progetti passati nella sezione Statistiche per aiutare a costruirlo.</div>`;
+      return;
+    }
+    let html = `
+      <div class="estimly3-result-row"><span class="estimly3-result-label">Ore stimate</span><span class="estimly3-result-val">${data.oreMin}–${data.oreMax} h</span></div>`;
+    if(data.durataMesiMin!=null){
+      html += `<div class="estimly3-result-row"><span class="estimly3-result-label">Durata stimata</span><span class="estimly3-result-val">${data.durataMesiMin}–${data.durataMesiMax} mesi</span></div>`;
+    }
+    html += `<div class="estimly3-result-sub">${estimly3AffidabilitaLabel(data.affidabilita)} · basata su ${data.campioneSimili} progetti simili${data.filtroAllargato ? ' (ricerca allargata)' : ''}.</div>`;
+    box.innerHTML = html;
+  }
+
+  async function estimly3Stima(){
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    if(!key){ alert('Chiave di licenza non trovata.'); return; }
+    const c = estimly3GetCaratteristiche();
+    const btn = document.getElementById('cpStimaBtn');
+    const box = document.getElementById('cpStimaResult');
+    if(btn){ btn.disabled = true; btn.textContent = 'Sto calcolando…'; }
+    try{
+      const res = await fetch('/.netlify/functions/estimly-benchmarks', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ key, mode:'estimate', tipoProgetto:c.tipoProgetto, intervento:c.intervento, superficie:c.superficie })
+      });
+      const data = await res.json();
+      if(data.error){
+        if(box){ box.style.display='block'; box.innerHTML = '<div class="estimly3-note">Non è stato possibile calcolare la stima. Riprova tra poco.</div>'; }
+        return;
+      }
+      estimly3State.caratteristiche = c;
+      estimly3State.stima = data;
+      estimly3RenderStimaResult(data);
+      estimlyUpdateHoursAlert();
+      if(typeof scheduleSave === 'function') scheduleSave();
+    }catch(err){
+      console.error('Errore stima ore Estimly', err);
+      if(box){ box.style.display='block'; box.innerHTML = '<div class="estimly3-note">Errore di connessione. Riprova.</div>'; }
+    }finally{
+      if(btn){ btn.disabled=false; btn.textContent='Stima ore e durata →'; }
+    }
+  }
+
+  // ---------- Avviso sottostima ----------
+
+  function estimly3CartOreTotali(){
+    if(typeof cart === 'undefined' || !Array.isArray(cart)) return 0;
+    return cart.reduce((s,l)=>{
+      const ore = parseFloat(l.ore);
+      if(!ore) return s;
+      const qty = parseFloat(l.qty) || 1;
+      return s + ore * qty;
+    }, 0);
+  }
+
+  function estimlyUpdateHoursAlert(){
+    const box = document.getElementById('estimlyHoursAlert');
+    if(!box) return;
+    const stima = estimly3State.stima;
+    const cartLen = (typeof cart !== 'undefined' && Array.isArray(cart)) ? cart.length : 0;
+    if(!stima || stima.oreMin==null || stima.oreMax==null || !cartLen){
+      box.style.display = 'none'; box.innerHTML=''; return;
+    }
+    const oreCarrello = estimly3CartOreTotali();
+    if(oreCarrello <= 0 || oreCarrello >= stima.oreMin){
+      box.style.display='none'; box.innerHTML=''; return;
+    }
+    const percentoSotto = Math.round((1 - oreCarrello/stima.oreMin) * 100);
+    box.style.display = 'block';
+    box.innerHTML = `<div class="estimly3-banner">
+      <div class="estimly3-banner-title">⚠ Ore preventivate sotto la stima</div>
+      <div class="estimly3-banner-text">Stai preventivando circa <b>${Math.round(oreCarrello)} h</b>, mentre Estimly stima <b>${stima.oreMin}–${stima.oreMax} h</b> per un progetto simile (${percentoSotto}% sotto il minimo). Valuta se il preventivo copre davvero il lavoro previsto.</div>
+    </div>`;
+  }
+
+  if(typeof renderTotals === 'function'){
+    const estimly3OrigRenderTotals = renderTotals;
+    renderTotals = function(){
+      const r = estimly3OrigRenderTotals.apply(this, arguments);
+      estimlyUpdateHoursAlert();
+      return r;
+    };
+  }
+
+  // ---------- Utility date ----------
+
+  function estimly3MonthDiff(startStr, endStr){
+    if(!startStr || !endStr) return null;
+    const [sy,sm] = startStr.split('-').map(Number);
+    const [ey,em] = endStr.split('-').map(Number);
+    if(!sy||!sm||!ey||!em) return null;
+    const months = (ey-sy)*12 + (em-sm) + 1;
+    return months > 0 ? months : null;
+  }
+
+  // ---------- Modale: aggiungi progetto storico ----------
+
+  function estimly3OpenHistoricalModal(){
+    const tp = document.getElementById('hpTipoProgetto'); if(tp) tp.value='Appartamento';
+    const sup = document.getElementById('hpSuperficie'); if(sup) sup.value='';
+    document.querySelectorAll('#hpInterventoChips .chip').forEach((c,i)=>c.classList.toggle('active', i===0));
+    const interv = document.getElementById('hpIntervento'); if(interv) interv.value='Ristrutturazione completa';
+    document.querySelectorAll('.hp-servizio').forEach(el=>{ el.checked=false; });
+    const zona = document.getElementById('hpZona'); if(zona) zona.value='';
+    document.querySelectorAll('#hpComplessitaChips .chip').forEach((c,i)=>c.classList.toggle('active', i===0));
+    const compl = document.getElementById('hpComplessita'); if(compl) compl.value='Standard';
+    document.querySelectorAll('#hpOreChips .chip').forEach((c,i)=>c.classList.toggle('active', i===2));
+    const orePrec = document.getElementById('hpOrePrecise'); if(orePrec) orePrec.value='';
+    const pi = document.getElementById('hpPeriodoInizio'); if(pi) pi.value='';
+    const pf = document.getElementById('hpPeriodoFine'); if(pf) pf.value='';
+    const modal = document.getElementById('historicalProjectModal');
+    if(modal) modal.style.display='flex';
+  }
+
+  function estimly3CloseHistoricalModal(){
+    const modal = document.getElementById('historicalProjectModal');
+    if(modal) modal.style.display='none';
+  }
+
+  async function estimly3SaveHistorical(){
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    if(!key){ alert('Chiave di licenza non trovata.'); return; }
+    const tipoProgetto = document.getElementById('hpTipoProgetto').value;
+    const intervento = document.getElementById('hpIntervento').value;
+    const superficie = parseFloat(document.getElementById('hpSuperficie').value) || null;
+    const servizi = Array.from(document.querySelectorAll('.hp-servizio:checked')).map(el=>el.value);
+    const zona = document.getElementById('hpZona').value.trim() || null;
+    const complessita = document.getElementById('hpComplessita').value;
+    const orePreciseVal = parseFloat(document.getElementById('hpOrePrecise').value);
+    const orePrecise = Number.isFinite(orePreciseVal) && orePreciseVal>0 ? orePreciseVal : null;
+    let oreMin=null, oreMax=null;
+    if(!orePrecise){
+      const activeChip = document.querySelector('#hpOreChips .chip.active');
+      if(activeChip){
+        const parts = activeChip.getAttribute('data-hp-ore').split(',').map(Number);
+        oreMin = parts[0]; oreMax = parts[1];
+      }
+    }
+    const durataMesi = estimly3MonthDiff(document.getElementById('hpPeriodoInizio').value, document.getElementById('hpPeriodoFine').value);
+    const btn = document.getElementById('historicalModalSave');
+    if(btn){ btn.disabled = true; btn.textContent = 'Salvataggio…'; }
+    try{
+      const res = await fetch('/.netlify/functions/estimly-benchmarks', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          key, mode:'contribute', tipoProgetto, intervento, superficie, servizi, complessita, zona,
+          oreMin, oreMax, orePrecise, durataMesiMin: durataMesi, durataMesiMax: durataMesi, fonte:'storico'
+        })
+      });
+      const data = await res.json();
+      if(data.error){ alert('Non è stato possibile salvare: ' + data.error); return; }
+      estimly3CloseHistoricalModal();
+      alert('Progetto aggiunto al database. Grazie per il contributo!');
+      if(typeof e2CurrentPage === 'undefined' || e2CurrentPage === 'statistiche') estimly3RenderDashboard();
+    }catch(err){
+      console.error('Errore salvataggio progetto storico', err);
+      alert('Errore di connessione. Riprova.');
+    }finally{
+      if(btn){ btn.disabled=false; btn.textContent='Salva nel database Desearq'; }
+    }
+  }
+
+  // ---------- Modale: concludi progetto (confronto preventivato / stimato / reale) ----------
+
+  function estimly3OpenCloseProjectModal(id){
+    if(typeof savedQuotes === 'undefined') return;
+    const q = savedQuotes.find(x=>x.id===id);
+    if(!q) return;
+    estimly3ClosingQuoteId = id;
+    const c = (q.client && q.client.caratteristiche) || null;
+    const stima = (q.client && q.client.stima) || null;
+    const summaryBox = document.getElementById('cpjSummary');
+    const progettoLabel = (q.client && (q.client.progetto || q.client.cliente)) || 'Preventivo';
+    let summaryHtml = `<b>${(typeof escapeHtml === 'function') ? escapeHtml(progettoLabel) : progettoLabel}</b>`;
+    if(stima && stima.oreMin!=null){
+      summaryHtml += `<br>Stima del sistema: ${stima.oreMin}–${stima.oreMax} h`;
+    } else {
+      summaryHtml += `<br>Nessuna stima calcolata per questo preventivo.`;
+    }
+    if(summaryBox) summaryBox.innerHTML = summaryHtml;
+    document.querySelectorAll('#cpjOreChips .chip').forEach((c2,i)=>c2.classList.toggle('active', i===2));
+    const orePrec = document.getElementById('cpjOrePrecise'); if(orePrec) orePrec.value='';
+    const pi = document.getElementById('cpjPeriodoInizio'); if(pi) pi.value='';
+    const pf = document.getElementById('cpjPeriodoFine'); if(pf) pf.value='';
+    const compareBox = document.getElementById('cpjCompareBox');
+    if(compareBox){ compareBox.style.display='none'; compareBox.innerHTML=''; }
+    const modal = document.getElementById('closeProjectModal');
+    if(modal) modal.style.display='flex';
+  }
+
+  function estimly3CloseCloseProjectModal(){
+    const modal = document.getElementById('closeProjectModal');
+    if(modal) modal.style.display='none';
+    estimly3ClosingQuoteId = null;
+  }
+
+  function estimly3CpjReadOre(){
+    const orePreciseVal = parseFloat(document.getElementById('cpjOrePrecise').value);
+    const orePrecise = Number.isFinite(orePreciseVal) && orePreciseVal>0 ? orePreciseVal : null;
+    if(orePrecise) return { orePrecise, oreMin:orePrecise, oreMax:orePrecise };
+    const activeChip = document.querySelector('#cpjOreChips .chip.active');
+    if(!activeChip) return { orePrecise:null, oreMin:null, oreMax:null };
+    const parts = activeChip.getAttribute('data-cpj-ore').split(',').map(Number);
+    return { orePrecise:null, oreMin:parts[0], oreMax:parts[1] };
+  }
+
+  function estimly3UpdateCompareBox(){
+    if(!estimly3ClosingQuoteId || typeof savedQuotes === 'undefined') return;
+    const q = savedQuotes.find(x=>x.id===estimly3ClosingQuoteId);
+    if(!q) return;
+    const stima = (q.client && q.client.stima) || null;
+    const ore = estimly3CpjReadOre();
+    const reale = ore.orePrecise != null ? ore.orePrecise : (ore.oreMin!=null && ore.oreMax!=null ? (ore.oreMin+ore.oreMax)/2 : null);
+    const box = document.getElementById('cpjCompareBox');
+    if(!box) return;
+    if(reale == null){ box.style.display='none'; box.innerHTML=''; return; }
+    const preventivato = (q.cart && Array.isArray(q.cart)) ? q.cart.reduce((s,l)=>{
+      const oreL = parseFloat(l.ore); if(!oreL) return s;
+      const qty = parseFloat(l.qty) || 1;
+      return s + oreL*qty;
+    }, 0) : estimly3CartOreTotali();
+    let stimaTxt = '—';
+    let giudizio = '';
+    if(stima && stima.oreMin!=null){
+      stimaTxt = `${stima.oreMin}–${stima.oreMax} h`;
+      if(reale >= stima.oreMin && reale <= stima.oreMax){
+        giudizio = '<div style="margin-top:10px; font-size:12px; color:#0F8A5F;">✓ Dentro il range stimato.</div>';
+      } else if(reale < stima.oreMin){
+        giudizio = '<div style="margin-top:10px; font-size:12px; color:#B8790A;">Sotto la stima: il progetto ha richiesto meno ore del previsto.</div>';
+      } else {
+        giudizio = '<div style="margin-top:10px; font-size:12px; color:#B8790A;">Sopra la stima: il progetto ha richiesto più ore del previsto.</div>';
+      }
+    }
+    box.style.display = 'block';
+    box.innerHTML = `
+      <div class="estimly3-compare-grid">
+        <div class="estimly3-compare-tile"><div class="lbl">Preventivato</div><div class="val">${Math.round(preventivato)} h</div></div>
+        <div class="estimly3-compare-tile"><div class="lbl">Stimato</div><div class="val" style="color:var(--accent);">${stimaTxt}</div></div>
+        <div class="estimly3-compare-tile"><div class="lbl">Reale</div><div class="val">${Math.round(reale)} h</div></div>
+      </div>${giudizio}`;
+  }
+
+  async function estimly3SaveCloseProject(){
+    if(!estimly3ClosingQuoteId || typeof savedQuotes === 'undefined') return;
+    const q = savedQuotes.find(x=>x.id===estimly3ClosingQuoteId);
+    if(!q) return;
+    const ore = estimly3CpjReadOre();
+    if(ore.orePrecise==null && ore.oreMin==null){ alert('Indica una fascia o il numero di ore.'); return; }
+    const durataMesi = estimly3MonthDiff(document.getElementById('cpjPeriodoInizio').value, document.getElementById('cpjPeriodoFine').value);
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    const btn = document.getElementById('closeProjectModalSave');
+    if(btn){ btn.disabled = true; btn.textContent = 'Salvataggio…'; }
+    try{
+      const newClient = Object.assign({}, q.client, {
+        concluso: true,
+        concludedAt: new Date().toISOString(),
+        oreRealiMin: ore.oreMin,
+        oreRealiMax: ore.oreMax,
+        oreRealiPrecise: ore.orePrecise,
+        durataRealeMesi: durataMesi
+      });
+      q.client = newClient;
+      q.concluso = true;
+      if(typeof persistSavedQuotesLocal === 'function') await persistSavedQuotesLocal();
+      if(typeof renderSavedQuotesList === 'function') renderSavedQuotesList();
+      if(key){
+        await fetch('/.netlify/functions/sync-data', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ key, action:'updateQuote', id: q.id, patch:{ concluso:true, client:newClient } })
+        });
+      }
+      const c = newClient.caratteristiche;
+      if(key && c && c.tipoProgetto && c.intervento){
+        await fetch('/.netlify/functions/estimly-benchmarks', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            key, mode:'contribute', tipoProgetto:c.tipoProgetto, intervento:c.intervento, superficie:c.superficie,
+            servizi:c.servizi, complessita:c.complessita, zona:null,
+            oreMin: ore.oreMin, oreMax: ore.oreMax, orePrecise: ore.orePrecise,
+            durataMesiMin: durataMesi, durataMesiMax: durataMesi, fonte:'nuovo'
+          })
+        });
+      }
+      estimly3CloseCloseProjectModal();
+      if(typeof e2CurrentPage === 'undefined' || e2CurrentPage === 'statistiche') estimly3RenderDashboard();
+    }catch(err){
+      console.error('Errore chiusura progetto', err);
+      alert('Errore di connessione. Riprova.');
+    }finally{
+      if(btn){ btn.disabled=false; btn.textContent='Salva confronto'; }
+    }
+  }
+
+  // ---------- Dashboard statistiche ----------
+
+  function estimly3ComputeMode(arr){
+    const counts = new Map();
+    arr.forEach(v=>{ if(!v) return; counts.set(v, (counts.get(v)||0)+1); });
+    let best=null, bestCount=0;
+    counts.forEach((count,v)=>{ if(count>bestCount){ best=v; bestCount=count; } });
+    return best;
+  }
+
+  function estimly3RenderPrivateStats(){
+    const box = document.getElementById('e3StatsPrivate');
+    if(!box || typeof savedQuotes === 'undefined') return;
+    const conclusi = savedQuotes.filter(q=>q.concluso && q.client);
+    if(!conclusi.length){
+      box.innerHTML = '<div class="estimly3-note">Non hai ancora concluso nessun progetto tracciato. Usa "Concludi progetto" su un preventivo salvato, oppure aggiungi un progetto passato.</div>';
+      return;
+    }
+    const ratios = [];
+    const scostamenti = [];
+    const tipi = [];
+    const serviziFlat = [];
+    conclusi.forEach(q=>{
+      const c = q.client.caratteristiche;
+      const reale = q.client.oreRealiPrecise != null ? q.client.oreRealiPrecise
+        : (q.client.oreRealiMin!=null && q.client.oreRealiMax!=null ? (q.client.oreRealiMin+q.client.oreRealiMax)/2 : null);
+      if(c && c.superficie && reale) ratios.push(reale / c.superficie);
+      if(reale && q.client.stima && q.client.stima.oreMin!=null){
+        const stimaMid = (q.client.stima.oreMin + q.client.stima.oreMax)/2;
+        if(stimaMid>0) scostamenti.push((reale - stimaMid) / stimaMid * 100);
+      }
+      if(c && c.tipoProgetto) tipi.push(c.tipoProgetto);
+      if(c && Array.isArray(c.servizi)) serviziFlat.push(...c.servizi);
+    });
+    const avg = arr => arr.length ? arr.reduce((s,n)=>s+n,0)/arr.length : null;
+    const oreMq = avg(ratios);
+    const scostamentoMedio = avg(scostamenti);
+    const tipoFreq = estimly3ComputeMode(tipi);
+    const servizioFreq = estimly3ComputeMode(serviziFlat);
+
+    box.innerHTML = `
+      <div class="estimly3-stat-row"><span class="k">Progetti conclusi tracciati</span><span class="v">${conclusi.length}</span></div>
+      <div class="estimly3-stat-row"><span class="k">Ore medie per m²</span><span class="v">${oreMq!=null ? oreMq.toFixed(1)+' h/m²' : '—'}</span></div>
+      <div class="estimly3-stat-row"><span class="k">Scostamento medio preventivo → reale</span><span class="v">${scostamentoMedio!=null ? (scostamentoMedio>=0?'+':'')+Math.round(scostamentoMedio)+'%' : '—'}</span></div>
+      <div class="estimly3-stat-row"><span class="k">Tipo progetto più frequente</span><span class="v">${tipoFreq || '—'}</span></div>
+      <div class="estimly3-stat-row"><span class="k">Servizio più richiesto</span><span class="v">${servizioFreq || '—'}</span></div>`;
+  }
+
+  async function estimly3RenderCollectiveStats(){
+    const box = document.getElementById('e3StatsCollective');
+    if(!box) return;
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    if(!key){ box.innerHTML = '<div class="estimly3-note">Accedi per vedere il benchmark collettivo.</div>'; return; }
+    box.innerHTML = '<div class="estimly3-note">Caricamento…</div>';
+    try{
+      const res = await fetch('/.netlify/functions/estimly-benchmarks', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ key, mode:'summary', tipoProgetto:'Appartamento' })
+      });
+      const data = await res.json();
+      if(data.error){ box.innerHTML = '<div class="estimly3-note">Non disponibile al momento.</div>'; return; }
+      let html = `
+        <div class="estimly3-stat-row"><span class="k">Progetti nel database (appartamenti)</span><span class="v">${data.totaleProgetti}</span></div>
+        <div class="estimly3-stat-row"><span class="k">Ore medie/m² · appartamenti</span><span class="v">${data.oreMedieMq!=null ? data.oreMedieMq+' h/m²' : '—'}</span></div>`;
+      if(data.perZona && data.perZona.length){
+        html += `<div style="font-size:11px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; margin-top:14px; margin-bottom:4px;">Confronto per zona</div>`;
+        const maxVal = Math.max(...data.perZona.map(z=>z.oreMedieMq||0), 0.01);
+        data.perZona.forEach(z=>{
+          const pct = Math.max(6, Math.round((z.oreMedieMq/maxVal)*100));
+          const zonaLabel = (typeof escapeHtml === 'function') ? escapeHtml(z.zona) : z.zona;
+          html += `<div class="estimly3-bar-row">
+            <div class="estimly3-bar-label">${zonaLabel}</div>
+            <div class="estimly3-bar-track"><div class="estimly3-bar-fill" style="width:${pct}%;"></div></div>
+            <div class="estimly3-bar-val">${z.oreMedieMq!=null ? z.oreMedieMq.toFixed(1)+' h/m²' : '—'}</div>
+          </div>`;
+        });
+      }
+      box.innerHTML = html;
+    }catch(err){
+      console.error('Errore caricamento statistiche collettive', err);
+      box.innerHTML = '<div class="estimly3-note">Errore di connessione.</div>';
+    }
+  }
+
+  function estimly3RenderDashboard(){
+    estimly3RenderPrivateStats();
+    estimly3RenderCollectiveStats();
+  }
+  window.estimly3RenderDashboard = estimly3RenderDashboard;
+
+  // ---------- Collegamento eventi ----------
+
+  function estimly3Init(){
+    const stimaBtn = document.getElementById('cpStimaBtn');
+    if(stimaBtn) stimaBtn.addEventListener('click', estimly3Stima);
+    estimly3BindChipGroup('cpInterventoChips','cpIntervento','data-cp-intervento');
+    estimly3BindChipGroup('cpComplessitaChips','cpComplessita','data-cp-complessita');
+    estimly3BindChipGroup('hpInterventoChips','hpIntervento','data-hp-intervento');
+    estimly3BindChipGroup('hpComplessitaChips','hpComplessita','data-hp-complessita');
+    estimly3BindChipToggleOnly('hpOreChips');
+    estimly3BindChipToggleOnly('cpjOreChips');
+
+    const addHist = document.getElementById('e2AddHistoricalBtn');
+    if(addHist) addHist.addEventListener('click', estimly3OpenHistoricalModal);
+    const histClose = document.getElementById('historicalModalClose');
+    if(histClose) histClose.addEventListener('click', estimly3CloseHistoricalModal);
+    const histCancel = document.getElementById('historicalModalCancel');
+    if(histCancel) histCancel.addEventListener('click', estimly3CloseHistoricalModal);
+    const histSave = document.getElementById('historicalModalSave');
+    if(histSave) histSave.addEventListener('click', estimly3SaveHistorical);
+    const histModal = document.getElementById('historicalProjectModal');
+    if(histModal) histModal.addEventListener('click', (e)=>{ if(e.target.id==='historicalProjectModal') estimly3CloseHistoricalModal(); });
+
+    const cpjClose = document.getElementById('closeProjectModalClose');
+    if(cpjClose) cpjClose.addEventListener('click', estimly3CloseCloseProjectModal);
+    const cpjCancel = document.getElementById('closeProjectModalCancel');
+    if(cpjCancel) cpjCancel.addEventListener('click', estimly3CloseCloseProjectModal);
+    const cpjSave = document.getElementById('closeProjectModalSave');
+    if(cpjSave) cpjSave.addEventListener('click', estimly3SaveCloseProject);
+    const cpjModal = document.getElementById('closeProjectModal');
+    if(cpjModal) cpjModal.addEventListener('click', (e)=>{ if(e.target.id==='closeProjectModal') estimly3CloseCloseProjectModal(); });
+    const cpjOrePrecise = document.getElementById('cpjOrePrecise');
+    if(cpjOrePrecise) cpjOrePrecise.addEventListener('input', estimly3UpdateCompareBox);
+    const cpjPi = document.getElementById('cpjPeriodoInizio');
+    if(cpjPi) cpjPi.addEventListener('input', estimly3UpdateCompareBox);
+    const cpjPf = document.getElementById('cpjPeriodoFine');
+    if(cpjPf) cpjPf.addEventListener('input', estimly3UpdateCompareBox);
+    document.querySelectorAll('#cpjOreChips .chip').forEach(chip=>chip.addEventListener('click', estimly3UpdateCompareBox));
+
+    function estimly3HandleCloseQuoteClick(e){
+      const id = e.target.getAttribute('data-close-quote');
+      if(id) estimly3OpenCloseProjectModal(id);
+    }
+    const list1 = document.getElementById('savedQuotesList');
+    if(list1) list1.addEventListener('click', estimly3HandleCloseQuoteClick);
+    const list2 = document.getElementById('e2SalvatiList');
+    if(list2) list2.addEventListener('click', estimly3HandleCloseQuoteClick);
+
+    estimlyUpdateHoursAlert();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', estimly3Init);
+  } else {
+    estimly3Init();
+  }
+})();
+</script>
+
 </body>
 </html>
