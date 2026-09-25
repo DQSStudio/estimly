@@ -4,6 +4,12 @@
 // e riscrivere lo stesso numero in due posti). Riservato agli studi col pacchetto completo
 // (license.suiteEnabled), flag indipendente da Estimly 2.0/followupEnabled.
 //
+// Lo studio non ha (e non deve avere) accesso a Supabase: il collegamento tra Cost ed Estimly
+// passa per il CODICE DI ACCESSO CHE COST GIÀ ASSEGNA A OGNI CLIENTE (deciso a mano da Nicola,
+// come sempre) — lo studio lo inserisce direttamente dentro Estimly (Impostazioni studio), non
+// serve nessuna configurazione nuova né in Cost né in Supabase. Cost continua a scrivere nella
+// tabella condivisa usando lo stesso codice che già conosce.
+//
 // Legge dalla tabella condivisa public.estimly_costi_studio (Supabase, stesso progetto già usato
 // per DSQ Manager), scritta da Cost tramite la stessa SUPABASE_ANON_KEY. Nessun dato scritto da
 // qui: questo endpoint è sola lettura.
@@ -23,7 +29,8 @@ export default async (req) => {
   catch (err) { return new Response(JSON.stringify({ error: 'invalid_body' }), { status: 400 }); }
 
   const key = (body.key || '').trim().toUpperCase();
-  if (!key) return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+  const codiceAccesso = (body.codiceAccesso || '').trim();
+  if (!key || !codiceAccesso) return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
 
   const licenses = getStore('licenses');
   const license = await licenses.get(key, { type: 'json' });
@@ -41,7 +48,7 @@ export default async (req) => {
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/${TABLE}?license_key=eq.${encodeURIComponent(key)}&select=tariffa_oraria,updated_at&limit=1`,
+      `${SUPABASE_URL}/rest/v1/${TABLE}?codice_accesso=eq.${encodeURIComponent(codiceAccesso)}&select=tariffa_oraria,updated_at&limit=1`,
       { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
     );
     if (!res.ok) return new Response(JSON.stringify({ error: 'supabase_error' }), { status: 200 });
