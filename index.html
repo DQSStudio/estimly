@@ -1850,6 +1850,13 @@ header.top{
       <button id="costCalcClose" class="modal-close">&times;</button>
     </div>
     <div class="modal-body">
+      <div id="costFromCostBox" style="margin-bottom:16px; padding:12px 14px; background:var(--accent-soft); border-radius:var(--radius-sm);">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <div style="font-size:12px; color:var(--ink-soft);">Hai già la tariffa oraria calcolata in Cost? La puoi importare qui invece di ricalcolarla a mano.</div>
+          <button id="costFromCostBtn" class="btn-cancel" style="padding:6px 12px; white-space:nowrap;">Sincronizza da Cost</button>
+        </div>
+        <div id="costFromCostMsg" style="font-size:11.5px; margin-top:8px; display:none;"></div>
+      </div>
       <div style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Calcola la tariffa oraria minima da applicare per coprire i tuoi costi e il tuo stipendio desiderato. Il risultato diventa il valore di partenza nel calcolatore a ore (resta sempre modificabile riga per riga).</div>
       <div class="field-grid">
         <div class="field"><label>Stipendio netto desiderato (annuo €)</label><input id="ccStipendio" type="number" step="100" value="30000"></div>
@@ -2744,6 +2751,7 @@ function hideOnboardingGate(){
    i due Netlify Blobs store. */
 const COSTCALC_FEATURE_LIVE = true;
 let costCalcFeatureEnabled = false;
+let suiteFeatureEnabled = false; // "pacchetto completo": sincronizzazioni con DSQ Manager e Cost
 
 function applyCostCalcVisibility(){
   const is2Active = FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled;
@@ -2991,6 +2999,7 @@ function openCostCalcModal(){
   document.getElementById('ccMargine').value = c.margine ?? 15;
   document.getElementById('costCalcResult').style.display = 'none';
   document.getElementById('costCalcApply').style.display = 'none';
+  document.getElementById('costFromCostMsg').style.display = 'none';
   document.getElementById('costCalcModal').style.display = 'flex';
 }
 function closeCostCalcModal(){
@@ -3036,6 +3045,53 @@ document.getElementById('costCalcApply').addEventListener('click', applyCostCalc
 document.getElementById('costCalcModal').addEventListener('click', (e)=>{
   if(e.target.id === 'costCalcModal') closeCostCalcModal();
 });
+
+/* ===================== Sincronizza tariffa oraria da Cost (pacchetto completo) ===================== */
+/* Il pulsante resta sempre visibile a chi vede il calcolatore di costo (non è nascosto in base
+   al pacchetto): cliccandolo senza pacchetto completo compare un messaggio esplicativo invece
+   che bloccare l'azione a monte — così chi non ce l'ha scopre comunque che la funzione esiste. */
+function showCostFromCostMsg(text, kind){
+  const box = document.getElementById('costFromCostMsg');
+  box.textContent = text;
+  box.style.color = kind === 'error' ? '#B42318' : (kind === 'ok' ? '#15803D' : 'var(--ink-soft)');
+  box.style.display = 'block';
+}
+
+async function syncTariffaFromCost(){
+  const btn = document.getElementById('costFromCostBtn');
+  const key = getLicenseKey();
+  if(!key) return;
+  btn.disabled = true;
+  showCostFromCostMsg('Verifico su Cost…', 'info');
+  try{
+    const res = await fetch('/.netlify/functions/desearq-costi', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ key })
+    });
+    const data = await res.json();
+    if(data.ok){
+      studioSettings.tariffaOrariaBase = +Number(data.tariffaOraria).toFixed(2);
+      saveStudioSettings();
+      scheduleCloudSave();
+      const hcTariffa = document.getElementById('hcTariffa');
+      if(hcTariffa) hcTariffa.value = studioSettings.tariffaOrariaBase;
+      showCostFromCostMsg(`Importata: € ${fmt(studioSettings.tariffaOrariaBase)} /h da Cost.`, 'ok');
+    } else if(data.error === 'not_suite'){
+      showCostFromCostMsg('Questa funzione fa parte del pacchetto Desearq completo. Scrivici per attivarla sul tuo account.', 'error');
+    } else if(data.error === 'not_found'){
+      showCostFromCostMsg('Non risulta ancora una tariffa calcolata in Cost per questo studio. Calcolala prima lì, poi torna qui.', 'error');
+    } else {
+      showCostFromCostMsg('Impossibile recuperare il dato da Cost al momento. Riprova più tardi.', 'error');
+    }
+  }catch(err){
+    showCostFromCostMsg('Impossibile contattare Cost: controlla la connessione.', 'error');
+  }
+  btn.disabled = false;
+}
+
+document.getElementById('costFromCostBtn').addEventListener('click', syncTariffaFromCost);
+/* ===================== fine Sincronizza tariffa oraria da Cost ===================== */
 
 document.getElementById('applyRateAllBtn').addEventListener('click', ()=>{
   const tariffa = studioSettings.tariffaOrariaBase;
@@ -5575,6 +5631,7 @@ if('serviceWorker' in navigator){
         applyAiVisibility();
         followupFeatureEnabled = !!data.followupEnabled;
         costCalcFeatureEnabled = !!data.costCalcEnabled;
+        suiteFeatureEnabled = !!data.suiteEnabled;
         applyFollowupVisibility();
         hideGate();
         loadCloudData();

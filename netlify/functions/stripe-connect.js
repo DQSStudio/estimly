@@ -99,7 +99,7 @@ export async function markPaymentPaid(dataStore, licenseKeyUpper, quoteId, payme
   if(licenses){
     try{
       const license = await licenses.get(licenseKeyUpper, { type: 'json' });
-      if(license && license.followupEnabled){
+      if(license && license.suiteEnabled){
         await syncQuoteToDesearqManager(quote, { markNuovo: false });
       }
     }catch(err){

@@ -38,6 +38,7 @@
   .badge-ai{background:#EEEDFB; color:#4338CA;}
   .badge-followup{background:#FDF0E3; color:#B45309;}
   .badge-costcalc{background:#E7F0FE; color:#1D4ED8;}
+  .badge-suite{background:#E6F6EC; color:#15803D;}
   #loginCard input{margin-bottom:12px;}
   #appArea{display:none;}
   .error{color:#DC2626; font-size:12.5px; margin-top:6px;}
@@ -75,6 +76,9 @@
       <label style="display:flex; align-items:center; gap:8px; font-weight:normal; margin-top:4px;">
         <input type="checkbox" id="costCalcEnabledNew" style="width:auto; margin:0;"> Abilita "Calcola il tuo costo orario" in Estimly normale per questo cliente
       </label>
+      <label style="display:flex; align-items:center; gap:8px; font-weight:normal; margin-top:4px;">
+        <input type="checkbox" id="suiteEnabledNew" style="width:auto; margin:0;"> Abilita pacchetto completo (sincronizzazione con DSQ Manager e Cost) per questo cliente
+      </label>
       <div id="newKeyResult" style="display:none;" class="newkey-result"></div>
     </div>
 
@@ -84,7 +88,7 @@
         <button class="secondary" id="refreshBtn">Aggiorna</button>
       </div>
       <table>
-        <thead><tr><th>Cliente</th><th>Chiave</th><th>Stato</th><th>EstimlyAI</th><th>Follow-up 2.0</th><th>Costo orario (normale)</th><th>Creata</th><th>Usi</th><th>Backup</th><th></th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Chiave</th><th>Stato</th><th>EstimlyAI</th><th>Follow-up 2.0</th><th>Costo orario (normale)</th><th>Pacchetto completo</th><th>Creata</th><th>Usi</th><th>Backup</th><th></th></tr></thead>
         <tbody id="keysBody"></tbody>
       </table>
     </div>
@@ -114,7 +118,7 @@ async function loadKeys(){
   const data = await callAdmin('list');
   const body = document.getElementById('keysBody');
   if(!data.items || data.items.length === 0){
-    body.innerHTML = '<tr><td colspan="10" style="color:#B4B6BE; text-align:center; padding:20px;">Nessuna chiave ancora emessa.</td></tr>';
+    body.innerHTML = '<tr><td colspan="11" style="color:#B4B6BE; text-align:center; padding:20px;">Nessuna chiave ancora emessa.</td></tr>';
     return;
   }
   body.innerHTML = data.items.map(it => `
@@ -136,6 +140,11 @@ async function loadKeys(){
         ${it.costCalcEnabled
           ? `<span class="badge badge-costcalc">Attivo</span> <button class="secondary" data-costcalc-action="off" data-key="${it.key}" style="padding:4px 8px; font-size:11px;">Disattiva</button>`
           : `<button class="secondary" data-costcalc-action="on" data-key="${it.key}" style="padding:4px 8px; font-size:11px;">Attiva</button>`}
+      </td>
+      <td>
+        ${it.suiteEnabled
+          ? `<span class="badge badge-suite">Attivo</span> <button class="secondary" data-suite-action="off" data-key="${it.key}" style="padding:4px 8px; font-size:11px;">Disattiva</button>`
+          : `<button class="secondary" data-suite-action="on" data-key="${it.key}" style="padding:4px 8px; font-size:11px;">Attiva</button>`}
       </td>
       <td>${fmtDate(it.createdAt)}</td>
       <td>${it.validationCount || 0}</td>
@@ -185,6 +194,15 @@ async function loadKeys(){
       btn.disabled = true;
       const costCalcEnabled = btn.getAttribute('data-costcalc-action') === 'on';
       await callAdmin('setCostCalc', { key: btn.getAttribute('data-key'), costCalcEnabled });
+      loadKeys();
+    });
+  });
+
+  body.querySelectorAll('button[data-suite-action]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      const suiteEnabled = btn.getAttribute('data-suite-action') === 'on';
+      await callAdmin('setSuite', { key: btn.getAttribute('data-key'), suiteEnabled });
       loadKeys();
     });
   });
@@ -257,14 +275,16 @@ document.getElementById('addKeyBtn').addEventListener('click', async () => {
   const aiEnabled = document.getElementById('aiEnabledNew').checked;
   const followupEnabled = document.getElementById('followupEnabledNew').checked;
   const costCalcEnabled = document.getElementById('costCalcEnabledNew').checked;
-  const result = await callAdmin('add', { customer, aiEnabled, followupEnabled, costCalcEnabled });
+  const suiteEnabled = document.getElementById('suiteEnabledNew').checked;
+  const result = await callAdmin('add', { customer, aiEnabled, followupEnabled, costCalcEnabled, suiteEnabled });
   const box = document.getElementById('newKeyResult');
   box.style.display = 'block';
-  box.innerHTML = `Chiave creata per <b>${result.customer}</b>${result.aiEnabled ? ' <span class="badge badge-ai">EstimlyAI</span>' : ''}${result.followupEnabled ? ' <span class="badge badge-followup">Follow-up</span>' : ''}${result.costCalcEnabled ? ' <span class="badge badge-costcalc">Costo orario</span>' : ''}:<br><span class="key-mono">${result.key}</span>`;
+  box.innerHTML = `Chiave creata per <b>${result.customer}</b>${result.aiEnabled ? ' <span class="badge badge-ai">EstimlyAI</span>' : ''}${result.followupEnabled ? ' <span class="badge badge-followup">Follow-up</span>' : ''}${result.costCalcEnabled ? ' <span class="badge badge-costcalc">Costo orario</span>' : ''}${result.suiteEnabled ? ' <span class="badge badge-suite">Pacchetto completo</span>' : ''}:<br><span class="key-mono">${result.key}</span>`;
   document.getElementById('customerName').value = '';
   document.getElementById('aiEnabledNew').checked = false;
   document.getElementById('followupEnabledNew').checked = false;
   document.getElementById('costCalcEnabledNew').checked = false;
+  document.getElementById('suiteEnabledNew').checked = false;
   loadKeys();
 });
 

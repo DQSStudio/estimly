@@ -50,6 +50,7 @@ export default async (req) => {
       aiEnabled: !!body.aiEnabled,
       followupEnabled: !!body.followupEnabled,
       costCalcEnabled: !!body.costCalcEnabled,
+      suiteEnabled: !!body.suiteEnabled,
       createdAt: new Date().toISOString(),
       validationCount: 0
     };
@@ -97,6 +98,21 @@ export default async (req) => {
       return new Response(JSON.stringify({ error: 'not found' }), { status: 404 });
     }
     record.costCalcEnabled = !!body.costCalcEnabled;
+    await store.setJSON(key, record);
+    return new Response(JSON.stringify({ key, ...record }), { status: 200 });
+  }
+
+  if (action === 'setSuite') {
+    const key = (body.key || '').trim().toUpperCase();
+    const record = await store.get(key, { type: 'json' });
+    if (!record) {
+      return new Response(JSON.stringify({ error: 'not found' }), { status: 404 });
+    }
+    // "Pacchetto completo": sblocca le sincronizzazioni con gli altri prodotti Desearq
+    // (invio preventivi firmati/pagamenti a DSQ Manager, costo orario da Cost). Flag
+    // indipendente da followupEnabled/costCalcEnabled: uno studio può avere Estimly 2.0
+    // senza avere anche il pacchetto completo, e viceversa.
+    record.suiteEnabled = !!body.suiteEnabled;
     await store.setJSON(key, record);
     return new Response(JSON.stringify({ key, ...record }), { status: 200 });
   }

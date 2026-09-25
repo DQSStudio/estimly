@@ -202,9 +202,10 @@ async function signPublicQuote(licenses, dataStore, body, req){
   await saveStudioRecord(dataStore, link.key, { ...record, savedQuotes });
 
   // Preventivo firmato -> compare come nuovo arrivo in Desearq Studio Manager (solo per gli
-  // studi Estimly 2.0). Non deve mai bloccare la firma del cliente: eventuali errori sono
-  // già gestiti (silenziosamente) dentro syncQuoteToDesearqManager.
-  if(license.followupEnabled){
+  // studi col pacchetto completo, flag indipendente da Estimly 2.0/followupEnabled). Non deve
+  // mai bloccare la firma del cliente: eventuali errori sono già gestiti (silenziosamente)
+  // dentro syncQuoteToDesearqManager.
+  if(license.suiteEnabled){
     await syncQuoteToDesearqManager(quote, { markNuovo: true });
   }
 
