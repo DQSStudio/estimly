@@ -1518,15 +1518,17 @@ header.top{
       <textarea id="newTextBlockContent" rows="4" placeholder="Testo del blocco..." style="width:100%; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:12.5px; background:var(--surface); color:var(--ink); resize:vertical; margin-bottom:8px;"></textarea>
       <button type="button" id="addTextBlockBtn" class="btn-cancel" style="padding:8px 16px;">+ Salva blocco</button>
 
+      <div id="settingsResendSection" style="display:none;">
       <div class="field-section-label">Invio email &amp; follow-up automatico &mdash; account email</div>
       <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">
-        Per inviare il preventivo via email dalla pagina Preventivo e i promemoria automatici serve un tuo account Resend (gratuito fino a 3.000 email/mese, nessuna carta richiesta) &mdash; ogni studio usa il proprio, così le email restano sempre gratuite indipendentemente da chi altro usa Estimly.
+        Per inviare il preventivo via email dalla pagina Preventivo e i promemoria automatici serve un tuo account Resend (gratuito fino a 3.000 email/mese, nessuna carta richiesta).
         <a href="https://resend.com/signup" target="_blank" rel="noopener">Crea un account Resend &rarr;</a>
       </div>
       <div class="field-grid" style="padding:0;">
         <div class="field full"><label>Chiave API Resend</label><input id="sResendApiKey" type="password" placeholder="re_xxxxxxxxxxxx"></div>
         <div class="field"><label>Email mittente (verificata su Resend)</label><input id="sResendFromEmail" type="email" placeholder="preventivi@tuostudio.it"></div>
         <div class="field"><label>Nome mittente</label><input id="sResendFromName" placeholder="Es. Studio Rossi"></div>
+      </div>
       </div>
 
     </div>
@@ -2588,6 +2590,8 @@ function applyFollowupVisibility(){
   const display = active ? '' : 'none';
   document.getElementById('followupsPanelBtn').style.display = display;
   document.getElementById('followupSection').style.display = display;
+  const resendSettingsSection = document.getElementById('settingsResendSection');
+  if(resendSettingsSection) resendSettingsSection.style.display = display;
   document.getElementById('estimly2Badge').style.display = active ? 'inline-flex' : 'none';
   document.getElementById('unlockEstimly2Btn').style.display = active ? 'none' : 'inline-flex';
   document.body.classList.toggle('estimly2-theme', active);
