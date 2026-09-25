@@ -93,6 +93,11 @@ function sanitizeQuote(q){
       firmatarioNome: q.client.firma.firmatarioNome,
       metodo: q.client.firma.metodo
     } : { firmato: false },
+    // Richieste di pagamento (SAL) create dallo studio dopo la firma: qui esponiamo solo
+    // i campi utili al cliente, mai gli identificativi interni di Stripe.
+    pagamenti: (Array.isArray(q.client?.pagamenti) ? q.client.pagamenti : []).map(p => ({
+      id: p.id, label: p.label, importoCent: p.importoCent, stato: p.stato, createdAt: p.createdAt, paidAt: p.paidAt || null
+    })),
     cart: (q.cart || []).map(l => ({
       nome: l.nome, um: l.um, modalita: l.modalita, qty: l.qty, prezzo: l.prezzo,
       ore: l.ore, tariffa: l.tariffa, categoria: l.categoria, descrizione: l.descrizione || '', nota: l.nota || ''

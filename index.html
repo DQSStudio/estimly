@@ -1818,6 +1818,31 @@ header.top{
   </div>
 </div>
 
+<div id="paymentsModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="max-width:480px;">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Pagamenti</div>
+      <button id="paymentsModalClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:11.5px; color:var(--ink-soft); margin-bottom:14px; line-height:1.5;">
+        Crea una o più richieste di pagamento legate a questo preventivo firmato (es. acconto, saldo a 30 giorni). Il cliente le paga dallo stesso link usato per la firma; i fondi arrivano direttamente sul tuo conto Stripe.
+      </div>
+      <div id="paymentsStripeWarning" style="display:none; font-size:12px; color:var(--danger); background:#FDEEEC; border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:14px;"></div>
+      <div id="paymentsList" style="margin-bottom:14px;"></div>
+      <div class="field-grid" style="padding:0;">
+        <div class="field full"><label>Descrizione (es. Acconto 20%)</label><input id="paymentNewLabel" placeholder="Es. Acconto 20%" maxlength="120"></div>
+        <div class="field"><label>Importo (€)</label><input id="paymentNewAmount" type="number" min="1" step="0.01" placeholder="Es. 2000"></div>
+      </div>
+      <button type="button" id="paymentsAddBtn" class="btn-cancel" style="padding:8px 16px; margin-top:8px;">+ Crea richiesta di pagamento</button>
+      <div id="paymentsErrorBox" style="margin-top:10px;"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="paymentsModalCancel" class="btn-cancel">Chiudi</button>
+    </div>
+  </div>
+</div>
+
 <div id="costCalcModal" class="modal-overlay" style="display:none;">
   <div class="modal-card">
     <div class="modal-head">
@@ -2362,6 +2387,7 @@ function savedQuoteRowHtml(q){
         <button data-toggle-valido="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${isValido ? 'Escludi questa versione dal totale preventivi in essere (es. superata da una più recente)' : 'Includi di nuovo questa versione nel totale preventivi in essere'}">${isValido ? '✔ Valido' : 'Includi nel totale'}</button>
         <button data-toggle-vinto="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${q.vinto ? 'Segna come non vinto' : 'Segna come vinto'}">${q.vinto ? '🏆 Vinto' : 'Segna vinto'}</button>
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? `<button data-client-link="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Genera/copia il link che il cliente apre per vedere il preventivo e firmare">Link cliente</button>` : ''}
+        ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && q.client && q.client.firma && q.client.firma.firmato) ? `<button data-payments="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Crea e monitora le richieste di pagamento (acconto, saldo a rate, ecc.)">Pagamenti</button>` : ''}
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? (q.concluso
           ? '<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:6px 10px; border-radius:6px;">✓ Concluso</span>'
           : `<button data-close-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Registra ore/durata reali e confronta con la stima">Concludi progetto</button>`) : ''}
@@ -6129,6 +6155,119 @@ if('serviceWorker' in navigator){
     }
   }
 
+  // ---------- Pagamenti (SAL) su un preventivo firmato ----------
+  // Lo studio crea qui una o più richieste di pagamento legate a un preventivo già firmato
+  // (es. "Acconto 20%", "Saldo a 30gg"): il cliente le paga per intero, una alla volta, dallo
+  // stesso link pubblico usato per firmare.
+
+  let estimlyPaymentsQuoteId = null;
+
+  function estimlyFindSavedQuote(quoteId){
+    return (typeof savedQuotes !== 'undefined' ? savedQuotes : []).find(q => q.id === quoteId);
+  }
+
+  function estimlyPaymentRowHtml(p){
+    const importo = (p.importoCent || 0) / 100;
+    const statoHtml = p.stato === 'pagato'
+      ? `<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:3px 9px; border-radius:999px;">✓ Pagato</span>`
+      : `<span style="font-size:10.5px; font-weight:700; color:#946200; background:#FFF4E0; padding:3px 9px; border-radius:999px;">In attesa</span>`;
+    return `
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:12.5px; font-weight:600;">${escapeHtml(p.label)}</div>
+          <div style="font-size:11.5px; color:var(--ink-soft);">€ ${fmt(importo)}${p.paidAt ? ' · pagato il ' + new Date(p.paidAt).toLocaleDateString('it-IT') : ''}</div>
+        </div>
+        ${statoHtml}
+      </div>`;
+  }
+
+  function estimlyRenderPaymentsList(){
+    const list = document.getElementById('paymentsList');
+    if(!list) return;
+    const q = estimlyFindSavedQuote(estimlyPaymentsQuoteId);
+    const pagamenti = (q && q.client && Array.isArray(q.client.pagamenti)) ? q.client.pagamenti : [];
+    list.innerHTML = pagamenti.length
+      ? pagamenti.map(estimlyPaymentRowHtml).join('')
+      : '<div style="font-size:12px; color:var(--ink-soft);">Nessuna richiesta di pagamento creata finora.</div>';
+  }
+
+  async function estimlyOpenPaymentsModal(quoteId){
+    if(!estimly3IsActive()) return;
+    estimlyPaymentsQuoteId = quoteId;
+    const modal = document.getElementById('paymentsModal');
+    if(!modal) return;
+    modal.style.display = 'flex';
+    document.getElementById('paymentNewLabel').value = '';
+    document.getElementById('paymentNewAmount').value = '';
+    document.getElementById('paymentsErrorBox').innerHTML = '';
+    estimlyRenderPaymentsList();
+
+    const warnBox = document.getElementById('paymentsStripeWarning');
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    if(warnBox && key){
+      try{
+        const res = await fetch('/.netlify/functions/stripe-connect', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ mode:'status', key })
+        });
+        const data = await res.json();
+        if(!data.connected){
+          warnBox.style.display = 'block';
+          warnBox.textContent = 'Non hai ancora collegato Stripe: il cliente non potrà pagare finché non lo colleghi dalle Impostazioni Studio → Pagamento online.';
+        } else if(!data.chargesEnabled){
+          warnBox.style.display = 'block';
+          warnBox.textContent = 'Il collegamento con Stripe non è ancora completo: completa la configurazione dalle Impostazioni Studio → Pagamento online prima di inviare le richieste al cliente.';
+        } else {
+          warnBox.style.display = 'none';
+        }
+      }catch(err){ warnBox.style.display = 'none'; }
+    }
+  }
+  window.estimlyOpenPaymentsModal = estimlyOpenPaymentsModal;
+
+  function estimlyClosePaymentsModal(){
+    const modal = document.getElementById('paymentsModal');
+    if(modal) modal.style.display = 'none';
+    estimlyPaymentsQuoteId = null;
+  }
+
+  async function estimlyAddPaymentRequest(){
+    if(!estimly3IsActive() || !estimlyPaymentsQuoteId) return;
+    const errBox = document.getElementById('paymentsErrorBox');
+    errBox.innerHTML = '';
+    const label = document.getElementById('paymentNewLabel').value.trim();
+    const amountEuro = parseFloat(document.getElementById('paymentNewAmount').value);
+    if(!label){ errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Inserisci una descrizione (es. "Acconto 20%").</div>'; return; }
+    if(!amountEuro || amountEuro <= 0){ errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Inserisci un importo valido.</div>'; return; }
+
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    if(!key){ errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Chiave di licenza non trovata.</div>'; return; }
+
+    const btn = document.getElementById('paymentsAddBtn');
+    btn.disabled = true; btn.textContent = 'Attendere...';
+    try{
+      const res = await fetch('/.netlify/functions/stripe-connect', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'add-payment-request', key, quoteId: estimlyPaymentsQuoteId, label, importoCent: Math.round(amountEuro * 100) })
+      });
+      const data = await res.json();
+      if(data.error || !Array.isArray(data.pagamenti)){
+        errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Non è stato possibile creare la richiesta. Riprova.</div>';
+        return;
+      }
+      const q = estimlyFindSavedQuote(estimlyPaymentsQuoteId);
+      if(q){ q.client = { ...q.client, pagamenti: data.pagamenti }; }
+      document.getElementById('paymentNewLabel').value = '';
+      document.getElementById('paymentNewAmount').value = '';
+      estimlyRenderPaymentsList();
+    }catch(err){
+      console.error('Errore creazione richiesta di pagamento', err);
+      errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Errore di connessione. Riprova.</div>';
+    }finally{
+      btn.disabled = false; btn.textContent = '+ Crea richiesta di pagamento';
+    }
+  }
+
   // ---------- Pagamento online: collegamento Stripe (Estimly 2.0) ----------
   // Ogni studio collega il proprio account Stripe: Estimly non intermedia il pagamento
   // e il denaro non passa mai dal conto di Estimly ("ognuno mette i suoi").
@@ -6263,6 +6402,15 @@ if('serviceWorker' in navigator){
     if(cpjSave) cpjSave.addEventListener('click', estimly3SaveCloseProject);
     const cpjModal = document.getElementById('closeProjectModal');
     if(cpjModal) cpjModal.addEventListener('click', (e)=>{ if(e.target.id==='closeProjectModal') estimly3CloseCloseProjectModal(); });
+
+    const paymentsClose = document.getElementById('paymentsModalClose');
+    if(paymentsClose) paymentsClose.addEventListener('click', estimlyClosePaymentsModal);
+    const paymentsCancel = document.getElementById('paymentsModalCancel');
+    if(paymentsCancel) paymentsCancel.addEventListener('click', estimlyClosePaymentsModal);
+    const paymentsModalEl = document.getElementById('paymentsModal');
+    if(paymentsModalEl) paymentsModalEl.addEventListener('click', (e)=>{ if(e.target.id==='paymentsModal') estimlyClosePaymentsModal(); });
+    const paymentsAddBtn = document.getElementById('paymentsAddBtn');
+    if(paymentsAddBtn) paymentsAddBtn.addEventListener('click', estimlyAddPaymentRequest);
     const cpjOrePrecise = document.getElementById('cpjOrePrecise');
     if(cpjOrePrecise) cpjOrePrecise.addEventListener('input', estimly3UpdateCompareBox);
     const cpjPi = document.getElementById('cpjPeriodoInizio');
@@ -6281,6 +6429,8 @@ if('serviceWorker' in navigator){
       if(id) estimly3OpenCloseProjectModal(id);
       const linkId = e.target.getAttribute('data-client-link');
       if(linkId) estimlyOpenClientLink(linkId);
+      const paymentsId = e.target.getAttribute('data-payments');
+      if(paymentsId) estimlyOpenPaymentsModal(paymentsId);
     }
     const list1 = document.getElementById('savedQuotesList');
     if(list1) list1.addEventListener('click', estimly3HandleCloseQuoteClick);

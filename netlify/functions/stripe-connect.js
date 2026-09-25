@@ -32,16 +32,20 @@ function toFormParams(obj){
   return params;
 }
 
-async function stripeRequest(method, path, params){
+async function stripeRequest(method, path, params, opts){
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if(!secretKey) throw Object.assign(new Error('stripe_not_configured'), { code: 'stripe_not_configured' });
   const isGet = method === 'GET';
   const url = isGet && params ? `${STRIPE_API}${path}?${toFormParams(params).toString()}` : `${STRIPE_API}${path}`;
+  const onBehalfOfAccount = opts && opts.account;
   const res = await fetch(url, {
     method,
     headers: {
       'Authorization': `Bearer ${secretKey}`,
-      ...(isGet ? {} : { 'Content-Type': 'application/x-www-form-urlencoded' })
+      ...(isGet ? {} : { 'Content-Type': 'application/x-www-form-urlencoded' }),
+      // Esegue la chiamata "per conto" dell'account collegato dello studio (addebito diretto):
+      // i fondi finiscono sul conto Stripe dello studio, non su quello della piattaforma Estimly.
+      ...(onBehalfOfAccount ? { 'Stripe-Account': onBehalfOfAccount } : {})
     },
     body: isGet ? undefined : toFormParams(params || {})
   });
@@ -50,6 +54,12 @@ async function stripeRequest(method, path, params){
     throw Object.assign(new Error((data.error && data.error.message) || 'stripe_error'), { code: (data.error && data.error.code) || 'stripe_error' });
   }
   return data;
+}
+
+function randomId(){
+  const bytes = new Uint8Array(12);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 }
 
 async function loadStudioRecord(dataStore, key){
@@ -127,6 +137,148 @@ async function connectStatus(licenses, dataStore, body){
   };
 }
 
+function getLinksStore(){
+  return getStore('public-links');
+}
+
+// ---------- Richieste di pagamento (SAL) sul preventivo firmato ----------
+// Lo studio crea più richieste nel tempo (es. "Acconto 20%", "Saldo a 30gg"), tutte legate
+// allo stesso preventivo firmato; il cliente le paga per intero, una per volta, dal link
+// pubblico già usato per la firma.
+
+async function addPaymentRequest(licenses, dataStore, body){
+  const key = (body.key || '').trim().toUpperCase();
+  const quoteId = body.quoteId;
+  const label = (body.label || '').trim().slice(0, 120);
+  const importoCent = Math.round(Number(body.importoCent));
+  if(!key || !quoteId || !label || !Number.isFinite(importoCent) || importoCent < 100){
+    return { error: 'missing_fields' };
+  }
+
+  const check = await requireEstimly2(licenses, key);
+  if(check.error) return check;
+
+  const record = await loadStudioRecord(dataStore, key);
+  const savedQuotes = (record && Array.isArray(record.savedQuotes)) ? record.savedQuotes : [];
+  const idx = savedQuotes.findIndex(q => q.id === quoteId);
+  if(idx === -1) return { error: 'not_found' };
+
+  const quote = savedQuotes[idx];
+  if(!quote.client || !quote.client.firma || !quote.client.firma.firmato){
+    return { error: 'not_signed' };
+  }
+
+  const pagamento = {
+    id: randomId(), label, importoCent, stato: 'in_attesa',
+    createdAt: new Date().toISOString(), paidAt: null
+  };
+  const pagamenti = Array.isArray(quote.client.pagamenti) ? quote.client.pagamenti : [];
+  quote.client = { ...quote.client, pagamenti: [...pagamenti, pagamento] };
+  savedQuotes[idx] = quote;
+  await saveStudioRecord(dataStore, key, { ...record, savedQuotes });
+
+  return { ok: true, pagamenti: quote.client.pagamenti };
+}
+
+async function resolveToken(dataStore, licenses, token){
+  const linksStore = getLinksStore();
+  const link = await linksStore.get(token, { type: 'json' });
+  if(!link) return { error: 'not_found' };
+  const license = await licenses.get(link.key, { type: 'json' });
+  if(!license || license.status !== 'active') return { error: 'not_found' };
+  const record = await loadStudioRecord(dataStore, link.key);
+  const savedQuotes = (record && Array.isArray(record.savedQuotes)) ? record.savedQuotes : [];
+  const idx = savedQuotes.findIndex(q => q.id === link.quoteId);
+  if(idx === -1) return { error: 'not_found' };
+  return { ok: true, link, record, savedQuotes, idx, quote: savedQuotes[idx] };
+}
+
+async function createPaymentCheckoutSession(licenses, dataStore, body){
+  const token = (body.token || '').trim();
+  const paymentId = (body.paymentId || '').trim();
+  const origin = (body.origin || '').replace(/\/$/, '');
+  if(!token || !paymentId || !origin) return { error: 'missing_fields' };
+
+  const resolved = await resolveToken(dataStore, licenses, token);
+  if(resolved.error) return resolved;
+  const { quote } = resolved;
+
+  const record = resolved.record;
+  const stripeAccountId = record && record.studioSettings && record.studioSettings.stripeAccountId;
+  if(!stripeAccountId) return { error: 'stripe_not_connected' };
+
+  const pagamenti = Array.isArray(quote.client && quote.client.pagamenti) ? quote.client.pagamenti : [];
+  const pagamento = pagamenti.find(p => p.id === paymentId);
+  if(!pagamento) return { error: 'not_found' };
+  if(pagamento.stato === 'pagato') return { error: 'already_paid' };
+
+  let session;
+  try{
+    session = await stripeRequest('POST', '/checkout/sessions', {
+      mode: 'payment',
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: { name: `${pagamento.label} — Preventivo ${quote.client.numero || ''}`.trim() },
+          unit_amount: pagamento.importoCent
+        },
+        quantity: 1
+      }],
+      payment_intent_data: { description: pagamento.label },
+      metadata: { paymentId, quoteId: quote.id, licenseKey: resolved.link.key },
+      success_url: `${origin}/preventivo.html?t=${token}&paid=${paymentId}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/preventivo.html?t=${token}`
+    }, { account: stripeAccountId });
+  }catch(err){
+    return { error: 'stripe_error', message: err.message };
+  }
+
+  return { ok: true, url: session.url };
+}
+
+async function confirmPayment(licenses, dataStore, body){
+  const token = (body.token || '').trim();
+  const paymentId = (body.paymentId || '').trim();
+  const sessionId = (body.sessionId || '').trim();
+  if(!token || !paymentId || !sessionId) return { error: 'missing_fields' };
+
+  const resolved = await resolveToken(dataStore, licenses, token);
+  if(resolved.error) return resolved;
+  const { record, savedQuotes, idx, quote } = resolved;
+
+  const stripeAccountId = record && record.studioSettings && record.studioSettings.stripeAccountId;
+  if(!stripeAccountId) return { error: 'stripe_not_connected' };
+
+  const pagamenti = Array.isArray(quote.client && quote.client.pagamenti) ? quote.client.pagamenti : [];
+  const pIdx = pagamenti.findIndex(p => p.id === paymentId);
+  if(pIdx === -1) return { error: 'not_found' };
+
+  if(pagamenti[pIdx].stato === 'pagato'){
+    return { ok: true, pagamenti };
+  }
+
+  let session;
+  try{
+    session = await stripeRequest('GET', `/checkout/sessions/${sessionId}`, null, { account: stripeAccountId });
+  }catch(err){
+    return { error: 'stripe_error', message: err.message };
+  }
+
+  // Verifica incrociata: la sessione deve riferirsi proprio a questa richiesta di pagamento
+  // ed essere effettivamente pagata, prima di segnarla come tale.
+  const meta = session.metadata || {};
+  if(meta.paymentId !== paymentId || session.payment_status !== 'paid'){
+    return { ok: true, pagamenti, confirmed: false };
+  }
+
+  pagamenti[pIdx] = { ...pagamenti[pIdx], stato: 'pagato', paidAt: new Date().toISOString() };
+  quote.client = { ...quote.client, pagamenti };
+  savedQuotes[idx] = quote;
+  await saveStudioRecord(dataStore, resolved.link.key, { ...record, savedQuotes });
+
+  return { ok: true, pagamenti, confirmed: true };
+}
+
 async function connectDisconnect(licenses, dataStore, body){
   const key = (body.key || '').trim().toUpperCase();
   if(!key) return { error: 'missing_fields' };
@@ -168,6 +320,18 @@ export default async (req) => {
     }
     if(body.mode === 'disconnect'){
       const result = await connectDisconnect(licenses, dataStore, body);
+      return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
+    }
+    if(body.mode === 'add-payment-request'){
+      const result = await addPaymentRequest(licenses, dataStore, body);
+      return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
+    }
+    if(body.mode === 'create-checkout-session'){
+      const result = await createPaymentCheckoutSession(licenses, dataStore, body);
+      return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
+    }
+    if(body.mode === 'confirm-payment'){
+      const result = await confirmPayment(licenses, dataStore, body);
       return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
     }
     return new Response(JSON.stringify({ error: 'unknown_mode' }), { status: 400 });

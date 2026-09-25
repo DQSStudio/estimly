@@ -53,6 +53,13 @@
   .error-box{ font-size:12px; color:var(--danger); background:#FDEEEC; border-radius:var(--radius-sm); padding:10px 12px; margin-top:10px; }
   .signed-badge{ display:flex; align-items:center; gap:8px; background:#E7F6EF; color:var(--success); border-radius:var(--radius-sm); padding:14px; font-size:13px; font-weight:600; margin-top:18px; }
   .signed-sub{ font-size:11.5px; font-weight:400; color:#0F8A5F; margin-top:3px; }
+  .payment-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 0; border-bottom:1px solid #F1F1F3; }
+  .payment-row:last-child{ border-bottom:none; }
+  .payment-row .label{ font-size:12.5px; font-weight:600; }
+  .payment-row .amount{ font-size:12px; color:var(--ink-soft); margin-top:2px; font-variant-numeric:tabular-nums; }
+  .payment-row .paid-badge{ font-size:11px; font-weight:700; color:var(--success); background:#E7F6EF; padding:4px 10px; border-radius:999px; white-space:nowrap; }
+  .pay-btn{ padding:8px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer; white-space:nowrap; }
+  .pay-btn:disabled{ opacity:0.5; cursor:not-allowed; }
 </style>
 </head>
 <body>
@@ -117,15 +124,39 @@
     return;
   }
 
+  async function confirmPendingPaymentIfAny(quote){
+    const params = new URLSearchParams(window.location.search);
+    const paymentId = params.get('paid');
+    const sessionId = params.get('session_id');
+    if(!paymentId || !sessionId) return quote;
+    // Ripulisce l'URL subito, prima di qualunque await: se la conferma fallisce o l'utente
+    // ricarica la pagina, non deve ritrovarsi con lo stesso session_id riproposto.
+    params.delete('paid'); params.delete('session_id');
+    const qs = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
+    try{
+      const res = await fetch('/.netlify/functions/stripe-connect', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'confirm-payment', token, paymentId, sessionId })
+      });
+      const data = await res.json();
+      if(data.ok && Array.isArray(data.pagamenti)){
+        quote.pagamenti = data.pagamenti;
+      }
+    }catch(err){ /* se la conferma fallisce, il pagamento resta "in attesa": lo studio può comunque verificarlo dalla sua dashboard Stripe */ }
+    return quote;
+  }
+
   fetch('/.netlify/functions/public-quote', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ mode:'get', token })
-  }).then(r=>r.json()).then(data=>{
+  }).then(r=>r.json()).then(async data=>{
     if(data.error){
       renderError('Non riusciamo a trovare questo preventivo. Il link potrebbe non essere più valido: contatta lo studio per riceverne uno nuovo.');
       return;
     }
-    render(data.studio, data.quote);
+    const quote = await confirmPendingPaymentIfAny(data.quote);
+    render(data.studio, quote);
   }).catch(()=>{
     renderError('Errore di connessione. Riprova tra poco.');
   });
@@ -166,11 +197,69 @@
           ${quote.notePagamento ? `<div class="note-block">${esc(quote.notePagamento)}</div>` : ''}
 
           <div id="signArea"></div>
+          <div id="paymentsArea"></div>
         </div>
       </div>
     `;
 
     renderSignArea(quote);
+    renderPaymentsArea(quote);
+  }
+
+  function paymentStatusLabel(p){
+    return p.stato === 'pagato'
+      ? `<span class="paid-badge">✓ Pagato</span>`
+      : `<button type="button" class="pay-btn" data-pay-id="${esc(p.id)}">Paga adesso</button>`;
+  }
+
+  function renderPaymentsArea(quote){
+    const area = document.getElementById('paymentsArea');
+    const pagamenti = Array.isArray(quote.pagamenti) ? quote.pagamenti : [];
+    // Le richieste di pagamento compaiono solo dopo la firma (è lo studio a crearle a quel punto,
+    // una o più volte nel tempo — es. acconto, saldo a 30gg — tutte legate a questo preventivo).
+    if(!quote.firma || !quote.firma.firmato || !pagamenti.length){
+      area.innerHTML = '';
+      return;
+    }
+    area.innerHTML = `
+      <div class="section-label">Pagamenti</div>
+      <div>${pagamenti.map(p => `
+        <div class="payment-row">
+          <div>
+            <div class="label">${esc(p.label)}</div>
+            <div class="amount">€ ${fmt((p.importoCent||0)/100)}</div>
+          </div>
+          ${paymentStatusLabel(p)}
+        </div>`).join('')}</div>
+      <div id="paymentErrorBox"></div>
+    `;
+    area.querySelectorAll('[data-pay-id]').forEach(btn => {
+      btn.addEventListener('click', () => startPayment(btn.getAttribute('data-pay-id'), btn));
+    });
+  }
+
+  async function startPayment(paymentId, btn){
+    const errBox = document.getElementById('paymentErrorBox');
+    if(errBox) errBox.innerHTML = '';
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Attendere…';
+    try{
+      const res = await fetch('/.netlify/functions/stripe-connect', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'create-checkout-session', token, paymentId, origin: window.location.origin })
+      });
+      const data = await res.json();
+      if(data.error || !data.url){
+        if(errBox) errBox.innerHTML = '<div class="error-box">Non è stato possibile avviare il pagamento. Riprova o contatta lo studio.</div>';
+        btn.disabled = false; btn.textContent = originalText;
+        return;
+      }
+      window.location.href = data.url;
+    }catch(err){
+      if(errBox) errBox.innerHTML = '<div class="error-box">Errore di connessione. Riprova.</div>';
+      btn.disabled = false; btn.textContent = originalText;
+    }
   }
 
   function renderSignArea(quote){
@@ -325,6 +414,7 @@
         }
         quote.firma = { firmato:true, firmatarioNome, firmatoAt:data.firmatoAt, metodo };
         renderSignArea(quote);
+        renderPaymentsArea(quote);
       }catch(err){
         errBox.innerHTML = '<div class="error-box">Errore di connessione. Riprova.</div>';
         btn.disabled = false; btn.textContent = 'Conferma e firma';
