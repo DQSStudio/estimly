@@ -1531,6 +1531,30 @@ header.top{
       </div>
       </div>
 
+      <div id="settingsPaymentsSection" style="display:none;">
+      <div class="field-section-label">Pagamento online</div>
+      <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">
+        Collega il tuo account per far pagare il preventivo direttamente al cliente dalla pagina Preventivo. I soldi arrivano sul tuo conto: Estimly non intermedia il pagamento e non trattiene alcuna commissione.
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+        <div style="width:32px; height:32px; border-radius:8px; background:#635BFF; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0;">S</div>
+        <div style="flex:1; min-width:180px;">
+          <div style="font-size:13px; font-weight:600;">Stripe</div>
+          <div id="stripeConnectStatus" style="font-size:11.5px; color:var(--ink-soft);">Verifica in corso...</div>
+        </div>
+        <button type="button" id="stripeConnectBtn" class="btn-cancel" style="padding:8px 16px;">Collega Stripe</button>
+        <button type="button" id="stripeDisconnectBtn" class="btn-cancel" style="padding:8px 16px; display:none;">Scollega</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div style="width:32px; height:32px; border-radius:8px; background:#003087; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;">P</div>
+        <div style="flex:1; min-width:180px;">
+          <div style="font-size:13px; font-weight:600;">PayPal</div>
+          <div style="font-size:11.5px; color:var(--ink-soft);">In arrivo &mdash; il collegamento diretto con il tuo account PayPal è in fase di attivazione.</div>
+        </div>
+        <button type="button" class="btn-cancel" style="padding:8px 16px;" disabled title="Disponibile a breve">Collega PayPal</button>
+      </div>
+      </div>
+
     </div>
     <div class="modal-actions">
       <button id="settingsSave" class="btn-save">Salva impostazioni</button>
@@ -2593,6 +2617,9 @@ function applyFollowupVisibility(){
   document.getElementById('followupSection').style.display = display;
   const resendSettingsSection = document.getElementById('settingsResendSection');
   if(resendSettingsSection) resendSettingsSection.style.display = display;
+  const paymentsSettingsSection = document.getElementById('settingsPaymentsSection');
+  if(paymentsSettingsSection) paymentsSettingsSection.style.display = display;
+  if(active && typeof estimlyRefreshStripeStatus === 'function') estimlyRefreshStripeStatus();
   document.getElementById('estimly2Badge').style.display = active ? 'inline-flex' : 'none';
   document.getElementById('unlockEstimly2Btn').style.display = active ? 'none' : 'inline-flex';
   document.body.classList.toggle('estimly2-theme', active);
@@ -6102,6 +6129,109 @@ if('serviceWorker' in navigator){
     }
   }
 
+  // ---------- Pagamento online: collegamento Stripe (Estimly 2.0) ----------
+  // Ogni studio collega il proprio account Stripe: Estimly non intermedia il pagamento
+  // e il denaro non passa mai dal conto di Estimly ("ognuno mette i suoi").
+
+  async function estimlyRefreshStripeStatus(){
+    if(!estimly3IsActive()) return;
+    const statusEl = document.getElementById('stripeConnectStatus');
+    const connectBtn = document.getElementById('stripeConnectBtn');
+    const disconnectBtn = document.getElementById('stripeDisconnectBtn');
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    if(!statusEl || !connectBtn || !disconnectBtn || !key) return;
+    try{
+      const res = await fetch('/.netlify/functions/stripe-connect', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'status', key })
+      });
+      const data = await res.json();
+      if(data.error){
+        statusEl.textContent = 'Non è stato possibile verificare lo stato del collegamento.';
+        return;
+      }
+      if(!data.connected){
+        statusEl.textContent = 'Non collegato.';
+        connectBtn.textContent = 'Collega Stripe';
+        connectBtn.style.display = '';
+        disconnectBtn.style.display = 'none';
+      } else if(!data.chargesEnabled){
+        statusEl.textContent = 'Collegato — completa la configurazione su Stripe per poter incassare.';
+        connectBtn.textContent = 'Completa configurazione';
+        connectBtn.style.display = '';
+        disconnectBtn.style.display = '';
+      } else {
+        statusEl.textContent = 'Collegato e attivo — puoi incassare i pagamenti dei preventivi.';
+        connectBtn.style.display = 'none';
+        disconnectBtn.style.display = '';
+      }
+    }catch(err){
+      console.error('Errore verifica stato Stripe', err);
+      statusEl.textContent = 'Errore di connessione. Riprova.';
+    }
+  }
+  window.estimlyRefreshStripeStatus = estimlyRefreshStripeStatus;
+
+  async function estimlyStripeConnectClick(){
+    if(!estimly3IsActive()) return;
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    if(!key){ alert('Chiave di licenza non trovata.'); return; }
+    const btn = document.getElementById('stripeConnectBtn');
+    if(btn){ btn.disabled = true; btn.textContent = 'Attendere...'; }
+    try{
+      const res = await fetch('/.netlify/functions/stripe-connect', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'connect-start', key, origin: window.location.origin })
+      });
+      const data = await res.json();
+      if(data.error || !data.url){
+        alert(data.error === 'stripe_not_configured'
+          ? 'Il pagamento online non è ancora configurato su Estimly. Riprova più tardi.'
+          : 'Non è stato possibile avviare il collegamento con Stripe. Riprova.');
+        return;
+      }
+      window.location.href = data.url;
+    }catch(err){
+      console.error('Errore avvio collegamento Stripe', err);
+      alert('Errore di connessione. Riprova.');
+    }finally{
+      if(btn){ btn.disabled = false; }
+    }
+  }
+
+  async function estimlyStripeDisconnectClick(){
+    if(!estimly3IsActive()) return;
+    if(!window.confirm('Scollegare il tuo account Stripe da Estimly? Potrai ricollegarlo in qualsiasi momento.')) return;
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    if(!key) return;
+    try{
+      await fetch('/.netlify/functions/stripe-connect', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'disconnect', key })
+      });
+      if(typeof loadCloudData === 'function') await loadCloudData();
+      estimlyRefreshStripeStatus();
+    }catch(err){
+      console.error('Errore scollegamento Stripe', err);
+      alert('Errore di connessione. Riprova.');
+    }
+  }
+
+  async function estimlyHandleStripeReturnUrl(){
+    const params = new URLSearchParams(window.location.search);
+    const returned = params.has('stripeReturn') || params.has('stripeRefresh');
+    if(!returned) return;
+    params.delete('stripeReturn');
+    params.delete('stripeRefresh');
+    const qs = params.toString();
+    const cleanUrl = window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash;
+    window.history.replaceState({}, '', cleanUrl);
+    // Ricarica le impostazioni dal server: se nel frattempo è stato creato l'account Stripe,
+    // aggiorna la copia locale prima che un autosalvataggio la sovrascriva senza stripeAccountId.
+    if(typeof loadCloudData === 'function') await loadCloudData();
+    estimlyRefreshStripeStatus();
+  }
+
   // ---------- Collegamento eventi ----------
 
   function estimly3Init(){
@@ -6141,6 +6271,11 @@ if('serviceWorker' in navigator){
     if(cpjPf) cpjPf.addEventListener('input', estimly3UpdateCompareBox);
     document.querySelectorAll('#cpjOreChips .chip').forEach(chip=>chip.addEventListener('click', estimly3UpdateCompareBox));
 
+    const stripeConnectBtn = document.getElementById('stripeConnectBtn');
+    if(stripeConnectBtn) stripeConnectBtn.addEventListener('click', estimlyStripeConnectClick);
+    const stripeDisconnectBtn = document.getElementById('stripeDisconnectBtn');
+    if(stripeDisconnectBtn) stripeDisconnectBtn.addEventListener('click', estimlyStripeDisconnectClick);
+
     function estimly3HandleCloseQuoteClick(e){
       const id = e.target.getAttribute('data-close-quote');
       if(id) estimly3OpenCloseProjectModal(id);
@@ -6153,6 +6288,7 @@ if('serviceWorker' in navigator){
     if(list2) list2.addEventListener('click', estimly3HandleCloseQuoteClick);
 
     estimlyUpdateHoursAlert();
+    estimlyHandleStripeReturnUrl();
   }
 
   if(document.readyState === 'loading'){
