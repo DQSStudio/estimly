@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs';
+import { syncQuoteToDesearqManager } from './desearq-sync.js';
 
 // ===================== Pagina pubblica del preventivo (Estimly 2.0) =====================
 // Espone un preventivo tramite un token opaco (non indovinabile), senza richiedere login al
@@ -199,6 +200,13 @@ async function signPublicQuote(licenses, dataStore, body, req){
   quote.client = { ...quote.client, firma };
   savedQuotes[idx] = quote;
   await saveStudioRecord(dataStore, link.key, { ...record, savedQuotes });
+
+  // Preventivo firmato -> compare come nuovo arrivo in Desearq Studio Manager (solo per gli
+  // studi Estimly 2.0). Non deve mai bloccare la firma del cliente: eventuali errori sono
+  // già gestiti (silenziosamente) dentro syncQuoteToDesearqManager.
+  if(license.followupEnabled){
+    await syncQuoteToDesearqManager(quote, { markNuovo: true });
+  }
 
   return { ok: true, firmatoAt: firma.firmatoAt };
 }

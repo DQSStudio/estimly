@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs';
+import { syncQuoteToDesearqManager } from './desearq-sync.js';
 
 // ===================== Collegamento Stripe (Estimly 2.0) =====================
 // Ogni studio collega il PROPRIO account Stripe (modello "connect your own account"):
@@ -72,7 +73,7 @@ export async function saveStudioRecord(dataStore, key, record){
 
 // Usata sia dal ritorno del cliente su preventivo.html (confirmPayment) sia dal webhook Stripe
 // (stripe-webhook.js): segna una richiesta di pagamento come pagata, in modo idempotente.
-export async function markPaymentPaid(dataStore, licenseKeyUpper, quoteId, paymentId){
+export async function markPaymentPaid(dataStore, licenseKeyUpper, quoteId, paymentId, licenses){
   const record = await loadStudioRecord(dataStore, licenseKeyUpper);
   const savedQuotes = (record && Array.isArray(record.savedQuotes)) ? record.savedQuotes : [];
   const idx = savedQuotes.findIndex(q => q.id === quoteId);
@@ -91,6 +92,21 @@ export async function markPaymentPaid(dataStore, licenseKeyUpper, quoteId, payme
   quote.client = { ...quote.client, pagamenti };
   savedQuotes[idx] = quote;
   await saveStudioRecord(dataStore, licenseKeyUpper, { ...record, savedQuotes });
+
+  // Pagamento confermato -> aggiorna importo/pagamenti su Desearq Studio Manager (senza
+  // toccare 'stato', vedi desearq-sync.js). `licenses` è opzionale: se non passato (non
+  // dovrebbe succedere nei percorsi attuali) saltiamo la sincronizzazione senza fallire.
+  if(licenses){
+    try{
+      const license = await licenses.get(licenseKeyUpper, { type: 'json' });
+      if(license && license.followupEnabled){
+        await syncQuoteToDesearqManager(quote, { markNuovo: false });
+      }
+    }catch(err){
+      console.error('Sincronizzazione Desearq Studio Manager (pagamento) fallita', err);
+    }
+  }
+
   return { ok: true, alreadyPaid: false };
 }
 
@@ -295,7 +311,7 @@ async function confirmPayment(licenses, dataStore, body){
     return { ok: true, pagamenti, confirmed: false };
   }
 
-  await markPaymentPaid(dataStore, resolved.link.key, quote.id, paymentId);
+  await markPaymentPaid(dataStore, resolved.link.key, quote.id, paymentId, licenses);
   const updatedRecord = await loadStudioRecord(dataStore, resolved.link.key);
   const updatedQuote = (updatedRecord.savedQuotes || []).find(q => q.id === quote.id);
   return { ok: true, pagamenti: (updatedQuote && updatedQuote.client && updatedQuote.client.pagamenti) || pagamenti, confirmed: true };

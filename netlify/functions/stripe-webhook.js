@@ -106,8 +106,9 @@ export default async (req) => {
   }
 
   const dataStore = getStore('studio-data');
+  const licenses = getStore('licenses');
   try{
-    await markPaymentPaid(dataStore, licenseKey, quoteId, paymentId);
+    await markPaymentPaid(dataStore, licenseKey, quoteId, paymentId, licenses);
   }catch(err){
     console.error('Errore aggiornamento pagamento da webhook Stripe', err);
     return new Response(JSON.stringify({ error: 'server_error' }), { status: 500 });
