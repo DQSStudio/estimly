@@ -2591,9 +2591,13 @@ async function toggleQuoteVinto(id){
   }
 }
 
-async function saveCurrentQuote(){
+// Salva il preventivo corrente nell'elenco e restituisce la entry salvata (con l'id definitivo,
+// quello assegnato dal server quando la licenza è collegata al cloud). Usata sia dal pulsante
+// "Salva preventivo" sia dall'invio email automatico, che ha bisogno dell'id per generare il
+// link cliente da includere nel messaggio.
+async function persistCurrentQuoteEntry(){
   const state = currentQuoteState();
-  const entry = {
+  let entry = {
     id: 'q_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8),
     savedAt: new Date().toISOString(),
     cart: state.cart,
@@ -2616,10 +2620,18 @@ async function saveCurrentQuote(){
       if(data && Array.isArray(data.savedQuotes)){
         savedQuotes = data.savedQuotes;
         await persistSavedQuotesLocal();
+        // Il server assegna il proprio id e mette la nuova entry in testa: usiamo quella come
+        // riferimento definitivo (l'id generato lato client sopra viene scartato).
+        entry = savedQuotes[0];
       }
     }catch(err){ console.error('Impossibile salvare il preventivo nel cloud', err); }
   }
   renderSavedQuotesList();
+  return entry;
+}
+
+async function saveCurrentQuote(){
+  await persistCurrentQuoteEntry();
   alert('Preventivo salvato nell\'elenco.');
 }
 
@@ -3593,7 +3605,7 @@ async function updateFollowupStatus(newStatus){
   }catch(err){ alert('Impossibile aggiornare lo stato del follow-up.'); }
 }
 
-function buildQuoteEmailHtml(){
+function buildQuoteEmailHtml(clientLinkUrl){
   const s = studioSettings;
   const cliente = document.getElementById('fCliente').value || '—';
   const progetto = document.getElementById('fProgetto').value || '';
@@ -3641,12 +3653,17 @@ function buildQuoteEmailHtml(){
   const totale = baseIva + iva;
 
   const logoHtml = s.logo ? `<img src="${s.logo}" alt="" style="max-height:44px; display:block; margin-bottom:10px;">` : '';
+  const ctaHtml = clientLinkUrl ? `
+    <div style="text-align:center; margin:22px 0;">
+      <a href="${clientLinkUrl}" style="display:inline-block; background:#4338CA; color:#fff; text-decoration:none; padding:12px 28px; border-radius:6px; font-weight:600; font-size:14px;">Visualizza e firma il preventivo online &rarr;</a>
+    </div>` : '';
 
   return `
   <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; max-width:600px; margin:0 auto; color:#222;">
     ${logoHtml}
     <p style="font-size:14px; line-height:1.6;">Gentile ${escapeHtml(cliente)},</p>
-    <p style="font-size:14px; line-height:1.6;">in allegato trova il riepilogo del preventivo${numero!=='—'?` n. <b>${escapeHtml(numero)}</b>`:''}${progetto?` per "${escapeHtml(progetto)}"`:''}, redatto da ${escapeHtml(s.nome||'il nostro studio')} in data ${dataFmt}.</p>
+    <p style="font-size:14px; line-height:1.6;">di seguito il riepilogo del preventivo${numero!=='—'?` n. <b>${escapeHtml(numero)}</b>`:''}${progetto?` per "${escapeHtml(progetto)}"`:''}, redatto da ${escapeHtml(s.nome||'il nostro studio')} in data ${dataFmt}.${clientLinkUrl ? ' Può visualizzarlo online e firmarlo direttamente dal pulsante qui sotto.' : ''}</p>
+    ${ctaHtml}
     <table style="width:100%; border-collapse:collapse; margin:18px 0;">
       <thead>
         <tr>
@@ -3665,6 +3682,7 @@ function buildQuoteEmailHtml(){
       <tr><td style="padding:2px 0; color:#555;">${escapeHtml(regime.label)}</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(iva)}</td></tr>
       <tr><td style="padding:8px 0 0; font-weight:700; font-size:16px; border-top:2px solid #4338CA;">Totale</td><td style="padding:8px 0 0; font-weight:700; font-size:16px; text-align:right; border-top:2px solid #4338CA; color:#4338CA;">&euro; ${fmt(totale)}</td></tr>
     </table>`}
+    ${ctaHtml}
     <p style="font-size:13px; line-height:1.6; color:#555; margin-top:22px;">Resto a disposizione per qualsiasi chiarimento.<br>Cordiali saluti,<br><b>${escapeHtml(s.nome||'Studio')}</b></p>
   </div>`;
 }
@@ -3685,12 +3703,29 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
   const key = getLicenseKey();
   const totaleEl = document.querySelector('.total-row.grand .val');
   const totale = totaleEl ? totaleEl.textContent.trim() : '';
-  const html = buildQuoteEmailHtml();
   const subject = `Preventivo n. ${numero}${progetto ? ' — ' + progetto : ''}`;
   const btn = document.getElementById('sendQuoteEmailBtn');
   const originalLabel = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Invio in corso...';
+  // Salva il preventivo e genera il link con cui il cliente lo visualizza e firma online: senza
+  // questo l'email era solo un riepilogo statico, senza nulla su cui il cliente potesse agire
+  // (non viene generato né allegato nessun PDF).
+  let clientLinkUrl = '';
+  if(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && key){
+    try{
+      const savedEntry = await persistCurrentQuoteEntry();
+      const linkRes = await fetch('/.netlify/functions/public-quote', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'create-link', key, quoteId: savedEntry.id })
+      });
+      const linkData = await linkRes.json();
+      if(linkData && linkData.token){
+        clientLinkUrl = `${window.location.origin}/preventivo.html?t=${linkData.token}`;
+      }
+    }catch(linkErr){ console.error('Impossibile generare il link cliente per l\'email', linkErr); }
+  }
+  const html = buildQuoteEmailHtml(clientLinkUrl);
   try{
     const res = await fetch('/.netlify/functions/followups', {
       method:'POST',
