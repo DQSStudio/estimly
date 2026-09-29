@@ -1925,7 +1925,7 @@ header.top{
     </div>
     <div class="modal-body">
       <div id="costFromCostBox" style="margin-bottom:16px; padding:12px 14px; background:var(--accent-soft); border-radius:var(--radius-sm);">
-        <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">Hai già la tariffa oraria calcolata in Cost? La puoi importare qui invece di ricalcolarla a mano.</div>
+        <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">Hai già i costi fissi calcolati in Cost? Importa qui il totale annuo e lo trasformiamo in tariffa oraria usando le ore fatturabili qui sotto (verifica che siano impostate correttamente).</div>
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <input id="costAccessCodeInput" placeholder="Codice di accesso Cost" style="flex:1; min-width:160px; padding:8px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12.5px; background:var(--surface); color:var(--ink);">
           <button id="costFromCostBtn" class="btn-cancel" style="padding:6px 12px; white-space:nowrap;">Sincronizza da Cost</button>
@@ -3157,12 +3157,26 @@ async function syncTariffaFromCost(){
     });
     const data = await res.json();
     if(data.ok){
-      studioSettings.tariffaOrariaBase = +Number(data.tariffaOraria).toFixed(2);
-      saveStudioSettings();
-      scheduleCloudSave();
-      const hcTariffa = document.getElementById('hcTariffa');
-      if(hcTariffa) hcTariffa.value = studioSettings.tariffaOrariaBase;
-      showCostFromCostMsg(`Importata: € ${fmt(studioSettings.tariffaOrariaBase)} /h da Cost.`, 'ok');
+      // Cost fornisce il totale annuo dei costi da coprire, non una tariffa oraria già pronta:
+      // la trasformiamo in tariffa oraria con le stesse ore fatturabili annue del calcolatore
+      // "Calcola il tuo costo orario" di Estimly (settimane/giorni/ore al giorno/% fatturabile).
+      const c = studioSettings.costCalc || {};
+      const settimane = c.settimane ?? 46;
+      const giorni = c.giorni ?? 5;
+      const oreGiorno = c.oreGiorno ?? 7;
+      const fatturabile = c.fatturabile ?? 60;
+      const oreFatturabiliAnnue = settimane * giorni * oreGiorno * (fatturabile/100);
+      if(oreFatturabiliAnnue <= 0){
+        showCostFromCostMsg('Imposta prima ore/settimane fatturabili valide qui sotto, poi riprova.', 'error');
+      } else {
+        const totaleAnnuo = Number(data.totaleAnnuo);
+        studioSettings.tariffaOrariaBase = +(totaleAnnuo / oreFatturabiliAnnue).toFixed(2);
+        saveStudioSettings();
+        scheduleCloudSave();
+        const hcTariffa = document.getElementById('hcTariffa');
+        if(hcTariffa) hcTariffa.value = studioSettings.tariffaOrariaBase;
+        showCostFromCostMsg(`Importata: € ${fmt(studioSettings.tariffaOrariaBase)} /h (da € ${fmt(totaleAnnuo)}/anno su Cost, in base a ${fmt(oreFatturabiliAnnue)} ore fatturabili/anno).`, 'ok');
+      }
     } else if(data.error === 'not_suite'){
       showCostFromCostMsg('Questa funzione fa parte del pacchetto Desearq completo. Scrivici per attivarla sul tuo account.', 'error');
     } else if(data.error === 'not_found'){
@@ -3693,7 +3707,8 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
     } else if(data && data.error === 'email_not_configured'){
       alert('Prima collega un account Resend in Impostazioni Studio → Follow-up automatico.');
     } else {
-      alert('Impossibile inviare l\'email. Riprova tra poco.');
+      const detail = (data && data.detail) ? `\n\nDettaglio: ${data.detail}` : '';
+      alert('Impossibile inviare l\'email. Riprova tra poco.' + detail);
     }
   }catch(err){
     alert('Errore di connessione durante l\'invio.');

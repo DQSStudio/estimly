@@ -13,6 +13,12 @@
 // Legge dalla tabella condivisa public.estimly_costi_studio (Supabase, stesso progetto già usato
 // per DSQ Manager), scritta da Cost tramite la stessa SUPABASE_ANON_KEY. Nessun dato scritto da
 // qui: questo endpoint è sola lettura.
+//
+// Cost scrive il TOTALE ANNUO dei costi da coprire (stipendio + costi fissi + margine, secondo
+// il proprio calcolo) in `totale_annuo`, non una tariffa oraria già pronta: la conversione in
+// tariffa oraria resta responsabilità di Estimly, che applica le proprie ore fatturabili annue
+// (settimane/giorni/ore al giorno/% fatturabile, già presenti in studioSettings.costCalc) — la
+// stessa formula del calcolatore "Calcola il tuo costo orario" già esistente.
 
 import { getStore } from '@netlify/blobs';
 
@@ -48,7 +54,7 @@ export default async (req) => {
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/${TABLE}?codice_accesso=eq.${encodeURIComponent(codiceAccesso)}&select=tariffa_oraria,updated_at&limit=1`,
+      `${SUPABASE_URL}/rest/v1/${TABLE}?codice_accesso=eq.${encodeURIComponent(codiceAccesso)}&select=totale_annuo,updated_at&limit=1`,
       { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
     );
     if (!res.ok) return new Response(JSON.stringify({ error: 'supabase_error' }), { status: 200 });
@@ -56,7 +62,7 @@ export default async (req) => {
     if (!rows.length) return new Response(JSON.stringify({ error: 'not_found' }), { status: 200 });
     return new Response(JSON.stringify({
       ok: true,
-      tariffaOraria: rows[0].tariffa_oraria,
+      totaleAnnuo: rows[0].totale_annuo,
       updatedAt: rows[0].updated_at
     }), { status: 200 });
   } catch (err) {
