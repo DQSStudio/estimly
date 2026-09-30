@@ -6973,20 +6973,34 @@ if('serviceWorker' in navigator){
   });
 
   /* ---------- attivazione solo dentro il guscio Estimly 2.0 ---------- */
-  let wasActive = document.body.classList.contains('estimly2-theme');
+  // Scorciatoia SOLO per questo ramo di test: aprire la pagina con ?onboarding=1 (o #onboarding)
+  // forza la ripartenza della configurazione guidata anche se il browser l'ha già segnata come
+  // vista, per non dover cancellare manualmente il localStorage ad ogni prova.
+  function forcedOnboardingRequested(){
+    try{
+      const params = new URLSearchParams(location.search);
+      return params.get('onboarding') === '1' || location.hash === '#onboarding';
+    }catch(e){ return false; }
+  }
+
+  let wasActive = false; // parte sempre da false: l'attivazione vera arriva sotto
+  function activate(){
+    wasActive = true;
+    let seen = false;
+    try{ seen = localStorage.getItem(SEEN_KEY) === '1'; }catch(e){}
+    if(seen && !forcedOnboardingRequested()) showBubble(); else openOnboarding();
+  }
+  function deactivate(){
+    wasActive = false;
+    hideBubbleAndPanel();
+    document.getElementById('agentOnboarding').classList.remove('is-open');
+  }
   function onThemeChange(active){
     if(active === wasActive) return;
-    wasActive = active;
-    if(active){
-      let seen = false;
-      try{ seen = localStorage.getItem(SEEN_KEY) === '1'; }catch(e){}
-      if(seen) showBubble(); else openOnboarding();
-    } else {
-      hideBubbleAndPanel();
-      document.getElementById('agentOnboarding').classList.remove('is-open');
-    }
+    if(active) activate(); else deactivate();
   }
-  if(wasActive) onThemeChange(true);
+
+  if(document.body.classList.contains('estimly2-theme')) activate();
   new MutationObserver(() => onThemeChange(document.body.classList.contains('estimly2-theme')))
     .observe(document.body, { attributes:true, attributeFilter:['class'] });
 })();
