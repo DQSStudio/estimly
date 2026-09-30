@@ -927,11 +927,16 @@ body.estimly2-theme #agentBubbleWrap.is-visible{ display:flex; }
 .agent-panel-field input{ flex:1; min-width:0; border:0; outline:0; background:transparent; font-family:inherit; font-size:12.5px; color:var(--e2-ink,#16160F); }
 .agent-panel-send{ flex:none; width:26px; height:26px; border-radius:50%; border:0; cursor:pointer; background:var(--e2-accent,#862D2D); color:var(--e2-accent-contrast,#fff); font-size:13px; }
 .agent-panel-demo{ font-size:10.5px; color:var(--e2-muted,#8C8776); text-align:center; }
+.agent-welcome-toast{ position:absolute; right:128px; bottom:64px; width:240px; max-width:calc(100vw - 172px); background:var(--e2-surface,#fff); border:1px solid var(--e2-line,#E9E3D5); border-radius:var(--e2-radius-lg,16px); box-shadow:var(--shadow-md); padding:12px 14px; font-family:var(--e2-font,inherit); font-size:13px; line-height:1.5; color:var(--e2-ink,#16160F); opacity:0; transform:translateY(6px) scale(.97); pointer-events:none; transition:opacity .25s ease, transform .25s ease; }
+.agent-welcome-toast:after{ content:""; position:absolute; right:-16px; bottom:34px; border:9px solid transparent; border-left-color:var(--e2-surface,#fff); filter:drop-shadow(2px 0 0 var(--e2-line,#E9E3D5)); }
+.agent-welcome-toast.is-open{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; cursor:pointer; }
+@media (prefers-reduced-motion:reduce){ .agent-welcome-toast{ transition:none; } }
 @media (max-width:480px){
   .agent-mascot{ width:140px; height:140px; }
   .agent-bubble-btn{ width:90px; height:90px; }
   #agentBubbleWrap{ right:12px; }
   .agent-panel{ right:0; bottom:100px; width:calc(100vw - 24px); max-width:calc(100vw - 24px); }
+  .agent-welcome-toast{ right:0; bottom:100px; width:calc(100vw - 24px); max-width:calc(100vw - 24px); }
   .agent-panel:after{ right:24px; bottom:-16px; transform:rotate(-90deg); }
 }
 /* ===================== fine Agente AI (TEST) ===================== */
@@ -953,6 +958,7 @@ body.estimly2-theme #agentBubbleWrap.is-visible{ display:flex; }
 </div>
 
 <div id="agentBubbleWrap">
+  <div class="agent-welcome-toast" id="agentWelcomeToast"></div>
   <div class="agent-panel" id="agentPanel">
     <div class="agent-panel-head">
       <div class="agent-panel-title">Assistente Estimly</div>
@@ -6884,6 +6890,20 @@ if('serviceWorker' in navigator){
   function hideBubbleAndPanel(){
     document.getElementById('agentBubbleWrap').classList.remove('is-visible');
     document.getElementById('agentPanel').classList.remove('is-open');
+    hideWelcomeToast();
+  }
+
+  /* ---------- messaggio di benvenuto automatico (setup già completato) ---------- */
+  let welcomeToastTimer = null;
+  function hideWelcomeToast(){
+    if(welcomeToastTimer){ clearTimeout(welcomeToastTimer); welcomeToastTimer = null; }
+    document.getElementById('agentWelcomeToast').classList.remove('is-open');
+  }
+  function showWelcomeToast(){
+    const toast = document.getElementById('agentWelcomeToast');
+    toast.textContent = 'Bentornato! Sono sempre qui se ti serve una mano — clicca su di me quando vuoi.';
+    toast.classList.add('is-open');
+    welcomeToastTimer = setTimeout(hideWelcomeToast, 5000);
   }
 
   document.getElementById('agentSkipBtn').addEventListener('click', finishOnboarding);
@@ -6927,6 +6947,7 @@ if('serviceWorker' in navigator){
   }
 
   function openPanel(){
+    hideWelcomeToast();
     document.getElementById('agentPanel').classList.add('is-open');
     document.getElementById('agentBubbleDot').style.display = 'none';
     if(!panelGreeted){
@@ -6953,6 +6974,7 @@ if('serviceWorker' in navigator){
     if(panel.classList.contains('is-open')) panel.classList.remove('is-open');
     else openPanel();
   });
+  document.getElementById('agentWelcomeToast').addEventListener('click', openPanel);
   document.getElementById('agentPanelClose').addEventListener('click', () => {
     document.getElementById('agentPanel').classList.remove('is-open');
   });
@@ -6988,7 +7010,7 @@ if('serviceWorker' in navigator){
     wasActive = true;
     let seen = false;
     try{ seen = localStorage.getItem(SEEN_KEY) === '1'; }catch(e){}
-    if(seen && !forcedOnboardingRequested()) showBubble(); else openOnboarding();
+    if(seen && !forcedOnboardingRequested()){ showBubble(); showWelcomeToast(); } else openOnboarding();
   }
   function deactivate(){
     wasActive = false;
