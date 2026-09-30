@@ -3812,6 +3812,7 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
   // da conservare — vedi buildQuotePdfBase64).
   let clientLinkUrl = '';
   let linkGenerationFailed = false;
+  let linkGenerationErrorCode = '';
   if(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && key){
     try{
       const savedEntry = await persistCurrentQuoteEntry();
@@ -3826,12 +3827,17 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
         // Risposta valida ma senza token (es. 'not_estimly2', 'not_found', 'invalid_license'):
         // prima veniva ignorato in silenzio e l'email partiva comunque senza link di firma.
         linkGenerationFailed = true;
+        linkGenerationErrorCode = (linkData && linkData.error) || 'risposta non valida';
         console.error('Link cliente non generato', linkData);
       }
-    }catch(linkErr){ linkGenerationFailed = true; console.error('Impossibile generare il link cliente per l\'email', linkErr); }
+    }catch(linkErr){
+      linkGenerationFailed = true;
+      linkGenerationErrorCode = 'errore di rete/connessione';
+      console.error('Impossibile generare il link cliente per l\'email', linkErr);
+    }
   }
   if(linkGenerationFailed){
-    const proceed = confirm('Non sono riuscito a generare il link "Visualizza e firma online": l\'email partirebbe senza. Vuoi inviarla comunque (solo con il PDF allegato)?');
+    const proceed = confirm(`Non sono riuscito a generare il link "Visualizza e firma online" (motivo: ${linkGenerationErrorCode}). L'email partirebbe senza. Vuoi inviarla comunque (solo con il PDF allegato)?`);
     if(!proceed){
       btn.disabled = false;
       btn.textContent = originalLabel;
