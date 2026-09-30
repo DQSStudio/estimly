@@ -29,6 +29,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{
   --bg:#FAFAFA;
@@ -3692,6 +3694,141 @@ function buildQuoteEmailHtml(clientLinkUrl){
   </div>`;
 }
 
+// Genera un PDF del preventivo (copia da conservare, allegata all'email oltre al link di
+// firma) usando gli stessi dati/calcoli di buildQuoteEmailHtml. Non è il meccanismo di firma
+// (che resta il link "Visualizza e firma online"): è una copia leggibile/stampabile.
+// Ritorna { base64, filename } oppure null se jsPDF non è disponibile.
+function buildQuotePdfBase64(){
+  if(typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF){
+    console.error('jsPDF non caricato: impossibile generare il PDF del preventivo.');
+    return null;
+  }
+  const { jsPDF } = window.jspdf;
+  const s = studioSettings;
+  const cliente = document.getElementById('fCliente').value || '—';
+  const clienteEmail = document.getElementById('fClienteEmail').value || '';
+  const indirizzo = document.getElementById('fIndirizzo').value || '';
+  const cf = document.getElementById('fCF').value || '';
+  const piva = document.getElementById('fPiva').value || '';
+  const progetto = document.getElementById('fProgetto').value || '';
+  const numero = document.getElementById('fNumero').value || '—';
+  const revisione = document.getElementById('fRevisione').value || '';
+  const dataRaw = document.getElementById('fData').value;
+  const dataFmt = dataRaw ? new Date(dataRaw+'T00:00:00').toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
+  const hidePrices = document.getElementById('fHidePrices').checked;
+
+  const byCat = {};
+  cart.forEach(l=>{
+    const cat = l.categoria || 'Altro';
+    byCat[cat] = byCat[cat] || [];
+    byCat[cat].push(l);
+  });
+  let cats = Object.keys(byCat);
+  cats.sort((a,b)=>{
+    if(a==='Voci libere') return 1;
+    if(b==='Voci libere') return -1;
+    return categorySortIndex(a) - categorySortIndex(b);
+  });
+
+  const body = [];
+  cats.forEach(cat=>{
+    body.push([{ content: cat, colSpan: hidePrices?2:3, styles:{ fillColor:[243,240,255], textColor:[67,56,202], fontStyle:'bold', fontSize:9 } }]);
+    byCat[cat].forEach(l=>{
+      const isOrario = l.modalita === 'orario';
+      const qty = isOrario ? `${fmt(l.ore)} h` : `${l.qty} ${l.um||'cad'}`;
+      const nomeCell = l.descrizione ? `${l.nome}\n${l.descrizione}` : l.nome;
+      const row = [nomeCell, qty];
+      if(!hidePrices) row.push(`€ ${fmt(lineTotal(l))}`);
+      body.push(row);
+    });
+  });
+
+  const imponibile = cart.reduce((sum,l)=>sum+lineTotal(l),0);
+  const scontoPct = parseFloat(document.getElementById('fSconto').value)||0;
+  const sconto = imponibile*scontoPct/100;
+  const netto = imponibile - sconto;
+  const contributoPct = parseFloat(document.getElementById('fContributoPct').value) || 0;
+  const contributo = netto * contributoPct/100;
+  const baseIva = netto + contributo;
+  const regime = getRegimeAttivo();
+  const iva = baseIva*regime.rate;
+  const totale = baseIva + iva;
+
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marginX = 15;
+  let y = 18;
+
+  if(s.logo){
+    try{ doc.addImage(s.logo, 'PNG', marginX, y, 0, 16, undefined, 'FAST'); }catch(e){ /* formato non supportato, si ignora */ }
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(30,30,30);
+  doc.text('Preventivo', pageWidth-marginX, y+6, { align:'right' });
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(90,90,90);
+  doc.text(`n. ${numero}${revisione?` — ${revisione}`:''} — ${dataFmt}`, pageWidth-marginX, y+12, { align:'right' });
+  y += 26;
+
+  doc.setDrawColor(230,230,230); doc.line(marginX, y, pageWidth-marginX, y);
+  y += 8;
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(67,56,202);
+  doc.text('STUDIO', marginX, y);
+  doc.text('CLIENTE', pageWidth/2+5, y);
+  y += 5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(30,30,30);
+  const studioLines = [s.nome||'Studio', s.indirizzo||'', s.piva?`P.IVA ${s.piva}`:'', s.email||''].filter(Boolean);
+  const clienteLines = [cliente, indirizzo, piva?`P.IVA ${piva}`:(cf?`CF ${cf}`:''), clienteEmail].filter(Boolean);
+  const maxLines = Math.max(studioLines.length, clienteLines.length);
+  for(let i=0;i<maxLines;i++){
+    if(studioLines[i]) doc.text(String(studioLines[i]), marginX, y+i*5);
+    if(clienteLines[i]) doc.text(String(clienteLines[i]), pageWidth/2+5, y+i*5);
+  }
+  y += maxLines*5 + 4;
+  if(progetto){ doc.setFont('helvetica','italic'); doc.setFontSize(10); doc.text(`Progetto: ${progetto}`, marginX, y); y += 8; } else { y += 4; }
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: marginX, right: marginX },
+    head: [hidePrices ? ['Descrizione','Qtà/Ore'] : ['Descrizione','Qtà/Ore','Totale']],
+    body,
+    styles: { font:'helvetica', fontSize:9, cellPadding:2.5, textColor:[30,30,30] },
+    headStyles: { fillColor:[255,255,255], textColor:[130,130,130], fontStyle:'bold', fontSize:8, lineWidth:{ bottom:0.4 }, lineColor:[67,56,202] },
+    columnStyles: hidePrices
+      ? { 1:{ halign:'right', cellWidth:30 } }
+      : { 1:{ halign:'right', cellWidth:28 }, 2:{ halign:'right', cellWidth:32, fontStyle:'bold' } },
+    theme: 'plain'
+  });
+
+  let ty = doc.lastAutoTable.finalY + 8;
+  if(!hidePrices){
+    const totRows = [['Imponibile', `€ ${fmt(imponibile)}`]];
+    if(scontoPct>0) totRows.push([`Sconto (${fmt(scontoPct)}%)`, `− € ${fmt(sconto)}`]);
+    if(contributoPct>0) totRows.push([`Contributo (${fmt(contributoPct)}%)`, `€ ${fmt(contributo)}`]);
+    totRows.push([regime.label, `€ ${fmt(iva)}`]);
+    const totX = pageWidth-marginX-60;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(60,60,60);
+    totRows.forEach(([label,val])=>{
+      doc.text(label, totX, ty);
+      doc.text(val, pageWidth-marginX, ty, { align:'right' });
+      ty += 6;
+    });
+    doc.setDrawColor(67,56,202); doc.line(totX, ty-2, pageWidth-marginX, ty-2);
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(67,56,202);
+    doc.text('Totale', totX, ty+4);
+    doc.text(`€ ${fmt(totale)}`, pageWidth-marginX, ty+4, { align:'right' });
+    ty += 12;
+  }
+
+  const pageHeight = doc.internal.pageSize.getHeight();
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(150,150,150);
+  doc.text(`Documento generato da ${s.nome||'Studio'} tramite Estimly — copia da conservare. La firma avviene esclusivamente tramite il link online.`, marginX, pageHeight-10, { maxWidth: pageWidth-marginX*2 });
+
+  const dataUri = doc.output('datauristring');
+  const base64 = dataUri.split(',')[1];
+  const filename = `Preventivo_${(numero||'bozza').replace(/[^a-zA-Z0-9_-]+/g,'_')}.pdf`;
+  return { base64, filename };
+}
+
 document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=>{
   const numero = document.getElementById('fNumero').value.trim();
   const cliente = document.getElementById('fCliente').value.trim();
@@ -3713,9 +3850,9 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
   const originalLabel = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Invio in corso...';
-  // Salva il preventivo e genera il link con cui il cliente lo visualizza e firma online: senza
-  // questo l'email era solo un riepilogo statico, senza nulla su cui il cliente potesse agire
-  // (non viene generato né allegato nessun PDF).
+  // Salva il preventivo e genera il link con cui il cliente lo visualizza e firma online: la
+  // firma avviene SEMPRE tramite questo link (non tramite il PDF, che è solo una copia allegata
+  // da conservare — vedi buildQuotePdfBase64).
   let clientLinkUrl = '';
   if(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && key){
     try{
@@ -3731,13 +3868,15 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
     }catch(linkErr){ console.error('Impossibile generare il link cliente per l\'email', linkErr); }
   }
   const html = buildQuoteEmailHtml(clientLinkUrl);
+  const pdf = buildQuotePdfBase64();
   try{
     const res = await fetch('/.netlify/functions/followups', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         key, action:'send',
-        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html }
+        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html },
+        attachment: pdf ? { filename: pdf.filename, contentBase64: pdf.base64 } : undefined
       })
     });
     const data = await res.json();

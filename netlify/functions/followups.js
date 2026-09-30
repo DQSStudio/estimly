@@ -117,6 +117,14 @@ export default async (req) => {
     }
 
     const subject = f.subject || `Preventivo${f.numero ? ' n. ' + f.numero : ''}`;
+    // Allegato PDF opzionale (copia del preventivo da conservare): generato lato client
+    // (buildQuotePdfBase64 in index.html) e passato qui come base64 grezzo, nel formato
+    // atteso dall'API Resend (`attachments[].content`). La firma resta sempre tramite il
+    // link online, mai tramite questo allegato.
+    const attachment = body.attachment;
+    const attachments = (attachment && attachment.filename && attachment.contentBase64)
+      ? [{ filename: attachment.filename, content: attachment.contentBase64 }]
+      : undefined;
     try {
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -129,6 +137,7 @@ export default async (req) => {
           to: f.clienteEmail,
           subject,
           html: f.html,
+          ...(attachments ? { attachments } : {}),
           tags: [
             { name: 'followup_id', value: entry.id },
             { name: 'license_key', value: key.toLowerCase() }
