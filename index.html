@@ -3612,11 +3612,24 @@ async function updateFollowupStatus(newStatus){
   }catch(err){ alert('Impossibile aggiornare lo stato del follow-up.'); }
 }
 
+// Riprende la stessa identità visiva del documento di "Stampa / Salva PDF" (barra accento,
+// intestazione studio/documento, blocchi Cliente/Progetto, tabella per categorie, totali) —
+// per omogeneità tra quello che il cliente vede nel corpo dell'email e l'allegato PDF. Usa
+// però solo tabelle HTML e stili inline (niente flex/grid, niente <style>), perché è quanto
+// di più compatibile esiste tra i client email (compreso Outlook desktop).
 function buildQuoteEmailHtml(clientLinkUrl){
   const s = studioSettings;
+  const accent = s.colorPrimary || '#4338CA';
+  const accentSoft = hexToSoft(accent);
   const cliente = document.getElementById('fCliente').value || '—';
+  const tipoCliente = document.getElementById('fTipoCliente').value || '';
+  const indirizzoCliente = document.getElementById('fIndirizzo').value || '';
+  const cf = document.getElementById('fCF').value || '';
+  const piva = document.getElementById('fPiva').value || '';
+  const fiscaleCliente = [cf, piva].filter(Boolean).join(' / ');
   const progetto = document.getElementById('fProgetto').value || '';
   const numero = document.getElementById('fNumero').value || '—';
+  const revisione = document.getElementById('fRevisione').value || '';
   const dataRaw = document.getElementById('fData').value;
   const dataFmt = dataRaw ? new Date(dataRaw+'T00:00:00').toLocaleDateString('it-IT') : '—';
   const hidePrices = document.getElementById('fHidePrices').checked;
@@ -3634,16 +3647,20 @@ function buildQuoteEmailHtml(clientLinkUrl){
     return categorySortIndex(a) - categorySortIndex(b);
   });
 
+  const colCount = hidePrices ? 2 : 4;
   let rowsHtml = '';
   cats.forEach(cat=>{
-    rowsHtml += `<tr><td colspan="${hidePrices?2:3}" style="background:#F3F0FF; padding:8px 10px; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.4px; color:#4338CA;">${escapeHtml(cat)}</td></tr>`;
+    rowsHtml += `<tr><td colspan="${colCount}" style="background:${accentSoft}; padding:8px 10px; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.4px; color:${accent};">${escapeHtml(cat)}</td></tr>`;
     byCat[cat].forEach(l=>{
       const isOrario = l.modalita === 'orario';
       const qty = isOrario ? `${fmt(l.ore)} h` : `${l.qty} ${l.um||'cad'}`;
+      const unit = isOrario ? l.tariffa : l.prezzo;
       rowsHtml += `<tr>
         <td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#222;">${escapeHtml(l.nome)}${l.descrizione?`<div style="font-size:11px;color:#888;margin-top:2px;">${escapeHtml(l.descrizione)}</div>`:''}</td>
         <td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#555; text-align:right; white-space:nowrap;">${qty}</td>
-        ${hidePrices ? '' : `<td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#111; text-align:right; white-space:nowrap; font-weight:600;">€ ${fmt(lineTotal(l))}</td>`}
+        ${hidePrices ? '' : `
+        <td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#555; text-align:right; white-space:nowrap;">€ ${fmt(unit)}</td>
+        <td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#111; text-align:right; white-space:nowrap; font-weight:600;">€ ${fmt(lineTotal(l))}</td>`}
       </tr>`;
     });
   });
@@ -3653,41 +3670,75 @@ function buildQuoteEmailHtml(clientLinkUrl){
   const sconto = imponibile*scontoPct/100;
   const netto = imponibile - sconto;
   const contributoPct = parseFloat(document.getElementById('fContributoPct').value) || 0;
+  const contributoLabel = document.getElementById('fContributoLabel').value.trim() || 'Contributo cassa/INPS';
   const contributo = netto * contributoPct/100;
   const baseIva = netto + contributo;
   const regime = getRegimeAttivo();
   const iva = baseIva*regime.rate;
   const totale = baseIva + iva;
 
-  const logoHtml = s.logo ? `<img src="${s.logo}" alt="" style="max-height:44px; display:block; margin-bottom:10px;">` : '';
+  const studioBits = [s.indirizzo, s.piva?('P.IVA '+s.piva):'', s.telefono, s.email].filter(Boolean).map(escapeHtml).join(' &middot; ');
+  const metaRows = [['N.', escapeHtml(numero)], ['Data', dataFmt]];
+  if(revisione) metaRows.push(['Rev.', escapeHtml(revisione)]);
+  const metaHtml = metaRows.map(([label,val])=>`<tr><td style="padding:1px 8px 1px 0; text-align:right; color:#888;">${label}</td><td style="padding:1px 0; text-align:right; font-weight:600; color:#111;">${val}</td></tr>`).join('');
+
+  const headerHtml = `
+    <div style="height:5px; background:${accent}; border-radius:3px; margin-bottom:16px;"></div>
+    <table role="presentation" width="100%" style="border-collapse:collapse; margin-bottom:14px;"><tr>
+      <td style="vertical-align:top;">
+        ${s.logo ? `<img src="${s.logo}" alt="" style="max-height:44px; max-width:170px; display:block; margin-bottom:6px;">` : ''}
+        <div style="font-weight:700; font-size:16px; color:#111;">${escapeHtml(s.nome||'Studio')}</div>
+        ${studioBits ? `<div style="font-size:11px; color:#666; margin-top:2px; max-width:320px;">${studioBits}</div>` : ''}
+      </td>
+      <td style="vertical-align:top; text-align:right;">
+        <div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:${accent}; margin-bottom:5px;">Preventivo</div>
+        <table role="presentation" style="margin-left:auto;">${metaHtml}</table>
+      </td>
+    </tr></table>
+    <table role="presentation" width="100%" style="border-bottom:1px solid #ddd; padding-bottom:12px; margin-bottom:14px;"><tr>
+      <td style="vertical-align:top; width:50%; padding-bottom:12px;">
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:${accent}; font-weight:600; margin-bottom:3px;">Cliente</div>
+        <div style="font-weight:600; font-size:14.5px; color:#111;">${escapeHtml(cliente)}</div>
+        ${(tipoCliente||indirizzoCliente) ? `<div style="font-size:12px; color:#444;">${escapeHtml(tipoCliente)}${indirizzoCliente?' &middot; '+escapeHtml(indirizzoCliente):''}</div>` : ''}
+        ${fiscaleCliente ? `<div style="font-size:12px; color:#444;">${escapeHtml(fiscaleCliente)}</div>` : ''}
+      </td>
+      ${progetto ? `<td style="vertical-align:top; padding-bottom:12px;">
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:${accent}; font-weight:600; margin-bottom:3px;">Progetto</div>
+        <div style="font-weight:600; font-size:14.5px; color:#111;">${escapeHtml(progetto)}</div>
+      </td>` : ''}
+    </tr></table>
+  `;
+
   const ctaHtml = clientLinkUrl ? `
     <div style="text-align:center; margin:22px 0;">
-      <a href="${clientLinkUrl}" style="display:inline-block; background:#4338CA; color:#fff; text-decoration:none; padding:12px 28px; border-radius:6px; font-weight:600; font-size:14px;">Visualizza e firma il preventivo online &rarr;</a>
+      <a href="${clientLinkUrl}" style="display:inline-block; background:${accent}; color:#fff; text-decoration:none; padding:12px 28px; border-radius:6px; font-weight:600; font-size:14px;">Visualizza e firma il preventivo online &rarr;</a>
     </div>` : '';
 
   return `
-  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; max-width:600px; margin:0 auto; color:#222;">
-    ${logoHtml}
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; max-width:640px; margin:0 auto; color:#222;">
+    ${headerHtml}
     <p style="font-size:14px; line-height:1.6;">Gentile ${escapeHtml(cliente)},</p>
     <p style="font-size:14px; line-height:1.6;">di seguito il riepilogo del preventivo${numero!=='—'?` n. <b>${escapeHtml(numero)}</b>`:''}${progetto?` per "${escapeHtml(progetto)}"`:''}, redatto da ${escapeHtml(s.nome||'il nostro studio')} in data ${dataFmt}.${clientLinkUrl ? ' Può visualizzarlo online e firmarlo direttamente dal pulsante qui sotto.' : ''}</p>
     ${ctaHtml}
-    <table style="width:100%; border-collapse:collapse; margin:18px 0;">
+    <table role="presentation" style="width:100%; border-collapse:collapse; margin:18px 0;">
       <thead>
         <tr>
-          <th style="text-align:left; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid #4338CA;">Descrizione</th>
-          <th style="text-align:right; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid #4338CA;">Qt&agrave;/Ore</th>
-          ${hidePrices ? '' : '<th style="text-align:right; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid #4338CA;">Totale</th>'}
+          <th style="text-align:left; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid ${accent};">Descrizione</th>
+          <th style="text-align:right; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid ${accent};">Qt&agrave;/Ore</th>
+          ${hidePrices ? '' : `
+          <th style="text-align:right; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid ${accent};">Prezzo unit.</th>
+          <th style="text-align:right; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid ${accent};">Totale</th>`}
         </tr>
       </thead>
-      <tbody>${rowsHtml || `<tr><td colspan="3" style="padding:14px; text-align:center; color:#999;">Nessuna voce inserita.</td></tr>`}</tbody>
+      <tbody>${rowsHtml || `<tr><td colspan="${colCount}" style="padding:14px; text-align:center; color:#999;">Nessuna voce inserita.</td></tr>`}</tbody>
     </table>
     ${hidePrices ? '' : `
-    <table style="width:100%; max-width:280px; margin-left:auto; font-size:13px;">
+    <table role="presentation" style="width:100%; max-width:300px; margin-left:auto; font-size:13px;">
       <tr><td style="padding:2px 0; color:#555;">Imponibile</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(imponibile)}</td></tr>
       ${scontoPct>0?`<tr><td style="padding:2px 0; color:#555;">Sconto (${fmt(scontoPct)}%)</td><td style="padding:2px 0; text-align:right;">&minus; &euro; ${fmt(sconto)}</td></tr>`:''}
-      ${contributoPct>0?`<tr><td style="padding:2px 0; color:#555;">Contributo (${fmt(contributoPct)}%)</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(contributo)}</td></tr>`:''}
+      ${contributoPct>0?`<tr><td style="padding:2px 0; color:#555;">${escapeHtml(contributoLabel)} (${fmt(contributoPct)}%)</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(contributo)}</td></tr>`:''}
       <tr><td style="padding:2px 0; color:#555;">${escapeHtml(regime.label)}</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(iva)}</td></tr>
-      <tr><td style="padding:8px 0 0; font-weight:700; font-size:16px; border-top:2px solid #4338CA;">Totale</td><td style="padding:8px 0 0; font-weight:700; font-size:16px; text-align:right; border-top:2px solid #4338CA; color:#4338CA;">&euro; ${fmt(totale)}</td></tr>
+      <tr><td style="padding:8px 0 0; font-weight:700; font-size:16px; border-top:2px solid ${accent};">Totale</td><td style="padding:8px 0 0; font-weight:700; font-size:16px; text-align:right; border-top:2px solid ${accent}; color:${accent};">&euro; ${fmt(totale)}</td></tr>
     </table>`}
     ${ctaHtml}
     <p style="font-size:13px; line-height:1.6; color:#555; margin-top:22px;">Resto a disposizione per qualsiasi chiarimento.<br>Cordiali saluti,<br><b>${escapeHtml(s.nome||'Studio')}</b></p>
