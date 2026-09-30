@@ -47,7 +47,11 @@ function canonicalQuoteContent(quote){
 }
 
 async function loadStudioRecord(dataStore, key){
-  return (await dataStore.get(key, { type: 'json' })) || null;
+  // Consistenza forte: create-link viene chiamato subito dopo che il client ha salvato il
+  // preventivo tramite sync-data.js (invocazione separata della function). Con la lettura
+  // "eventual" di default, la scrittura appena fatta può non essere ancora visibile qui,
+  // facendo fallire la findIndex() con 'not_found' anche se il preventivo esiste davvero.
+  return (await dataStore.get(key, { type: 'json', consistency: 'strong' })) || null;
 }
 
 async function saveStudioRecord(dataStore, key, record){
