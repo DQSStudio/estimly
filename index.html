@@ -902,18 +902,19 @@ body.estimly2-theme #agentBubbleWrap.is-visible{ display:block; }
 .agent-foot{ font-size:12px; color:var(--e2-muted,#8C8776); max-width:400px; }
 .agent-foot b{ color:var(--e2-ink-soft,#54503F); }
 
-#agentBubbleWrap{ position:fixed; right:24px; bottom:24px; z-index:9000; }
-.agent-bubble-btn{ width:60px; height:60px; border-radius:20px; border:1px solid var(--e2-line,#E9E3D5); background:var(--e2-surface,#fff); box-shadow:var(--shadow-md); cursor:pointer; padding:0; overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center; animation:agentBobBtn 3.6s ease-in-out infinite; }
-.agent-bubble-btn img{ width:100%; height:100%; object-fit:contain; transform:scale(1.5) translateY(6%); }
-@keyframes agentBobBtn{ 0%,100%{ box-shadow:var(--shadow-md); } 50%{ box-shadow:0 10px 30px rgba(134,45,45,0.22); } }
-@media (prefers-reduced-motion:reduce){ .agent-bubble-btn{ animation:none; } }
-.agent-bubble-dot{ position:absolute; top:3px; right:3px; width:10px; height:10px; border-radius:50%; background:var(--amber,#B45309); border:2px solid var(--e2-surface,#fff); }
-.agent-panel{ position:absolute; right:0; bottom:74px; width:300px; max-width:calc(100vw - 48px); background:var(--e2-surface,#fff); border:1px solid var(--e2-line,#E9E3D5); border-radius:var(--e2-radius-lg,16px); box-shadow:var(--shadow-md); padding:14px; display:none; flex-direction:column; gap:10px; font-family:var(--e2-font,inherit); }
+#agentBubbleWrap{ position:fixed; right:20px; bottom:0; z-index:9000; display:none; align-items:flex-end; }
+body.estimly2-theme #agentBubbleWrap.is-visible{ display:flex; }
+.agent-bubble-btn{ width:118px; height:118px; border:0; background:none; padding:0; cursor:pointer; position:relative; flex:none; filter:drop-shadow(0 12px 22px rgba(22,22,15,0.22)); animation:agentBobBtn 3.6s ease-in-out infinite; transition:transform .15s ease; }
+.agent-bubble-btn:hover{ transform:translateY(-3px); }
+.agent-bubble-btn img{ width:100%; height:100%; object-fit:contain; display:block; }
+@keyframes agentBobBtn{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
+@media (prefers-reduced-motion:reduce){ .agent-bubble-btn{ animation:none; } .agent-bubble-btn:hover{ transform:none; } }
+.agent-bubble-dot{ position:absolute; top:6px; right:10px; width:12px; height:12px; border-radius:50%; background:var(--amber,#B45309); border:2px solid var(--e2-bg,#F7F6F4); }
+.agent-panel{ position:absolute; right:128px; bottom:64px; width:300px; max-width:calc(100vw - 172px); background:var(--e2-surface,#fff); border:1px solid var(--e2-line,#E9E3D5); border-radius:var(--e2-radius-lg,16px); box-shadow:var(--shadow-md); padding:14px; display:none; flex-direction:column; gap:10px; font-family:var(--e2-font,inherit); }
+.agent-panel:after{ content:""; position:absolute; right:-16px; bottom:34px; border:9px solid transparent; border-left-color:var(--e2-surface,#fff); filter:drop-shadow(2px 0 0 var(--e2-line,#E9E3D5)); }
 .agent-panel.is-open{ display:flex; }
 .agent-panel-head{ display:flex; align-items:center; justify-content:space-between; }
 .agent-panel-title{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--e2-ink,#16160F); }
-.agent-panel-mascot{ width:24px; height:24px; border-radius:9px; overflow:hidden; background:var(--e2-surface-muted,#F9F8F7); border:1px solid var(--e2-line,#E9E3D5); flex:none; }
-.agent-panel-mascot img{ width:100%; height:100%; object-fit:contain; transform:scale(1.5) translateY(6%); }
 .agent-panel-close{ border:0; background:none; cursor:pointer; color:var(--e2-muted,#8C8776); font-size:16px; line-height:1; padding:4px; }
 .agent-log{ display:flex; flex-direction:column; gap:8px; max-height:260px; overflow-y:auto; }
 .agent-msg{ font-size:13px; line-height:1.5; padding:9px 12px; border-radius:12px; max-width:88%; }
@@ -928,7 +929,10 @@ body.estimly2-theme #agentBubbleWrap.is-visible{ display:block; }
 .agent-panel-demo{ font-size:10.5px; color:var(--e2-muted,#8C8776); text-align:center; }
 @media (max-width:480px){
   .agent-mascot{ width:140px; height:140px; }
-  .agent-panel{ width:calc(100vw - 48px); }
+  .agent-bubble-btn{ width:90px; height:90px; }
+  #agentBubbleWrap{ right:12px; }
+  .agent-panel{ right:0; bottom:100px; width:calc(100vw - 24px); max-width:calc(100vw - 24px); }
+  .agent-panel:after{ right:24px; bottom:-16px; transform:rotate(-90deg); }
 }
 /* ===================== fine Agente AI (TEST) ===================== */
 </style>
@@ -951,10 +955,7 @@ body.estimly2-theme #agentBubbleWrap.is-visible{ display:block; }
 <div id="agentBubbleWrap">
   <div class="agent-panel" id="agentPanel">
     <div class="agent-panel-head">
-      <div class="agent-panel-title">
-        <div class="agent-panel-mascot"><img src="assets/agent-mascotte.png" alt=""></div>
-        Assistente Estimly
-      </div>
+      <div class="agent-panel-title">Assistente Estimly</div>
       <button class="agent-panel-close" id="agentPanelClose" type="button" aria-label="Chiudi">✕</button>
     </div>
     <div class="agent-log" id="agentLog"></div>
