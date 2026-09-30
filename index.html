@@ -2478,6 +2478,7 @@ function savedQuoteRowHtml(q){
         <button data-toggle-vinto="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${q.vinto ? 'Segna come non vinto' : 'Segna come vinto'}">${q.vinto ? '🏆 Vinto' : 'Segna vinto'}</button>
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? `<button data-client-link="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Genera/copia il link che il cliente apre per vedere il preventivo e firmare">Link cliente</button>` : ''}
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && q.client && q.client.firma && q.client.firma.firmato) ? `<button data-payments="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Crea e monitora le richieste di pagamento (acconto, saldo a rate, ecc.)">Pagamenti</button>` : ''}
+        ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && q.client && q.client.firma && q.client.firma.firmato && q.client.firma.documentoConservato) ? `<button data-download-signed="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Scarica il documento di accettazione firmato dal cliente, con firma, data/ora, IP e impronta del documento come prova">Documento firmato</button>` : ''}
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? (q.concluso
           ? '<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:6px 10px; border-radius:6px;">✓ Concluso</span>'
           : `<button data-close-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Registra ore/durata reali e confronta con la stima">Concludi progetto</button>`) : ''}
@@ -6521,6 +6522,43 @@ if('serviceWorker' in navigator){
     }
   }
 
+  // Scarica il documento di accettazione firmato (PDF generato al momento della firma sul link
+  // pubblico, conservato da Estimly come prova: firmatario, metodo, data/ora, IP e impronta del
+  // documento, oltre al contenuto del preventivo).
+  async function estimlyDownloadSignedDocument(quoteId, btn){
+    if(!estimly3IsActive()) return;
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    if(!key){ alert('Chiave di licenza non trovata.'); return; }
+    const originalText = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Preparazione…';
+    try{
+      const res = await fetch('/.netlify/functions/public-quote', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'download-signed-document', key, quoteId })
+      });
+      if(!res.ok){
+        alert('Documento non trovato. Riprova o contatta l\'assistenza.');
+        return;
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get('Content-Disposition') || '';
+      const match = /filename="([^"]+)"/.exec(disposition);
+      const filename = match ? match[1] : 'Documento_firmato.pdf';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }catch(err){
+      console.error('Errore scaricando il documento firmato', err);
+      alert('Errore di connessione. Riprova.');
+    }finally{
+      btn.disabled = false; btn.textContent = originalText;
+    }
+  }
+
   // ---------- Pagamenti (SAL) su un preventivo firmato ----------
   // Lo studio crea qui una o più richieste di pagamento legate a un preventivo già firmato
   // (es. "Acconto 20%", "Saldo a 30gg"): il cliente le paga per intero, una alla volta, dallo
@@ -6797,6 +6835,8 @@ if('serviceWorker' in navigator){
       if(linkId) estimlyOpenClientLink(linkId);
       const paymentsId = e.target.getAttribute('data-payments');
       if(paymentsId) estimlyOpenPaymentsModal(paymentsId);
+      const downloadSignedId = e.target.getAttribute('data-download-signed');
+      if(downloadSignedId) estimlyDownloadSignedDocument(downloadSignedId, e.target);
     }
     const list1 = document.getElementById('savedQuotesList');
     if(list1) list1.addEventListener('click', estimly3HandleCloseQuoteClick);

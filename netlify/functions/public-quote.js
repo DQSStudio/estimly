@@ -234,7 +234,98 @@ async function signPublicQuote(licenses, dataStore, body, req){
     }
   }catch(err){ /* la firma del cliente non deve mai fallire per questo */ }
 
-  return { ok: true, firmatoAt: firma.firmatoAt };
+  // ip e hashDocumento tornano al client per essere stampati nel documento di accettazione
+  // firmato (PDF) che preventivo.html genera subito dopo e carica con 'store-signed-document'.
+  return { ok: true, firmatoAt: firma.firmatoAt, ip: firma.ip, hashDocumento: firma.hashDocumento };
+}
+
+function getSignedDocsStore(){
+  return getStore('signed-documents');
+}
+
+function signedDocKey(key, quoteId){
+  return `${key}__${quoteId}`;
+}
+
+// Salva il PDF del "documento di accettazione firmato" generato lato client (preventivo.html,
+// subito dopo la firma, con lo stesso approccio html2canvas+jsPDF usato in Estimly per il PDF
+// del preventivo). Salvato come bytes grezzi in uno store dedicato ('signed-documents'), separato
+// da 'studio-data', per non appesantire il record condiviso dello studio con allegati PDF.
+async function storeSignedDocument(licenses, dataStore, body){
+  const token = (body.token || '').trim();
+  const pdfBase64 = body.pdfBase64;
+  if(!token || !pdfBase64) return { error: 'missing_fields' };
+  // ~15MB in base64 come limite prudenziale (un documento firmato è tipicamente 1-2 pagine).
+  if(pdfBase64.length > 20 * 1024 * 1024) return { error: 'file_troppo_grande' };
+
+  const linksStore = getLinksStore();
+  const link = await linksStore.get(token, { type: 'json' });
+  if(!link) return { error: 'not_found' };
+
+  const license = await licenses.get(link.key, { type: 'json' });
+  if(!license || license.status !== 'active') return { error: 'not_found' };
+
+  const record = await loadStudioRecord(dataStore, link.key);
+  const savedQuotes = (record && Array.isArray(record.savedQuotes)) ? record.savedQuotes : [];
+  const idx = savedQuotes.findIndex(q => q.id === link.quoteId);
+  if(idx === -1) return { error: 'not_found' };
+
+  const quote = savedQuotes[idx];
+  if(!quote.client || !quote.client.firma || !quote.client.firma.firmato){
+    // Si può conservare un documento firmato solo per un preventivo che risulta davvero firmato.
+    return { error: 'non_firmato' };
+  }
+
+  let bytes;
+  try{
+    bytes = Uint8Array.from(atob(pdfBase64), c => c.charCodeAt(0));
+  }catch(err){
+    return { error: 'file_non_valido' };
+  }
+
+  await getSignedDocsStore().set(signedDocKey(link.key, link.quoteId), bytes, { metadata: { contentType: 'application/pdf' } });
+
+  quote.client = { ...quote.client, firma: { ...quote.client.firma, documentoConservato: true } };
+  savedQuotes[idx] = quote;
+  await saveStudioRecord(dataStore, link.key, { ...record, savedQuotes });
+
+  return { ok: true };
+}
+
+// Consente allo studio (autenticato con la propria chiave di licenza, non con il token pubblico
+// del cliente) di riscaricare in qualsiasi momento il documento di accettazione firmato,
+// conservato da Estimly come prova della firma del preventivo.
+async function downloadSignedDocument(licenses, dataStore, body){
+  let key = (body.key || '').trim().toUpperCase();
+  let quoteId = body.quoteId;
+
+  // Il cliente stesso può riscaricare la propria copia usando il link pubblico (senza chiave
+  // di licenza): usato da preventivo.html, dove non c'è alcuna autenticazione dello studio.
+  if(!key && body.token){
+    const linksStore = getLinksStore();
+    const link = await linksStore.get((body.token || '').trim(), { type: 'json' });
+    if(!link) return { error: 'not_found' };
+    key = link.key;
+    quoteId = link.quoteId;
+  }
+
+  if(!key || !quoteId) return { error: 'missing_fields' };
+
+  const license = await licenses.get(key, { type: 'json' });
+  if(!license || license.status !== 'active') return { error: 'invalid_license' };
+
+  const record = await loadStudioRecord(dataStore, key);
+  const savedQuotes = (record && Array.isArray(record.savedQuotes)) ? record.savedQuotes : [];
+  const quote = savedQuotes.find(q => q.id === quoteId);
+  if(!quote || !quote.client || !quote.client.firma || !quote.client.firma.documentoConservato){
+    return { error: 'not_found' };
+  }
+
+  const bytes = await getSignedDocsStore().get(signedDocKey(key, quoteId), { type: 'arrayBuffer' });
+  if(!bytes) return { error: 'not_found' };
+
+  const numero = (quote.client.numero || 'documento').replace(/[^a-zA-Z0-9_-]+/g, '_');
+  return { ok: true, bytes, filename: `Accettazione_firmata_${numero}.pdf` };
 }
 
 function getLinksStore(){
@@ -268,6 +359,23 @@ export default async (req) => {
     if (body.mode === 'sign') {
       const result = await signPublicQuote(licenses, dataStore, body, req);
       return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
+    }
+    if (body.mode === 'store-signed-document') {
+      const result = await storeSignedDocument(licenses, dataStore, body);
+      return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
+    }
+    if (body.mode === 'download-signed-document') {
+      const result = await downloadSignedDocument(licenses, dataStore, body);
+      if (result.error) {
+        return new Response(JSON.stringify(result), { status: 404 });
+      }
+      return new Response(result.bytes, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${result.filename}"`
+        }
+      });
     }
     return new Response(JSON.stringify({ error: 'unknown_mode' }), { status: 400 });
   } catch (err) {

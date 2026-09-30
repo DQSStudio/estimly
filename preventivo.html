@@ -60,6 +60,21 @@
   .payment-row .paid-badge{ font-size:11px; font-weight:700; color:var(--success); background:#E7F6EF; padding:4px 10px; border-radius:999px; white-space:nowrap; }
   .pay-btn{ padding:8px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer; white-space:nowrap; }
   .pay-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  .cert-wrap{ width:700px; padding:34px; background:#fff; color:#17181C; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; }
+  .cert-accent-bar{ height:5px; border-radius:3px; margin-bottom:20px; }
+  .cert-title{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  .cert-sub{ font-size:12px; color:#7A7C85; margin-bottom:18px; }
+  .cert-sign-box{ margin-top:24px; border:1.5px solid #E6E6E9; border-radius:12px; padding:16px 18px; }
+  .cert-sign-box .h{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:#7A7C85; margin-bottom:10px; }
+  .cert-meta-row{ display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0; gap:14px; }
+  .cert-meta-row .k{ color:#7A7C85; flex-shrink:0; }
+  .cert-meta-row .v{ font-weight:600; text-align:right; }
+  .cert-meta-row.stack{ display:block; padding-top:8px; }
+  .cert-meta-row.stack .k{ display:block; margin-bottom:3px; }
+  .cert-meta-row.stack .v{ display:block; text-align:left; word-break:break-all; font-weight:400; }
+  .cert-sign-img{ max-width:260px; max-height:90px; margin:10px 0; display:block; }
+  .cert-legal{ font-size:10.5px; color:#7A7C85; line-height:1.5; margin-top:12px; }
+  .signed-download-btn{ display:inline-block; margin-top:10px; font-size:11.5px; font-weight:600; color:var(--accent); text-decoration:none; cursor:pointer; background:none; border:none; padding:0; font-family:inherit; }
 </style>
 </head>
 <body>
@@ -67,6 +82,8 @@
   <div class="center-msg" id="loadingMsg">Caricamento preventivo…</div>
 </div>
 
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/html2canvas.min.js"></script>
 <script>
 (function(){
   const REGIMI_FISCALI = {
@@ -114,6 +131,7 @@
 
   const app = document.getElementById('app');
   const token = getToken();
+  let currentStudio = null;
 
   function renderError(message){
     app.innerHTML = `<div class="center-msg">${esc(message)}</div>`;
@@ -162,6 +180,7 @@
   });
 
   function render(studio, quote){
+    currentStudio = studio;
     const totals = computeTotals(quote);
     const dataLabel = quote.data ? new Date(quote.data+'T00:00:00').toLocaleDateString('it-IT') : '—';
 
@@ -262,6 +281,136 @@
     }
   }
 
+  // ---------- Documento di accettazione firmato (PDF da conservare) ----------
+  // Generato subito dopo la firma (lato client, stesso approccio html2canvas+jsPDF usato in
+  // Estimly per il PDF del preventivo), poi caricato su Estimly tramite 'store-signed-document'
+  // così lo studio può conservarlo e riscaricarlo in qualsiasi momento. Include anche i dati
+  // della firma restituiti dal server (ip, hashDocumento) come prova, oltre a quelli locali
+  // (nome, metodo, immagine firma se disegnata).
+
+  function buildCertificateNode(studio, quote){
+    const totals = computeTotals(quote);
+    const dataLabel = quote.data ? new Date(quote.data+'T00:00:00').toLocaleDateString('it-IT') : '—';
+    const accent = (studio && studio.colorPrimary) || '#4338CA';
+    const firma = quote.firma || {};
+    const firmatoLabel = firma.firmatoAt ? new Date(firma.firmatoAt).toLocaleString('it-IT') : '—';
+    const metodoLabel = firma.metodo === 'disegnata' ? 'Firma disegnata' : 'Nome digitato';
+
+    const itemsHtml = quote.hidePrices ? '' : quote.cart.map(l => `
+      <div class="item-row">
+        <div>
+          <div class="desc">${esc(l.nome)}</div>
+          ${l.categoria ? `<div class="cat">${esc(l.categoria)}</div>` : ''}
+        </div>
+        <div class="val">€ ${fmt(lineTotal(l))}</div>
+      </div>`).join('');
+
+    const node = document.createElement('div');
+    node.className = 'cert-wrap';
+    node.innerHTML = `
+      <div class="cert-accent-bar" style="background:${accent};"></div>
+      <div class="cert-title" style="color:${accent};">Documento di accettazione</div>
+      <div class="cert-sub">${esc(studio.nome)} — Preventivo ${esc(quote.numero || '—')}${quote.revisione ? ' · '+esc(quote.revisione) : ''}</div>
+      <div class="doc-title">${esc(quote.progetto || quote.cliente || 'Preventivo')}</div>
+      <div class="summary-row"><span class="k">Cliente</span><span class="v">${esc(quote.cliente || '—')}</span></div>
+      <div class="summary-row"><span class="k">Data preventivo</span><span class="v">${dataLabel}</span></div>
+      ${quote.hidePrices ? '' : `
+      <div class="items">${itemsHtml}</div>
+      <div class="totals">
+        <div class="total-row"><span>Imponibile</span><span class="val">€ ${fmt(totals.imponibile)}</span></div>
+        ${totals.sconto > 0 ? `<div class="total-row"><span>Sconto</span><span class="val">− € ${fmt(totals.sconto)}</span></div>` : ''}
+        ${quote.contributoPct > 0 ? `<div class="total-row"><span>${esc(quote.contributoLabel || 'Contributo')} (${fmt(quote.contributoPct)}%)</span><span class="val">€ ${fmt(totals.contributo)}</span></div>` : ''}
+        <div class="total-row"><span>${esc(totals.regime.label)}</span><span class="val">€ ${fmt(totals.iva)}</span></div>
+        <div class="total-row grand"><span>Totale</span><span class="val">€ ${fmt(totals.totale)}</span></div>
+      </div>`}
+      <div class="cert-sign-box">
+        <div class="h">Firma e accettazione</div>
+        <div class="cert-meta-row"><span class="k">Firmatario</span><span class="v">${esc(firma.firmatarioNome || '—')}</span></div>
+        <div class="cert-meta-row"><span class="k">Metodo</span><span class="v">${esc(metodoLabel)}</span></div>
+        <div class="cert-meta-row"><span class="k">Data e ora</span><span class="v">${esc(firmatoLabel)}</span></div>
+        ${firma.ip ? `<div class="cert-meta-row"><span class="k">Indirizzo IP</span><span class="v">${esc(firma.ip)}</span></div>` : ''}
+        ${firma.hashDocumento ? `<div class="cert-meta-row stack"><span class="k">Impronta documento (SHA-256)</span><span class="v" style="font-family:monospace; font-size:10.5px;">${esc(firma.hashDocumento)}</span></div>` : ''}
+        ${(firma.metodo === 'disegnata' && firma.firmaImage) ? `<img class="cert-sign-img" src="${firma.firmaImage}" alt="Firma">` : ''}
+        <div class="cert-legal">Firma elettronica semplice (SES) ai sensi del Regolamento eIDAS (UE) 910/2014, art. 25. Data/ora, indirizzo IP e impronta del documento sono stati registrati al momento della firma come prova dell'accettazione del preventivo sopra riportato.</div>
+      </div>
+    `;
+    node.style.cssText = 'position:absolute; left:-10000px; top:0; z-index:-1;';
+    document.body.appendChild(node);
+    return node;
+  }
+
+  async function generateSignedDocumentPdf(studio, quote){
+    if(typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF || typeof window.html2canvas !== 'function') return null;
+    const node = buildCertificateNode(studio, quote);
+    let result = null;
+    try{
+      const canvas = await window.html2canvas(node, { scale:2, useCORS:true, backgroundColor:'#ffffff', windowWidth:700 });
+      const { jsPDF } = window.jspdf;
+      const pdfWmm = 210, pdfHmm = 297;
+      const pxPerMm = canvas.width / pdfWmm;
+      const pageHeightPx = Math.floor(pdfHmm * pxPerMm);
+      const doc = new jsPDF({ unit:'mm', format:'a4' });
+      let renderedPx = 0, first = true;
+      while(renderedPx < canvas.height){
+        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeightPx;
+        pageCanvas.getContext('2d').drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const pageData = pageCanvas.toDataURL('image/jpeg', 0.92);
+        if(!first) doc.addPage();
+        doc.addImage(pageData, 'JPEG', 0, 0, pdfWmm, sliceHeightPx / pxPerMm);
+        renderedPx += sliceHeightPx;
+        first = false;
+      }
+      const numero = (quote.numero || 'documento').replace(/[^a-zA-Z0-9_-]+/g, '_');
+      const filename = `Accettazione_firmata_${numero}.pdf`;
+      const dataUri = doc.output('datauristring');
+      result = { base64: dataUri.split(',')[1], filename };
+    }catch(err){
+      console.error('Errore nella generazione del documento di accettazione firmato', err);
+    }finally{
+      node.remove();
+    }
+    return result;
+  }
+
+  async function storeSignedDocument(pdfBase64){
+    try{
+      await fetch('/.netlify/functions/public-quote', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'store-signed-document', token, pdfBase64 })
+      });
+    }catch(err){ /* la firma è già stata registrata: se il salvataggio del PDF fallisce, lo studio può comunque riscaricarlo più avanti se il caricamento fosse solo momentaneamente fallito, oppure il cliente può usare "Scarica documento firmato" qui sotto in un secondo momento */ }
+  }
+
+  async function downloadSignedDocumentPublic(btn){
+    const originalText = btn.textContent;
+    btn.textContent = 'Preparazione…';
+    btn.disabled = true;
+    try{
+      const res = await fetch('/.netlify/functions/public-quote', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ mode:'download-signed-document', token })
+      });
+      if(!res.ok) throw new Error('not_found');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Accettazione_firmata.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }catch(err){
+      alert('Documento non ancora disponibile. Riprova tra poco.');
+    }finally{
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  }
+
   function renderSignArea(quote){
     const area = document.getElementById('signArea');
     if(quote.firma && quote.firma.firmato){
@@ -272,8 +421,11 @@
           <div>
             Preventivo firmato da ${esc(quote.firma.firmatarioNome)}
             <div class="signed-sub">${firmatoLabel}</div>
+            <button type="button" class="signed-download-btn" id="downloadSignedBtn">Scarica il documento firmato (PDF)</button>
           </div>
         </div>`;
+      const dlBtn = document.getElementById('downloadSignedBtn');
+      if(dlBtn) dlBtn.addEventListener('click', ()=>downloadSignedDocumentPublic(dlBtn));
       return;
     }
 
@@ -412,9 +564,14 @@
           btn.disabled = false; btn.textContent = 'Conferma e firma';
           return;
         }
-        quote.firma = { firmato:true, firmatarioNome, firmatoAt:data.firmatoAt, metodo };
+        quote.firma = { firmato:true, firmatarioNome, firmatoAt:data.firmatoAt, metodo, firmaImage, ip:data.ip, hashDocumento:data.hashDocumento };
         renderSignArea(quote);
         renderPaymentsArea(quote);
+        // Genera e conserva il documento di accettazione firmato: non deve bloccare né
+        // rallentare la conferma già mostrata al cliente, per questo non è "await"-ato qui.
+        generateSignedDocumentPdf(currentStudio, quote).then(pdf => {
+          if(pdf) storeSignedDocument(pdf.base64);
+        });
       }catch(err){
         errBox.innerHTML = '<div class="error-box">Errore di connessione. Riprova.</div>';
         btn.disabled = false; btn.textContent = 'Conferma e firma';
