@@ -2119,6 +2119,11 @@ async function loadCloudData(){
       populateCategorySelect();
       renderCatalog();
       applyStudioSettings();
+      // La tariffa oraria salvata arriva solo qui (dal cloud), ma il gate "prima di tutto"
+      // viene valutato subito dopo il login, prima che questa fetch sia tornata: senza questo
+      // ricontrollo, uno studio che ha già impostato la tariffa la vede reimpostata a 0 e si
+      // ritrova bloccato sul wizard di benvenuto come se non l'avesse mai fatto.
+      if(typeof maybeShowOnboardingGate === 'function') maybeShowOnboardingGate();
     }
   }catch(err){
     console.error('Impossibile caricare i dati sincronizzati', err);
