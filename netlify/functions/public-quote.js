@@ -213,6 +213,27 @@ async function signPublicQuote(licenses, dataStore, body, req){
     await syncQuoteToDesearqManager(quote, { markNuovo: true });
   }
 
+  // Preventivo firmato -> aggiorna anche il follow-up collegato (se il preventivo era stato
+  // inviato con "Invia preventivo via email"), altrimenti la firma del cliente non compariva
+  // mai nel pannello follow-up: lì restava per sempre "Freddo"/qualunque fosse lo stato di
+  // apertura/click, perché firma e follow-up sono due store separati che prima non si
+  // parlavano affatto. Non deve mai bloccare la firma del cliente: eventuali errori restano
+  // silenziosi, esattamente come per syncQuoteToDesearqManager sopra.
+  try{
+    const numero = quote.client && quote.client.numero;
+    if(numero){
+      const followupsStore = getStore('followups');
+      const followupsList = (await followupsStore.get(link.key, { type: 'json', consistency: 'strong' })) || [];
+      const fu = followupsList.find(f => f.quoteRef === numero);
+      if(fu){
+        fu.events.push({ type: 'firmato', at: firma.firmatoAt });
+        fu.status = 'convertito';
+        fu.active = false;
+        await followupsStore.setJSON(link.key, followupsList);
+      }
+    }
+  }catch(err){ /* la firma del cliente non deve mai fallire per questo */ }
+
   return { ok: true, firmatoAt: firma.firmatoAt };
 }
 
