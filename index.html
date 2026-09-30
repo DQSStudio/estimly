@@ -6765,18 +6765,25 @@ if('serviceWorker' in navigator){
 </script>
 
 <script>
-/* ===================== Agente AI — onboarding + bolla (TEST, solo demo visiva) =====================
-   Ramo di prova per validare l'esperienza prima di collegare un modello vero (Haiku/Claude).
-   - Nessuna chiamata di rete verso un modello AI.
-   - Nessuna scrittura nei dati reali dello studio (catalogo, impostazioni, preventivi): le
-     risposte dell'onboarding restano in una variabile in memoria, solo per popolare il riepilogo.
-   - L'unica cosa che legge dai dati reali è la risposta della bolla "Che preventivi ho aperti?",
-     che conta savedQuotes in sola lettura (nessuna modifica).
+/* ===================== Agente AI — onboarding + bolla (TEST) =====================
+   Ramo di prova per validare l'esperienza. Disponibile per tutti gli utenti di Estimly 2.0
+   (nessun collegamento al flag "aiEnabled" delle licenze, per ora).
+   - Le domande fatte nella chat della bolla vengono inviate a netlify/functions/agent-ask.js,
+     che chiama davvero l'API di Anthropic (Claude Haiku) usando una chiave API server-side
+     (variabile d'ambiente ANTHROPIC_API_KEY su Netlify — MAI nel codice o nel browser).
+   - Se la chiave non è ancora configurata sull'ambiente, la funzione risponde con un errore
+     controllato e il frontend torna automaticamente a una risposta di esempio (demo), senza
+     rompere l'esperienza.
+   - Al modello viene inviato solo un riepilogo aggregato dei dati (numero di preventivi totali
+     e validi), MAI l'elenco completo con nomi clienti o importi: nessuna scrittura nei dati
+     reali dello studio in nessun caso.
+   - L'onboarding a schermo intero resta locale (nessuna chiamata di rete): le risposte restano
+     in una variabile in memoria, solo per popolare il riepilogo finale.
    - Attivo solo dentro il guscio di Estimly 2.0 (body.estimly2-theme), tramite MutationObserver
      sulla classe del body così non serve toccare applyFollowupVisibility().
    Per rimuovere il test: cancellare questo blocco <script>, il blocco CSS "Agente AI" nello
-   <style> principale, il markup #agentOnboarding/#agentBubbleWrap subito dopo <body>, e
-   assets/agent-mascotte.png. */
+   <style> principale, il markup #agentOnboarding/#agentBubbleWrap subito dopo <body>,
+   assets/agent-mascotte.png, e netlify/functions/agent-ask.js. */
 (function(){
   const SEEN_KEY = 'desearq-agent-test-onboarding-seen'; // demo-only, non è un dato di studio
 
@@ -6917,9 +6924,24 @@ if('serviceWorker' in navigator){
     div.textContent = text;
     log.appendChild(div);
     log.scrollTop = log.scrollHeight;
+    return div;
   }
 
-  function cannedAnswer(question){
+  /* Riepilogo aggregato (mai dati di dettaglio) da mandare al modello come contesto. */
+  function buildAgentContext(){
+    const ctx = { data_odierna: new Date().toISOString().slice(0, 10) };
+    try{
+      if(typeof savedQuotes !== 'undefined' && Array.isArray(savedQuotes)){
+        ctx.preventivi_totali = savedQuotes.length;
+        ctx.preventivi_validi = savedQuotes.filter(x => x.valido !== false).length;
+      }
+    }catch(e){}
+    return ctx;
+  }
+
+  /* Risposta di scorta, usata solo se la chiave AI non è ancora configurata sull'ambiente
+     oppure se la chiamata di rete fallisce. */
+  function fallbackAnswer(question){
     const q = question.toLowerCase();
     if(q.includes('preventiv') && (q.includes('apert') || q.includes('punto'))){
       if(typeof savedQuotes !== 'undefined'){
@@ -6928,22 +6950,43 @@ if('serviceWorker' in navigator){
         if(totali === 0) return 'Non hai ancora preventivi salvati in Estimly su questo studio.';
         return 'Hai ' + totali + ' preventiv' + (totali===1?'o salvato':'i salvati') + ', di cui ' + validi + ' ancora valid' + (validi===1?'o':'i') + '. (Dato letto in tempo reale dai tuoi preventivi salvati.)';
       }
-      return 'In questa demo non riesco a leggere i preventivi salvati.';
+      return 'Non riesco a leggere i preventivi salvati in questo momento.';
     }
     if(q.includes('costi fiss') || q.includes('margine')){
-      return 'In questa demo è solo una risposta di esempio: nella versione collegata a un modello reale controllerei qui i tuoi costi fissi del mese e ti avviserei se manca qualcosa.';
+      return 'Risposta di esempio: nella versione collegata a un modello reale controllerei qui i tuoi costi fissi del mese e ti avviserei se manca qualcosa.';
     }
-    if(q.includes('onboarding') || q.includes('configurazione')){
-      openOnboarding();
-      return null;
-    }
-    return 'Questa è una demo: risposte precompilate, non ancora collegata a un modello reale. Prova uno dei suggerimenti qui sotto.';
+    return 'Non riesco a rispondere in questo momento (assistente AI non disponibile). Prova uno dei suggerimenti qui sotto.';
   }
 
-  function askAgent(text){
+  async function askAgent(text){
     logMsg(text, 'user');
-    const reply = cannedAnswer(text);
-    if(reply) setTimeout(() => logMsg(reply, 'agent'), 350);
+    const q = text.toLowerCase();
+    if(q.includes('onboarding') || q.includes('configurazione')){
+      openOnboarding();
+      return;
+    }
+    const thinking = logMsg('Sto pensando…', 'agent');
+    try{
+      const resp = await fetch('/.netlify/functions/agent-ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: text, context: buildAgentContext() })
+      });
+      const data = await resp.json().catch(() => ({}));
+      thinking.remove();
+      if(data && data.error === 'missing_api_key'){
+        logMsg(fallbackAnswer(text), 'agent');
+        return;
+      }
+      if(data && data.reply){
+        logMsg(data.reply, 'agent');
+        return;
+      }
+      logMsg(fallbackAnswer(text), 'agent');
+    }catch(err){
+      thinking.remove();
+      logMsg(fallbackAnswer(text), 'agent');
+    }
   }
 
   function openPanel(){
