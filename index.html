@@ -155,7 +155,9 @@ body.estimly2-theme #e2OnboardingGate{ font-family:var(--e2-font); }
 .e2-lead-badge{ font-size:10.5px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; padding:4px 10px; border-radius:999px; white-space:nowrap; }
 .e2-lead-empty{ text-align:center; padding:40px 20px; color:var(--ink-soft,#6B6D76); font-size:13px; }
 .e2-lead-detail-row{ display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--e2-line); font-size:13px; }
-.e2-lead-detail-row b{ min-width:110px; flex-shrink:0; color:var(--ink-soft,#6B6D76); font-weight:600; }
+.e2-lead-detail-row b{ min-width:110px; flex-shrink:0; color:var(--ink-soft,#6B6D76); font-weight:600; padding-top:6px; }
+.e2-lead-edit-input{ flex:1 1 auto; min-width:0; border:1px solid var(--e2-line); border-radius:8px; padding:6px 10px; font-size:13px; font-family:inherit; background:var(--e2-bg); color:inherit; }
+.e2-lead-edit-input:focus{ outline:none; border-color:#4338CA; }
 .e2-lead-stage-btns{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
 .e2-lead-stage-btn{ padding:7px 13px; border-radius:999px; border:1px solid var(--e2-line); background:var(--e2-bg); cursor:pointer; font-size:12px; font-weight:600; }
 .e2-lead-stage-btn.active{ color:#fff; border-color:transparent; }
@@ -4288,19 +4290,29 @@ function renderLeadDetail(lead){
   }).join('');
 
   const data = formatEventDate ? formatEventDate(lead.ricevutoAt) : new Date(lead.ricevutoAt).toLocaleString('it-IT');
-  const rows = [
-    ['Nome', lead.nome || '—'],
-    ['Email', lead.email || lead.mittente || '—'],
-    ['Telefono', lead.telefono || '—'],
-    ['Tipo progetto', lead.tipoProgetto || '—'],
-    ['Luogo intervento', lead.indirizzoIntervento || '—'],
-    ['Ricevuta', data],
-    ['Oggetto mail', lead.oggetto || '—']
+
+  // Niente estrazione AI: questi campi li compila/corregge lo studio a mano (nome/email sono
+  // già pre-compilati quando riconoscibili dall'intestazione della mail).
+  const editableRows = [
+    ['nome', 'Nome', lead.nome || ''],
+    ['email', 'Email', lead.email || lead.mittente || ''],
+    ['telefono', 'Telefono', lead.telefono || ''],
+    ['tipoProgetto', 'Tipo progetto', lead.tipoProgetto || ''],
+    ['indirizzoIntervento', 'Luogo intervento', lead.indirizzoIntervento || '']
   ];
-  let html = rows.map(([label,val])=>`<div class="e2-lead-detail-row"><b>${label}</b><span>${escapeHtml(val)}</span></div>`).join('');
-  if(lead.note){
-    html += `<div class="e2-lead-detail-row"><b>Note</b><span>${escapeHtml(lead.note)}</span></div>`;
-  }
+  let html = editableRows.map(([field,label,val])=>`
+    <div class="e2-lead-detail-row">
+      <b>${label}</b>
+      <input type="text" class="e2-lead-edit-input" data-lead-field="${field}" value="${escapeHtml(val)}">
+    </div>`).join('');
+  html += `
+    <div class="e2-lead-detail-row">
+      <b>Note</b>
+      <textarea class="e2-lead-edit-input" data-lead-field="note" rows="2" style="resize:vertical; font-family:inherit;">${escapeHtml(lead.note||'')}</textarea>
+    </div>`;
+  html += `<div class="e2-lead-detail-row"><b>Ricevuta</b><span>${escapeHtml(data)}</span></div>`;
+  html += `<div class="e2-lead-detail-row"><b>Oggetto mail</b><span>${escapeHtml(lead.oggetto || '—')}</span></div>`;
+  html += `<div style="display:flex; justify-content:flex-end; margin-top:4px;"><button type="button" id="leadDetailSaveFieldsBtn" class="btn-save" style="font-size:12.5px; padding:6px 16px;">Salva modifiche</button></div>`;
   html += `<div style="margin-top:14px;"><b style="font-size:12.5px; color:var(--ink-soft,#6B6D76);">Testo email ricevuta</b><div class="e2-lead-text-box">${escapeHtml(lead.testo||'')}</div></div>`;
   document.getElementById('leadDetailInfo').innerHTML = html;
 }
@@ -4335,6 +4347,21 @@ async function updateLeadFonte(leadId, fonte){
       body: JSON.stringify({ key, action:'updateFonte', leadId, fonte })
     });
   }catch(err){ console.error('Impossibile aggiornare la provenienza della richiesta', err); }
+}
+
+async function updateLeadFields(leadId, fields){
+  const key = getLicenseKey();
+  const lead = leadsList.find(l=>l.id===leadId);
+  if(lead) Object.assign(lead, fields); // aggiornamento ottimistico
+  renderLeadsSection();
+  if(!key) return;
+  try{
+    await fetch('/.netlify/functions/leads', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action:'updateFields', leadId, fields })
+    });
+  }catch(err){ console.error('Impossibile salvare le modifiche alla richiesta', err); }
 }
 
 async function deleteLeadEntry(leadId){
@@ -4444,6 +4471,18 @@ document.getElementById('leadDetailDeleteBtn').addEventListener('click', ()=>{
 document.getElementById('leadDetailCreateQuoteBtn').addEventListener('click', ()=>{
   const lead = leadsList.find(l=>l.id===leadDetailCurrentId);
   if(lead) startQuoteFromLead(lead);
+});
+document.getElementById('leadDetailInfo').addEventListener('click', (e)=>{
+  if(e.target.id !== 'leadDetailSaveFieldsBtn' || !leadDetailCurrentId) return;
+  const fields = {};
+  document.querySelectorAll('#leadDetailInfo [data-lead-field]').forEach(el=>{
+    fields[el.getAttribute('data-lead-field')] = el.value;
+  });
+  updateLeadFields(leadDetailCurrentId, fields);
+  const btn = e.target;
+  const original = btn.textContent;
+  btn.textContent = 'Salvato ✓';
+  setTimeout(()=>{ btn.textContent = original; }, 1500);
 });
 /* ===================== fine Richieste (lead via mail) ===================== */
 

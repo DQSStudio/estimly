@@ -9,13 +9,17 @@ import { getStore } from '@netlify/blobs';
 //
 // Il webhook di Resend NON include il corpo della mail (solo i metadati): va richiesto a
 // parte con l'API "Received emails", usando la chiave Resend DELLO STUDIO (non una chiave
-// Estimly globale). L'estrazione dei campi strutturati usa invece una chiave Anthropic
-// dedicata a questa funzione (variabile d'ambiente LEAD_AI_API_KEY), separata sia dalla
-// chiave di EstimlyAI (estimlyai.js) sia dalle chiavi Resend dei singoli studi, per poter
-// monitorare i consumi di questa funzione in modo isolato.
+// Estimly globale).
+//
+// Niente estrazione AI: la richiesta arriva "grezza" (mittente/oggetto/testo) nella sezione
+// "Richieste" di Estimly 2.0, dove si gestisce a mano la fase della pipeline, la provenienza
+// e la creazione del contatto cliente in Rubrica quando si trasforma in preventivo. Il nome
+// e l'email del mittente vengono comunque riconosciuti leggendo l'intestazione "From" della
+// mail (nessuna chiamata esterna, istantaneo).
 
-const MODEL = 'claude-haiku-4-5-20251001';
-const FONTI_VALIDE = ['Sito web', 'Google', 'Social', 'Passaparola', 'Altro'];
+function stripHtml(html) {
+  return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
 
 async function fetchReceivedEmail(resendApiKey, emailId) {
   const res = await fetch(`https://api.resend.com/emails/receiving/${emailId}`, {
@@ -28,61 +32,15 @@ async function fetchReceivedEmail(resendApiKey, emailId) {
   return res.json();
 }
 
-function stripHtml(html) {
-  return String(html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-async function extractLeadWithAI(subject, bodyText) {
-  const apiKey = process.env.LEAD_AI_API_KEY;
-  if (!apiKey) throw new Error('missing_lead_ai_key');
-
-  const system = 'Sei un assistente che legge le mail di richiesta ricevute da uno studio di architettura/interior design e ne estrae i dati in un formato strutturato. ' +
-    'Rispondi SOLO con un oggetto JSON valido, senza testo aggiuntivo, con esattamente questi campi: ' +
-    '{"nome":"","email":"","telefono":"","tipoProgetto":"","indirizzoIntervento":"","fonte":"","note":""}. ' +
-    '"tipoProgetto" è una sintesi brevissima (max 6-7 parole) di cosa viene richiesto (es. "Progettazione bagno", "Ristrutturazione appartamento 80mq"). ' +
-    '"indirizzoIntervento" è l\'indirizzo o la zona del luogo dove si svolgerà il lavoro (via, città), se indicato — diverso dall\'indirizzo del mittente. ' +
-    '"fonte" indica come il contatto ha trovato lo studio, SOLO se esplicitamente indicato nel testo (es. "vi ho trovato su Google", "mi ha consigliato un amico", form del sito con un campo "come ci hai conosciuto") — deve essere esattamente uno tra: "Sito web", "Google", "Social", "Passaparola", "Altro", oppure stringa vuota se non è indicato. Non dedurlo dal solo fatto che sia arrivato via email. ' +
-    '"note" raccoglie in 1-2 frasi altri dettagli utili (budget, tempistiche) se presenti. ' +
-    'Se un campo non è presente nella mail, lascialo come stringa vuota. Non inventare informazioni non presenti nel testo.';
-
-  const userContent = `OGGETTO: ${subject}\n\nTESTO:\n${bodyText}`;
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 400,
-      system,
-      messages: [{ role: 'user', content: userContent }]
-    })
-  });
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error('ai_error: ' + errText.slice(0, 300));
+// Riconosce nome ed email dall'intestazione "From", nei formati più comuni:
+// 'Mario Rossi <mario@rossi.it>' oppure solo 'mario@rossi.it'.
+function parseMittente(from) {
+  const str = String(from || '').trim();
+  const match = str.match(/^"?([^"<]*)"?\s*<([^>]+)>\s*$/);
+  if (match) {
+    return { nome: match[1].trim(), email: match[2].trim() };
   }
-  const data = await res.json();
-  const textBlock = (data.content || []).find((b) => b.type === 'text');
-  const raw = textBlock ? textBlock.text : '{}';
-  const cleaned = raw.trim().replace(/^```json/, '').replace(/^```/, '').replace(/```$/, '');
-  try {
-    const parsed = JSON.parse(cleaned);
-    return {
-      nome: parsed.nome || '',
-      email: parsed.email || '',
-      telefono: parsed.telefono || '',
-      tipoProgetto: parsed.tipoProgetto || '',
-      indirizzoIntervento: parsed.indirizzoIntervento || '',
-      fonte: FONTI_VALIDE.includes(parsed.fonte) ? parsed.fonte : '',
-      note: parsed.note || ''
-    };
-  } catch (e) {
-    return { nome: '', email: '', telefono: '', tipoProgetto: '', indirizzoIntervento: '', fonte: '', note: '' };
-  }
+  return { nome: '', email: str };
 }
 
 export default async (req) => {
@@ -138,15 +96,7 @@ export default async (req) => {
 
   const subject = email.subject || '';
   const bodyText = (email.text && email.text.trim()) ? email.text.trim() : stripHtml(email.html);
-
-  let extracted;
-  try {
-    extracted = await extractLeadWithAI(subject, bodyText.slice(0, 6000));
-  } catch (err) {
-    // L'estrazione AI non deve mai far perdere la richiesta: se fallisce, salviamo comunque
-    // la mail grezza (mittente/oggetto/testo) così Nicola la vede e la gestisce a mano.
-    extracted = { nome: '', email: '', telefono: '', tipoProgetto: '', note: '' };
-  }
+  const mittenteInfo = parseMittente(email.from);
 
   const leadsStore = getStore('leads');
   const list = (await leadsStore.get(key, { type: 'json' })) || [];
@@ -156,13 +106,13 @@ export default async (req) => {
     mittente: email.from || '',
     oggetto: subject,
     testo: bodyText.slice(0, 4000),
-    nome: extracted.nome || '',
-    email: extracted.email || email.from || '',
-    telefono: extracted.telefono || '',
-    tipoProgetto: extracted.tipoProgetto || '',
-    indirizzoIntervento: extracted.indirizzoIntervento || '',
-    fonte: extracted.fonte || '',
-    note: extracted.note || '',
+    nome: mittenteInfo.nome || '',
+    email: mittenteInfo.email || email.from || '',
+    telefono: '',
+    tipoProgetto: '',
+    indirizzoIntervento: '',
+    fonte: '',
+    note: '',
     fase: 'nuova'
   };
   list.unshift(entry);

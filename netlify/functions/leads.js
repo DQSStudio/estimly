@@ -1,12 +1,16 @@
 import { getStore } from '@netlify/blobs';
 
 // ===================== Lettura e gestione lead (Estimly 2.0) =====================
-// I lead vengono creati da inbound-lead.js (webhook Resend -> estrazione AI) e salvati nello
-// store 'leads' (array per licenza, più recenti in testa). Questa function serve il frontend:
-// elenco, cambio fase nella pipeline, eliminazione.
+// I lead vengono creati da inbound-lead.js (webhook Resend, nome/email letti dall'intestazione
+// della mail) e salvati nello store 'leads' (array per licenza, più recenti in testa). Questa
+// function serve il frontend: elenco, cambio fase/provenienza, modifica manuale dei campi,
+// eliminazione.
 
 const VALID_FASI = ['nuova', 'contattato', 'preventivo_inviato', 'vinto', 'perso'];
 const VALID_FONTI = ['Sito web', 'Google', 'Social', 'Passaparola', 'Altro', ''];
+// Campi della richiesta modificabili a mano dalla scheda lead (niente estrazione AI:
+// nome/email vengono riconosciuti dall'intestazione della mail, il resto si compila a mano).
+const EDITABLE_FIELDS = ['nome', 'email', 'telefono', 'tipoProgetto', 'indirizzoIntervento', 'note'];
 
 export default async (req) => {
   if (req.method !== 'POST') {
@@ -66,6 +70,26 @@ export default async (req) => {
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
     }
     entry.fonte = fonte || '';
+    entry.aggiornatoAt = new Date().toISOString();
+    await leadsStore.setJSON(key, list);
+    return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
+  }
+
+  if (action === 'updateFields') {
+    const { leadId, fields } = body;
+    if (!leadId || !fields || typeof fields !== 'object') {
+      return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+    }
+    const list = (await leadsStore.get(key, { type: 'json' })) || [];
+    const entry = list.find((l) => l.id === leadId);
+    if (!entry) {
+      return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+    }
+    EDITABLE_FIELDS.forEach((f) => {
+      if (Object.prototype.hasOwnProperty.call(fields, f)) {
+        entry[f] = String(fields[f] || '').trim();
+      }
+    });
     entry.aggiornatoAt = new Date().toISOString();
     await leadsStore.setJSON(key, list);
     return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
