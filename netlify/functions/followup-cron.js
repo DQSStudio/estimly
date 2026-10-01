@@ -30,6 +30,7 @@ export default async (req) => {
   const dataStore = getStore('studio-data');
 
   const { blobs } = await licensesStore.list();
+  console.log(`[followup-cron] avvio esecuzione, licenze totali=${blobs.length}`);
   let sent = 0;
   let skippedNoKey = 0;
   let errors = 0;
@@ -39,11 +40,16 @@ export default async (req) => {
     let list;
     try {
       list = await followupsStore.get(key, { type: 'json' });
-    } catch (e) { continue; }
+    } catch (e) {
+      console.error(`[followup-cron] errore lettura followups per key=${key}:`, String(e.message || e));
+      continue;
+    }
     if (!Array.isArray(list) || list.length === 0) continue;
 
     const dueEntries = list.filter(f => f.active && f.step < SEQUENCE_DAYS.length && new Date(f.nextDueAt) <= new Date());
     if (dueEntries.length === 0) continue;
+
+    console.log(`[followup-cron] key=${key}: ${dueEntries.length} follow-up in scadenza`);
 
     const studioData = await dataStore.get(key, { type: 'json' });
     const settings = (studioData && studioData.studioSettings) || {};
@@ -52,6 +58,7 @@ export default async (req) => {
     const fromName = settings.resendFromName || settings.nome || 'Studio';
 
     if (!resendKey || !fromEmail) {
+      console.log(`[followup-cron] key=${key}: email non configurata, salto ${dueEntries.length} follow-up`);
       skippedNoKey += dueEntries.length;
       continue;
     }
@@ -89,10 +96,14 @@ export default async (req) => {
           }
           sent += 1;
           changed = true;
+          console.log(`[followup-cron] key=${key}: inviato promemoria ${nextStep} per followup ${entry.id} a ${entry.clienteEmail}`);
         } else {
+          const detail = await res.text();
+          console.error(`[followup-cron] key=${key}: invio fallito per followup ${entry.id}:`, detail.slice(0, 300));
           errors += 1;
         }
       } catch (e) {
+        console.error(`[followup-cron] key=${key}: eccezione invio followup ${entry.id}:`, String(e.message || e));
         errors += 1;
       }
     }
@@ -101,6 +112,7 @@ export default async (req) => {
     }
   }
 
+  console.log(`[followup-cron] fine esecuzione: inviati=${sent}, saltati_no_key=${skippedNoKey}, errori=${errors}`);
   return new Response(JSON.stringify({ ok: true, sent, skippedNoKey, errors }), { status: 200 });
 };
 
