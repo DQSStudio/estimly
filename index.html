@@ -187,13 +187,22 @@ body.estimly2-theme header.top{ background:var(--e2-bg); border-bottom-color:var
 .e2-activity-main b{ font-weight:600; }
 .e2-activity-date{ font-size:11.5px; color:var(--e2-muted); white-space:nowrap; }
 .e2-activity-empty{ font-size:13px; color:var(--e2-muted); text-align:center; padding:20px 0; }
-.e2-analytics-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:18px; }
+.e2-analytics-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-bottom:24px; }
 @media (max-width: 1000px){ .e2-analytics-grid{ grid-template-columns:1fr; } }
-.e2-barlist-row{ display:flex; align-items:center; gap:10px; padding:7px 0; }
-.e2-barlist-label{ flex:0 0 108px; font-size:12px; color:var(--e2-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.e2-barlist-track{ flex:1 1 auto; height:10px; border-radius:4px; background:var(--e2-surface, #F0F0F2); overflow:hidden; }
-.e2-barlist-fill{ height:100%; border-radius:0 4px 4px 0; min-width:3px; }
-.e2-barlist-count{ flex:0 0 24px; text-align:right; font-size:12px; font-weight:700; color:var(--e2-ink); font-variant-numeric:tabular-nums; }
+.e2-dash-grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px; }
+@media (max-width: 900px){ .e2-dash-grid-2{ grid-template-columns:1fr; } }
+.e2-donut-wrap{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.e2-donut-svg{ flex-shrink:0; }
+.e2-donut-svg circle{ transition:opacity .15s ease; cursor:default; }
+.e2-donut-svg circle:hover{ opacity:0.82; }
+.e2-donut-total{ font-size:21px; font-weight:700; fill:var(--e2-ink); }
+.e2-donut-total-label{ font-size:9.5px; fill:var(--e2-muted); letter-spacing:0.4px; text-transform:uppercase; }
+.e2-donut-legend{ flex:1 1 130px; min-width:118px; display:flex; flex-direction:column; gap:8px; }
+.e2-donut-legend-row{ display:flex; align-items:center; gap:7px; font-size:12.5px; }
+.e2-donut-swatch{ width:9px; height:9px; border-radius:3px; flex-shrink:0; }
+.e2-donut-legend-label{ flex:1; min-width:0; color:var(--e2-ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.e2-donut-legend-value{ font-weight:700; color:var(--e2-ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.e2-donut-legend-pct{ font-weight:400; color:var(--e2-muted); font-size:11px; }
 
 /* "Costo orario" (Estimly 2.0): fa parte del guscio (vive dentro .e2-dash-wrap, punto 17),
    quindi il titolo di pagina e il riepilogo finale seguono i token DSM invece del vecchio verde
@@ -1029,16 +1038,6 @@ header.top{
       </div>
     </div>
 
-    <div class="e2-activity-card">
-      <div class="e2-activity-head">Preventivi per cliente</div>
-      <div id="e2TopClientsList"></div>
-    </div>
-
-    <div class="e2-activity-card">
-      <div class="e2-activity-head">Attività recente</div>
-      <div id="e2ActivityList"></div>
-    </div>
-
     <div class="e2-analytics-grid">
       <div class="e2-activity-card">
         <div class="e2-activity-head">Richieste per stato</div>
@@ -1051,6 +1050,18 @@ header.top{
       <div class="e2-activity-card">
         <div class="e2-activity-head">Follow-up per stato</div>
         <div id="e2ChartFollowupStato"></div>
+      </div>
+    </div>
+
+    <div class="e2-dash-grid-2">
+      <div class="e2-activity-card">
+        <div class="e2-activity-head">Preventivi per cliente</div>
+        <div id="e2TopClientsList"></div>
+      </div>
+
+      <div class="e2-activity-card">
+        <div class="e2-activity-head">Attività recente</div>
+        <div id="e2ActivityList"></div>
       </div>
     </div>
   </div>
@@ -4160,7 +4171,11 @@ const LEAD_FONTE_ORDER = ['Sito web','Google','Social','Passaparola','Altro','']
 // Riga di un mini bar-chart orizzontale: etichetta — barra proporzionale al massimo del
 // gruppo — conteggio. Usato per le card di analisi in Dashboard (Richieste per stato/
 // provenienza, Follow-up per stato). Niente libreria esterna: coerente col resto dell'app.
-function renderBarList(containerId, rows, emptyText){
+// Donut chart in SVG puro (nessuna libreria): un cerchio diviso in archi via
+// stroke-dasharray, con un piccolo gap tra i segmenti, totale al centro e legenda
+// con etichetta/valore/percentuale a fianco (l'identità non è mai affidata al
+// solo colore). Tooltip nativo del browser sull'arco al passaggio del mouse.
+function renderDonutChart(containerId, rows, emptyText){
   const box = document.getElementById(containerId);
   if(!box) return;
   const visible = rows.filter(r=>r.count>0);
@@ -4168,29 +4183,54 @@ function renderBarList(containerId, rows, emptyText){
     box.innerHTML = `<div class="e2-activity-empty">${emptyText}</div>`;
     return;
   }
-  const max = Math.max(...visible.map(r=>r.count));
-  box.innerHTML = visible.map(r=>`
-    <div class="e2-barlist-row">
-      <div class="e2-barlist-label">${escapeHtml(r.label)}</div>
-      <div class="e2-barlist-track"><div class="e2-barlist-fill" style="width:${Math.max(4, Math.round(r.count/max*100))}%; background:${r.color};"></div></div>
-      <div class="e2-barlist-count">${r.count}</div>
-    </div>
-  `).join('');
+  const total = visible.reduce((s,r)=>s+r.count,0);
+  const size = 136, strokeW = 20, r = (size-strokeW)/2, cx = size/2, cy = size/2;
+  const circumference = 2*Math.PI*r;
+  const gapFrac = visible.length>1 ? 2.4/360 : 0; // piccolo stacco visivo tra un arco e l'altro
+
+  let cumulative = 0;
+  const segments = visible.map(row=>{
+    const frac = row.count/total;
+    const dashLen = Math.max(0, (frac-gapFrac)*circumference);
+    const dashOffset = -cumulative*circumference;
+    cumulative += frac;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${row.color}" stroke-width="${strokeW}" stroke-dasharray="${dashLen} ${Math.max(0,circumference-dashLen)}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 ${cx} ${cy})"><title>${escapeHtml(row.label)}: ${row.count} (${Math.round(frac*100)}%)</title></circle>`;
+  }).join('');
+
+  const legend = visible.map(row=>{
+    const pct = Math.round(row.count/total*100);
+    return `
+    <div class="e2-donut-legend-row">
+      <span class="e2-donut-swatch" style="background:${row.color};"></span>
+      <span class="e2-donut-legend-label">${escapeHtml(row.label)}</span>
+      <span class="e2-donut-legend-value">${row.count} <span class="e2-donut-legend-pct">${pct}%</span></span>
+    </div>`;
+  }).join('');
+
+  box.innerHTML = `
+    <div class="e2-donut-wrap">
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="e2-donut-svg">
+        ${segments}
+        <text x="${cx}" y="${cy-3}" text-anchor="middle" class="e2-donut-total">${total}</text>
+        <text x="${cx}" y="${cy+14}" text-anchor="middle" class="e2-donut-total-label">totale</text>
+      </svg>
+      <div class="e2-donut-legend">${legend}</div>
+    </div>`;
 }
 
 function renderLeadDashboardCharts(){
   if(!document.getElementById('e2ChartLeadStato')) return;
-  renderBarList('e2ChartLeadStato', LEAD_FASE_ORDER.map(f=>({
+  renderDonutChart('e2ChartLeadStato', LEAD_FASE_ORDER.map(f=>({
     label: LEAD_FASE_META[f].label, color: LEAD_FASE_META[f].color,
     count: leadsList.filter(l=>l.fase===f).length
   })), 'Nessuna richiesta ricevuta ancora.');
 
-  renderBarList('e2ChartLeadFonte', LEAD_FONTE_ORDER.map(f=>({
+  renderDonutChart('e2ChartLeadFonte', LEAD_FONTE_ORDER.map(f=>({
     label: LEAD_FONTE_META[f].label, color: LEAD_FONTE_META[f].color,
     count: leadsList.filter(l=>(l.fonte||'')===f).length
   })), 'Nessuna richiesta ricevuta ancora.');
 
-  renderBarList('e2ChartFollowupStato', Object.keys(FOLLOWUP_STATUS_META).map(s=>({
+  renderDonutChart('e2ChartFollowupStato', Object.keys(FOLLOWUP_STATUS_META).map(s=>({
     label: FOLLOWUP_STATUS_META[s].label.split(' — ')[0], color: FOLLOWUP_STATUS_META[s].color,
     count: followupsList.filter(f=>f.status===s).length
   })), 'Nessun follow-up attivato ancora.');
