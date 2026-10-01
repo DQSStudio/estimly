@@ -15,6 +15,7 @@ import { getStore } from '@netlify/blobs';
 // monitorare i consumi di questa funzione in modo isolato.
 
 const MODEL = 'claude-haiku-4-5-20251001';
+const FONTI_VALIDE = ['Sito web', 'Google', 'Social', 'Passaparola', 'Altro'];
 
 async function fetchReceivedEmail(resendApiKey, emailId) {
   const res = await fetch(`https://api.resend.com/emails/receiving/${emailId}`, {
@@ -37,9 +38,10 @@ async function extractLeadWithAI(subject, bodyText) {
 
   const system = 'Sei un assistente che legge le mail di richiesta ricevute da uno studio di architettura/interior design e ne estrae i dati in un formato strutturato. ' +
     'Rispondi SOLO con un oggetto JSON valido, senza testo aggiuntivo, con esattamente questi campi: ' +
-    '{"nome":"","email":"","telefono":"","tipoProgetto":"","indirizzoIntervento":"","note":""}. ' +
+    '{"nome":"","email":"","telefono":"","tipoProgetto":"","indirizzoIntervento":"","fonte":"","note":""}. ' +
     '"tipoProgetto" è una sintesi brevissima (max 6-7 parole) di cosa viene richiesto (es. "Progettazione bagno", "Ristrutturazione appartamento 80mq"). ' +
     '"indirizzoIntervento" è l\'indirizzo o la zona del luogo dove si svolgerà il lavoro (via, città), se indicato — diverso dall\'indirizzo del mittente. ' +
+    '"fonte" indica come il contatto ha trovato lo studio, SOLO se esplicitamente indicato nel testo (es. "vi ho trovato su Google", "mi ha consigliato un amico", form del sito con un campo "come ci hai conosciuto") — deve essere esattamente uno tra: "Sito web", "Google", "Social", "Passaparola", "Altro", oppure stringa vuota se non è indicato. Non dedurlo dal solo fatto che sia arrivato via email. ' +
     '"note" raccoglie in 1-2 frasi altri dettagli utili (budget, tempistiche) se presenti. ' +
     'Se un campo non è presente nella mail, lascialo come stringa vuota. Non inventare informazioni non presenti nel testo.';
 
@@ -75,10 +77,11 @@ async function extractLeadWithAI(subject, bodyText) {
       telefono: parsed.telefono || '',
       tipoProgetto: parsed.tipoProgetto || '',
       indirizzoIntervento: parsed.indirizzoIntervento || '',
+      fonte: FONTI_VALIDE.includes(parsed.fonte) ? parsed.fonte : '',
       note: parsed.note || ''
     };
   } catch (e) {
-    return { nome: '', email: '', telefono: '', tipoProgetto: '', indirizzoIntervento: '', note: '' };
+    return { nome: '', email: '', telefono: '', tipoProgetto: '', indirizzoIntervento: '', fonte: '', note: '' };
   }
 }
 
@@ -158,6 +161,7 @@ export default async (req) => {
     telefono: extracted.telefono || '',
     tipoProgetto: extracted.tipoProgetto || '',
     indirizzoIntervento: extracted.indirizzoIntervento || '',
+    fonte: extracted.fonte || '',
     note: extracted.note || '',
     fase: 'nuova'
   };

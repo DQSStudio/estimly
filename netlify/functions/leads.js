@@ -6,6 +6,7 @@ import { getStore } from '@netlify/blobs';
 // elenco, cambio fase nella pipeline, eliminazione.
 
 const VALID_FASI = ['nuova', 'contattato', 'preventivo_inviato', 'vinto', 'perso'];
+const VALID_FONTI = ['Sito web', 'Google', 'Social', 'Passaparola', 'Altro', ''];
 
 export default async (req) => {
   if (req.method !== 'POST') {
@@ -49,6 +50,22 @@ export default async (req) => {
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
     }
     entry.fase = fase;
+    entry.aggiornatoAt = new Date().toISOString();
+    await leadsStore.setJSON(key, list);
+    return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
+  }
+
+  if (action === 'updateFonte') {
+    const { leadId, fonte } = body;
+    if (!leadId || !VALID_FONTI.includes(fonte || '')) {
+      return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+    }
+    const list = (await leadsStore.get(key, { type: 'json' })) || [];
+    const entry = list.find((l) => l.id === leadId);
+    if (!entry) {
+      return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+    }
+    entry.fonte = fonte || '';
     entry.aggiornatoAt = new Date().toISOString();
     await leadsStore.setJSON(key, list);
     return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });

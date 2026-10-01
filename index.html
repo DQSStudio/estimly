@@ -185,6 +185,13 @@ body.estimly2-theme header.top{ background:var(--e2-bg); border-bottom-color:var
 .e2-activity-main b{ font-weight:600; }
 .e2-activity-date{ font-size:11.5px; color:var(--e2-muted); white-space:nowrap; }
 .e2-activity-empty{ font-size:13px; color:var(--e2-muted); text-align:center; padding:20px 0; }
+.e2-analytics-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:18px; }
+@media (max-width: 1000px){ .e2-analytics-grid{ grid-template-columns:1fr; } }
+.e2-barlist-row{ display:flex; align-items:center; gap:10px; padding:7px 0; }
+.e2-barlist-label{ flex:0 0 108px; font-size:12px; color:var(--e2-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.e2-barlist-track{ flex:1 1 auto; height:10px; border-radius:4px; background:var(--e2-surface, #F0F0F2); overflow:hidden; }
+.e2-barlist-fill{ height:100%; border-radius:0 4px 4px 0; min-width:3px; }
+.e2-barlist-count{ flex:0 0 24px; text-align:right; font-size:12px; font-weight:700; color:var(--e2-ink); font-variant-numeric:tabular-nums; }
 
 /* "Costo orario" (Estimly 2.0): fa parte del guscio (vive dentro .e2-dash-wrap, punto 17),
    quindi il titolo di pagina e il riepilogo finale seguono i token DSM invece del vecchio verde
@@ -1029,6 +1036,21 @@ header.top{
       <div class="e2-activity-head">Attività recente</div>
       <div id="e2ActivityList"></div>
     </div>
+
+    <div class="e2-analytics-grid">
+      <div class="e2-activity-card">
+        <div class="e2-activity-head">Richieste per stato</div>
+        <div id="e2ChartLeadStato"></div>
+      </div>
+      <div class="e2-activity-card">
+        <div class="e2-activity-head">Richieste per provenienza</div>
+        <div id="e2ChartLeadFonte"></div>
+      </div>
+      <div class="e2-activity-card">
+        <div class="e2-activity-head">Follow-up per stato</div>
+        <div id="e2ChartFollowupStato"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1828,6 +1850,8 @@ header.top{
     </div>
     <div class="modal-body" style="max-height:70vh; overflow:auto;">
       <div class="e2-lead-stage-btns" id="leadDetailStageBtns"></div>
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; color:var(--ink-soft,#6B6D76); margin:14px 0 6px;">Provenienza</div>
+      <div class="e2-lead-stage-btns" id="leadDetailFonteBtns"></div>
       <div id="leadDetailInfo"></div>
     </div>
     <div class="modal-actions" style="justify-content:space-between;">
@@ -4119,6 +4143,57 @@ const LEAD_FASE_META = {
 };
 const LEAD_FASE_ORDER = ['nuova','contattato','preventivo_inviato','vinto','perso'];
 
+// Palette categoriale validata (ordine fisso, distinguibile anche per chi ha daltonismo) usata
+// per la provenienza dei lead — unica cosa qui senza un ordine "di stato" naturale.
+const LEAD_FONTE_META = {
+  'Sito web':   { label:'Sito web',   color:'#2a78d6' },
+  'Google':     { label:'Google',     color:'#eb6834' },
+  'Social':     { label:'Social',     color:'#1baf7a' },
+  'Passaparola':{ label:'Passaparola',color:'#eda100' },
+  'Altro':      { label:'Altro',      color:'#e87ba4' },
+  '':           { label:'Non specificata', color:'#9CA3AF' }
+};
+const LEAD_FONTE_ORDER = ['Sito web','Google','Social','Passaparola','Altro',''];
+
+// Riga di un mini bar-chart orizzontale: etichetta — barra proporzionale al massimo del
+// gruppo — conteggio. Usato per le card di analisi in Dashboard (Richieste per stato/
+// provenienza, Follow-up per stato). Niente libreria esterna: coerente col resto dell'app.
+function renderBarList(containerId, rows, emptyText){
+  const box = document.getElementById(containerId);
+  if(!box) return;
+  const visible = rows.filter(r=>r.count>0);
+  if(visible.length===0){
+    box.innerHTML = `<div class="e2-activity-empty">${emptyText}</div>`;
+    return;
+  }
+  const max = Math.max(...visible.map(r=>r.count));
+  box.innerHTML = visible.map(r=>`
+    <div class="e2-barlist-row">
+      <div class="e2-barlist-label">${escapeHtml(r.label)}</div>
+      <div class="e2-barlist-track"><div class="e2-barlist-fill" style="width:${Math.max(4, Math.round(r.count/max*100))}%; background:${r.color};"></div></div>
+      <div class="e2-barlist-count">${r.count}</div>
+    </div>
+  `).join('');
+}
+
+function renderLeadDashboardCharts(){
+  if(!document.getElementById('e2ChartLeadStato')) return;
+  renderBarList('e2ChartLeadStato', LEAD_FASE_ORDER.map(f=>({
+    label: LEAD_FASE_META[f].label, color: LEAD_FASE_META[f].color,
+    count: leadsList.filter(l=>l.fase===f).length
+  })), 'Nessuna richiesta ricevuta ancora.');
+
+  renderBarList('e2ChartLeadFonte', LEAD_FONTE_ORDER.map(f=>({
+    label: LEAD_FONTE_META[f].label, color: LEAD_FONTE_META[f].color,
+    count: leadsList.filter(l=>(l.fonte||'')===f).length
+  })), 'Nessuna richiesta ricevuta ancora.');
+
+  renderBarList('e2ChartFollowupStato', Object.keys(FOLLOWUP_STATUS_META).map(s=>({
+    label: FOLLOWUP_STATUS_META[s].label.split(' — ')[0], color: FOLLOWUP_STATUS_META[s].color,
+    count: followupsList.filter(f=>f.status===s).length
+  })), 'Nessun follow-up attivato ancora.');
+}
+
 async function loadLeadsCloud(){
   const key = getLicenseKey();
   if(!key) return;
@@ -4205,6 +4280,13 @@ function renderLeadDetail(lead){
     return `<button type="button" class="e2-lead-stage-btn ${isActive?'active':''}" data-set-fase="${f}" style="${isActive?`background:${meta.color};`:''}">${meta.label}</button>`;
   }).join('');
 
+  const fonteBtnsBox = document.getElementById('leadDetailFonteBtns');
+  fonteBtnsBox.innerHTML = LEAD_FONTE_ORDER.map(f=>{
+    const meta = LEAD_FONTE_META[f];
+    const isActive = (lead.fonte||'') === f;
+    return `<button type="button" class="e2-lead-stage-btn ${isActive?'active':''}" data-set-fonte="${f}" style="${isActive?`background:${meta.color};`:''}">${meta.label}</button>`;
+  }).join('');
+
   const data = formatEventDate ? formatEventDate(lead.ricevutoAt) : new Date(lead.ricevutoAt).toLocaleString('it-IT');
   const rows = [
     ['Nome', lead.nome || '—'],
@@ -4237,6 +4319,22 @@ async function updateLeadStage(leadId, fase){
       body: JSON.stringify({ key, action:'updateStage', leadId, fase })
     });
   }catch(err){ console.error('Impossibile aggiornare lo stato della richiesta', err); }
+}
+
+async function updateLeadFonte(leadId, fonte){
+  const key = getLicenseKey();
+  if(!key) return;
+  const lead = leadsList.find(l=>l.id===leadId);
+  if(lead) lead.fonte = fonte;
+  renderLeadsSection();
+  if(leadDetailCurrentId===leadId) renderLeadDetail(lead);
+  try{
+    await fetch('/.netlify/functions/leads', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action:'updateFonte', leadId, fonte })
+    });
+  }catch(err){ console.error('Impossibile aggiornare la provenienza della richiesta', err); }
 }
 
 async function deleteLeadEntry(leadId){
@@ -4330,6 +4428,11 @@ document.getElementById('leadDetailStageBtns').addEventListener('click', (e)=>{
   if(!btn || !leadDetailCurrentId) return;
   updateLeadStage(leadDetailCurrentId, btn.getAttribute('data-set-fase'));
 });
+document.getElementById('leadDetailFonteBtns').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-set-fonte]');
+  if(!btn || !leadDetailCurrentId) return;
+  updateLeadFonte(leadDetailCurrentId, btn.getAttribute('data-set-fonte'));
+});
 document.getElementById('leadDetailClose').addEventListener('click', closeLeadDetail);
 document.getElementById('leadDetailCloseBtn').addEventListener('click', closeLeadDetail);
 document.getElementById('leadDetailModal').addEventListener('click', (e)=>{
@@ -4383,7 +4486,7 @@ function switchEstimly2Page(pageId){
   } else {
     preventivoPage.style.display = 'none';
   }
-  if(pageId === 'dashboard'){ renderDashboard(); loadLeadsCloud(); }
+  if(pageId === 'dashboard'){ renderDashboard(); loadLeadsCloud().then(renderDashboard); loadFollowupsCloud().then(renderDashboard); }
   if(pageId === 'richieste') loadLeadsCloud();
   if(pageId === 'rubrica') renderRubricaList();
   if(pageId === 'salvati') renderSavedQuotesList();
@@ -4405,6 +4508,7 @@ function renderDashboard(){
   document.getElementById('e2StatSent').textContent = followupsList.filter(f=>(f.events||[]).some(e=>e.type==='inviato_preventivo')).length;
   document.getElementById('e2StatOpened').textContent = followupsList.filter(f=>(f.events||[]).some(e=>e.type==='aperto')).length;
   document.getElementById('e2StatFollowupsActive').textContent = followupsList.filter(f=>f.active).length;
+  renderLeadDashboardCharts();
 
   // Preventivi per cliente: quanti ne sono stati fatti, e quanti vinti, per ciascun cliente.
   const topClientsBox = document.getElementById('e2TopClientsList');
