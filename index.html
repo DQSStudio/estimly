@@ -1395,7 +1395,11 @@ header.top{
   <div class="e2-dash-wrap">
     <div class="field-section-label" style="margin-top:0;">Rubrica clienti</div>
     <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">I dati dei clienti inseriti nei preventivi vengono salvati qui, così puoi riprenderli in futuro senza reinserirli.</div>
-    <button type="button" id="addClientBtn" class="new-item-btn" style="margin-bottom:12px;">+ Nuovo cliente</button>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+      <button type="button" id="addClientBtn" class="new-item-btn">+ Nuovo cliente</button>
+      <button type="button" id="importClientsSheetBtn" class="new-item-btn" style="background:#fff; color:var(--ink); border:1px solid var(--e2-line, #E3E3E8);">⟳ Importa dal foglio richieste</button>
+    </div>
+    <div id="importClientsSheetStatus" style="font-size:12px; color:var(--ink-soft); margin:-4px 0 12px; display:none;"></div>
     <div id="rubricaList"></div>
     <div id="rubricaEmpty" style="display:none; font-size:13px; color:var(--ink-soft); padding:20px 0; text-align:center;">Nessun cliente in rubrica.</div>
   </div>
@@ -2312,6 +2316,40 @@ async function loadClientsCloud(){
   }
 }
 
+async function importClientsFromSheet(){
+  const key = getLicenseKey();
+  const statusBox = document.getElementById('importClientsSheetStatus');
+  const btn = document.getElementById('importClientsSheetBtn');
+  if(!key){
+    if(statusBox){ statusBox.style.display='block'; statusBox.textContent='Serve una licenza attiva per importare dal foglio.'; }
+    return;
+  }
+  if(btn) btn.disabled = true;
+  if(statusBox){ statusBox.style.display='block'; statusBox.textContent='Importazione in corso...'; }
+  try{
+    const res = await fetch('/.netlify/functions/clients-sheet-sync', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key })
+    });
+    const data = await res.json();
+    if(data && data.ok){
+      clients = data.clients || clients;
+      persistClientsLocal();
+      renderRubricaList();
+      renderClientPickerList();
+      if(statusBox) statusBox.textContent = `Fatto: ${data.created} nuovi, ${data.updated} aggiornati.`;
+    } else {
+      if(statusBox) statusBox.textContent = 'Importazione non riuscita: ' + (data && data.error ? data.error : 'errore sconosciuto');
+    }
+  }catch(err){
+    console.error('Impossibile importare dal foglio', err);
+    if(statusBox) statusBox.textContent = 'Importazione non riuscita (errore di rete).';
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
+
 async function saveClientToRubrica(clientData){
   const key = getLicenseKey();
   let saved = null;
@@ -2371,7 +2409,8 @@ function clientSummaryHtml(c){
   if(c.telefono) bits.push(c.telefono);
   if(c.cf) bits.push(c.cf);
   if(c.piva) bits.push(c.piva);
-  return `<div class="client-list-name">${escapeHtml(c.cliente || 'Cliente senza nome')}</div><div class="client-list-meta">${escapeHtml(bits.join(' · ') || c.tipoCliente || '')}</div>`;
+  const sheetBadge = c.sourceSheet ? ' <span style="font-size:9.5px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; color:#4338CA; background:#EEEDFB; padding:2px 7px; border-radius:999px; vertical-align:middle;">Dal foglio</span>' : '';
+  return `<div class="client-list-name">${escapeHtml(c.cliente || 'Cliente senza nome')}${sheetBadge}</div><div class="client-list-meta">${escapeHtml(bits.join(' · ') || c.tipoCliente || '')}</div>`;
 }
 
 function renderRubricaList(){
@@ -6269,6 +6308,7 @@ document.getElementById('clientPickerNewBtn').addEventListener('click', ()=>{
 document.getElementById('addClientBtn').addEventListener('click', ()=>{
   openClientFormModal(null, null);
 });
+document.getElementById('importClientsSheetBtn').addEventListener('click', importClientsFromSheet);
 document.getElementById('clientFormClose').addEventListener('click', closeClientFormModal);
 document.getElementById('clientFormCancelBtn').addEventListener('click', closeClientFormModal);
 document.getElementById('clientFormModal').addEventListener('click', (e)=>{
