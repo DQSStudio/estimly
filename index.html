@@ -1135,6 +1135,10 @@ header.top{
         <input id="fIndirizzo" placeholder="Via, civico, città, CAP">
         <input id="fPiva" placeholder="IT00000000000">
         <input id="fClienteEmail" type="email" placeholder="mario.rossi@email.it">
+        <input id="fTelefono" placeholder="+39 ...">
+        <input id="fPec" type="email" placeholder="mario.rossi@pec.it">
+        <input id="fIndirizzoIntervento" placeholder="Via, civico, città, CAP">
+        <input id="fNoteCliente" placeholder="Note interne">
       </div>
 
       <div class="field-section-label">Dati preventivo</div>
@@ -1304,7 +1308,9 @@ header.top{
         <div>Data<br><b id="cData">—</b></div>
         <div class="span2">Indirizzo<br><b id="cIndirizzo">—</b></div>
         <div>Validità fino al<br><b id="cValidita">—</b></div>
-        <div class="span3">CF / P.IVA<br><b id="cFiscale">—</b></div>
+        <div class="span2">CF / P.IVA<br><b id="cFiscale">—</b></div>
+        <div>Telefono<br><b id="cTelefono">—</b></div>
+        <div class="span3" id="cIndirizzoInterventoRow" style="display:none;">Luogo dell'intervento<br><b id="cIndirizzoIntervento">—</b></div>
       </div>
       <div class="payment-block" id="paymentBlock" style="display:none;">
         <div class="payment-block-label">Coordinate di pagamento</div>
@@ -1725,8 +1731,12 @@ header.top{
         </div>
         <div class="field"><label>Codice fiscale</label><input id="cfCF" placeholder="RSSMRA80A01H501U"></div>
         <div class="field full"><label>Indirizzo / Via di residenza o sede</label><input id="cfIndirizzo" placeholder="Via, civico, città, CAP"></div>
-        <div class="field full"><label>Partita IVA</label><input id="cfPiva" placeholder="IT00000000000"></div>
+        <div class="field"><label>Partita IVA</label><input id="cfPiva" placeholder="IT00000000000"></div>
+        <div class="field"><label>Telefono</label><input id="cfTelefono" placeholder="+39 ..."></div>
         <div class="field full"><label>Email cliente (per il follow-up automatico)</label><input id="cfEmail" type="email" placeholder="mario.rossi@email.it"></div>
+        <div class="field full"><label>PEC</label><input id="cfPec" type="email" placeholder="mario.rossi@pec.it"></div>
+        <div class="field full"><label>Indirizzo del luogo di intervento (cantiere, se diverso dalla residenza)</label><input id="cfIndirizzoIntervento" placeholder="Via, civico, città, CAP"></div>
+        <div class="field full"><label>Note cliente</label><input id="cfNote" placeholder="Note interne, non visibili al cliente"></div>
       </div>
     </div>
     <div class="modal-actions">
@@ -2313,9 +2323,10 @@ async function deleteClientFromRubrica(id){
 
 function clientSummaryHtml(c){
   const bits = [];
+  if(c.email) bits.push(c.email);
+  if(c.telefono) bits.push(c.telefono);
   if(c.cf) bits.push(c.cf);
   if(c.piva) bits.push(c.piva);
-  if(c.email) bits.push(c.email);
   return `<div class="client-list-name">${escapeHtml(c.cliente || 'Cliente senza nome')}</div><div class="client-list-meta">${escapeHtml(bits.join(' · ') || c.tipoCliente || '')}</div>`;
 }
 
@@ -2378,6 +2389,10 @@ function applyClientToQuote(c){
   document.getElementById('fIndirizzo').value = c.indirizzo || '';
   document.getElementById('fPiva').value = c.piva || '';
   document.getElementById('fClienteEmail').value = c.email || '';
+  document.getElementById('fTelefono').value = c.telefono || '';
+  document.getElementById('fPec').value = c.pec || '';
+  document.getElementById('fIndirizzoIntervento').value = c.indirizzoIntervento || '';
+  document.getElementById('fNoteCliente').value = c.note || '';
   updateQuoteClientSummary();
   renderCartiglio();
   scheduleSave();
@@ -2393,8 +2408,9 @@ function updateQuoteClientSummary(){
     return;
   }
   const email = document.getElementById('fClienteEmail').value;
+  const telefono = document.getElementById('fTelefono').value;
   const cf = document.getElementById('fCF').value;
-  const bits = [email, cf].filter(Boolean);
+  const bits = [email, telefono, cf].filter(Boolean);
   summary.className = '';
   summary.innerHTML = `<div class="client-header-name">${escapeHtml(nome)}</div>` + (bits.length ? `<div class="client-header-meta">${escapeHtml(bits.join(' · '))}</div>` : '');
 }
@@ -2417,6 +2433,10 @@ function openClientFormModal(existingClient, opts){
   document.getElementById('cfIndirizzo').value = existingClient ? (existingClient.indirizzo||'') : '';
   document.getElementById('cfPiva').value = existingClient ? (existingClient.piva||'') : '';
   document.getElementById('cfEmail').value = existingClient ? (existingClient.email||'') : '';
+  document.getElementById('cfTelefono').value = existingClient ? (existingClient.telefono||'') : '';
+  document.getElementById('cfPec').value = existingClient ? (existingClient.pec||'') : '';
+  document.getElementById('cfIndirizzoIntervento').value = existingClient ? (existingClient.indirizzoIntervento||'') : '';
+  document.getElementById('cfNote').value = existingClient ? (existingClient.note||'') : '';
   document.getElementById('clientFormModal').style.display = 'flex';
 }
 function closeClientFormModal(){
@@ -2434,6 +2454,10 @@ function currentQuoteState(){
       indirizzo: document.getElementById('fIndirizzo').value,
       cf: document.getElementById('fCF').value,
       piva: document.getElementById('fPiva').value,
+      telefono: document.getElementById('fTelefono').value,
+      pec: document.getElementById('fPec').value,
+      indirizzoIntervento: document.getElementById('fIndirizzoIntervento').value,
+      noteCliente: document.getElementById('fNoteCliente').value,
       progetto: document.getElementById('fProgetto').value,
       data: document.getElementById('fData').value,
       numero: document.getElementById('fNumero').value,
@@ -2708,6 +2732,10 @@ function loadQuoteById(id){
   document.getElementById('fIndirizzo').value = c.indirizzo || '';
   document.getElementById('fCF').value = c.cf || '';
   document.getElementById('fPiva').value = c.piva || '';
+  document.getElementById('fTelefono').value = c.telefono || '';
+  document.getElementById('fPec').value = c.pec || '';
+  document.getElementById('fIndirizzoIntervento').value = c.indirizzoIntervento || '';
+  document.getElementById('fNoteCliente').value = c.noteCliente || '';
   document.getElementById('fProgetto').value = c.progetto || '';
   document.getElementById('fData').value = c.data || todayStr();
   document.getElementById('fNumero').value = c.numero || defaultNumero();
@@ -4183,6 +4211,7 @@ function renderLeadDetail(lead){
     ['Email', lead.email || lead.mittente || '—'],
     ['Telefono', lead.telefono || '—'],
     ['Tipo progetto', lead.tipoProgetto || '—'],
+    ['Luogo intervento', lead.indirizzoIntervento || '—'],
     ['Ricevuta', data],
     ['Oggetto mail', lead.oggetto || '—']
   ];
@@ -4236,6 +4265,10 @@ async function startQuoteFromLead(lead){
   document.getElementById('fIndirizzo').value = '';
   document.getElementById('fCF').value = '';
   document.getElementById('fPiva').value = '';
+  document.getElementById('fTelefono').value = lead.telefono || '';
+  document.getElementById('fPec').value = '';
+  document.getElementById('fIndirizzoIntervento').value = lead.indirizzoIntervento || '';
+  document.getElementById('fNoteCliente').value = lead.note || '';
   document.getElementById('fProgetto').value = lead.tipoProgetto || '';
   document.getElementById('fData').value = todayStr();
   document.getElementById('fNumero').value = defaultNumero();
@@ -4243,10 +4276,7 @@ async function startQuoteFromLead(lead){
   document.getElementById('fValidita').value = 30;
   document.getElementById('fSconto').value = 0;
   document.getElementById('fHidePrices').checked = false;
-  // Il telefono non ha ancora un campo dedicato in Rubrica: lo riportiamo nelle note insieme
-  // all'eventuale nota già estratta dall'AI, così non si perde.
-  const noteBits = [lead.telefono ? ('Tel. ' + lead.telefono) : '', lead.note || ''].filter(Boolean);
-  document.getElementById('fNotePagamento').value = noteBits.join(' — ');
+  document.getElementById('fNotePagamento').value = '';
   extraPages = []; if(typeof renderExtraPages==='function') renderExtraPages();
   document.getElementById('fContributoLabel').value = '';
   document.getElementById('fContributoPct').value = 0;
@@ -4259,10 +4289,18 @@ async function startQuoteFromLead(lead){
   // così il lead confluisce nella Rubrica come qualsiasi altro cliente.
   if(lead.nome){
     const existing = lead.email ? clients.find(c => (c.email||'').toLowerCase() === lead.email.toLowerCase()) : null;
-    const saved = await saveClientToRubrica({ id: existing ? existing.id : undefined, cliente: lead.nome, tipoCliente: 'Privato', cf:'', indirizzo:'', piva:'', email: lead.email || '' });
+    const saved = await saveClientToRubrica({
+      id: existing ? existing.id : undefined,
+      cliente: lead.nome, tipoCliente: 'Privato', cf:'', indirizzo:'', piva:'',
+      email: lead.email || '', telefono: lead.telefono || '',
+      indirizzoIntervento: lead.indirizzoIntervento || '', note: lead.note || ''
+    });
     if(saved){
       document.getElementById('fCliente').value = saved.cliente || lead.nome;
       document.getElementById('fClienteEmail').value = saved.email || lead.email || '';
+      document.getElementById('fTelefono').value = saved.telefono || lead.telefono || '';
+      document.getElementById('fIndirizzoIntervento').value = saved.indirizzoIntervento || lead.indirizzoIntervento || '';
+      document.getElementById('fNoteCliente').value = saved.note || lead.note || '';
     }
   }
 
@@ -4718,6 +4756,10 @@ async function initStorage(){
       document.getElementById('fIndirizzo').value = d.client?.indirizzo || '';
       document.getElementById('fCF').value = d.client?.cf || '';
       document.getElementById('fPiva').value = d.client?.piva || '';
+      document.getElementById('fTelefono').value = d.client?.telefono || '';
+      document.getElementById('fPec').value = d.client?.pec || '';
+      document.getElementById('fIndirizzoIntervento').value = d.client?.indirizzoIntervento || '';
+      document.getElementById('fNoteCliente').value = d.client?.noteCliente || '';
       document.getElementById('fProgetto').value = d.client?.progetto || '';
       document.getElementById('fData').value = d.client?.data || todayStr();
       document.getElementById('fNumero').value = d.client?.numero || defaultNumero();
@@ -4785,6 +4827,10 @@ async function saveDraft(){
       indirizzo: document.getElementById('fIndirizzo').value,
       cf: document.getElementById('fCF').value,
       piva: document.getElementById('fPiva').value,
+      telefono: document.getElementById('fTelefono').value,
+      pec: document.getElementById('fPec').value,
+      indirizzoIntervento: document.getElementById('fIndirizzoIntervento').value,
+      noteCliente: document.getElementById('fNoteCliente').value,
       progetto: document.getElementById('fProgetto').value,
       data: document.getElementById('fData').value,
       numero: document.getElementById('fNumero').value,
@@ -5363,6 +5409,10 @@ function renderCartiglio(){
   document.getElementById('cIndirizzo').textContent = document.getElementById('fIndirizzo').value || '—';
   document.getElementById('cValidita').textContent = addDays(document.getElementById('fData').value, document.getElementById('fValidita').value);
   document.getElementById('cFiscale').textContent = fiscale;
+  document.getElementById('cTelefono').textContent = document.getElementById('fTelefono').value || '—';
+  const indirizzoIntervento = document.getElementById('fIndirizzoIntervento').value;
+  document.getElementById('cIndirizzoInterventoRow').style.display = indirizzoIntervento ? '' : 'none';
+  document.getElementById('cIndirizzoIntervento').textContent = indirizzoIntervento || '—';
   renderPaymentBlock();
 }
 
@@ -5630,6 +5680,10 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
   document.getElementById('fIndirizzo').value='';
   document.getElementById('fCF').value='';
   document.getElementById('fPiva').value='';
+  document.getElementById('fTelefono').value='';
+  document.getElementById('fPec').value='';
+  document.getElementById('fIndirizzoIntervento').value='';
+  document.getElementById('fNoteCliente').value='';
   document.getElementById('fProgetto').value='';
   document.getElementById('fData').value=todayStr();
   document.getElementById('fNumero').value=defaultNumero();
@@ -6011,7 +6065,11 @@ document.getElementById('clientFormSaveBtn').addEventListener('click', async ()=
     cf: document.getElementById('cfCF').value.trim(),
     indirizzo: document.getElementById('cfIndirizzo').value.trim(),
     piva: document.getElementById('cfPiva').value.trim(),
-    email: document.getElementById('cfEmail').value.trim()
+    email: document.getElementById('cfEmail').value.trim(),
+    telefono: document.getElementById('cfTelefono').value.trim(),
+    pec: document.getElementById('cfPec').value.trim(),
+    indirizzoIntervento: document.getElementById('cfIndirizzoIntervento').value.trim(),
+    note: document.getElementById('cfNote').value.trim()
   };
   const saved = await saveClientToRubrica(clientData);
   const wasFromPicker = clientPickerContext === 'picker';

@@ -37,9 +37,10 @@ async function extractLeadWithAI(subject, bodyText) {
 
   const system = 'Sei un assistente che legge le mail di richiesta ricevute da uno studio di architettura/interior design e ne estrae i dati in un formato strutturato. ' +
     'Rispondi SOLO con un oggetto JSON valido, senza testo aggiuntivo, con esattamente questi campi: ' +
-    '{"nome":"","email":"","telefono":"","tipoProgetto":"","note":""}. ' +
+    '{"nome":"","email":"","telefono":"","tipoProgetto":"","indirizzoIntervento":"","note":""}. ' +
     '"tipoProgetto" è una sintesi brevissima (max 6-7 parole) di cosa viene richiesto (es. "Progettazione bagno", "Ristrutturazione appartamento 80mq"). ' +
-    '"note" raccoglie in 1-2 frasi altri dettagli utili (budget, tempistiche, indirizzo del lavoro) se presenti. ' +
+    '"indirizzoIntervento" è l\'indirizzo o la zona del luogo dove si svolgerà il lavoro (via, città), se indicato — diverso dall\'indirizzo del mittente. ' +
+    '"note" raccoglie in 1-2 frasi altri dettagli utili (budget, tempistiche) se presenti. ' +
     'Se un campo non è presente nella mail, lascialo come stringa vuota. Non inventare informazioni non presenti nel testo.';
 
   const userContent = `OGGETTO: ${subject}\n\nTESTO:\n${bodyText}`;
@@ -73,10 +74,11 @@ async function extractLeadWithAI(subject, bodyText) {
       email: parsed.email || '',
       telefono: parsed.telefono || '',
       tipoProgetto: parsed.tipoProgetto || '',
+      indirizzoIntervento: parsed.indirizzoIntervento || '',
       note: parsed.note || ''
     };
   } catch (e) {
-    return { nome: '', email: '', telefono: '', tipoProgetto: '', note: '' };
+    return { nome: '', email: '', telefono: '', tipoProgetto: '', indirizzoIntervento: '', note: '' };
   }
 }
 
@@ -155,6 +157,7 @@ export default async (req) => {
     email: extracted.email || email.from || '',
     telefono: extracted.telefono || '',
     tipoProgetto: extracted.tipoProgetto || '',
+    indirizzoIntervento: extracted.indirizzoIntervento || '',
     note: extracted.note || '',
     fase: 'nuova'
   };

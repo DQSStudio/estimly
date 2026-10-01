@@ -158,6 +158,10 @@ export default async (req) => {
         indirizzo: body.client.indirizzo || '',
         piva: body.client.piva || '',
         email: body.client.email || '',
+        telefono: body.client.telefono || '',
+        pec: body.client.pec || '',
+        indirizzoIntervento: body.client.indirizzoIntervento || '',
+        note: body.client.note || '',
         createdAt: new Date().toISOString()
       };
       updated = [entry, ...clients];
