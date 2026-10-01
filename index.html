@@ -141,6 +141,25 @@ body.estimly2-theme #e2OnboardingGate{ font-family:var(--e2-font); }
 .e2-nav-item:hover{ background:var(--e2-surface); }
 .e2-nav-item.active{ background:var(--e2-ink); color:var(--e2-bg); }
 .e2-sidebar-sep{ height:1px; background:var(--e2-line); margin:10px 4px; }
+.e2-nav-badge{ margin-left:auto; background:#C0392B; color:#fff; font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:999px; line-height:1.6; }
+.e2-nav-item.active .e2-nav-badge{ background:#fff; color:var(--e2-ink); }
+.e2-lead-filters{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+.e2-lead-filter{ display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:999px; border:1px solid var(--e2-line); background:var(--e2-bg); cursor:pointer; font-size:12.5px; font-weight:600; color:var(--e2-ink); font-family:var(--e2-font); }
+.e2-lead-filter.active{ background:var(--e2-ink); color:var(--e2-bg); border-color:var(--e2-ink); }
+.e2-lead-filter .count{ opacity:0.7; }
+.e2-lead-card{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; padding:16px 18px; border:1px solid var(--e2-line); border-radius:14px; background:var(--e2-bg); margin-bottom:10px; cursor:pointer; }
+.e2-lead-card:hover{ border-color:var(--e2-ink); }
+.e2-lead-card-name{ font-weight:700; font-size:14px; color:var(--e2-ink); }
+.e2-lead-card-meta{ font-size:12.5px; color:var(--ink-soft,#6B6D76); margin-top:3px; }
+.e2-lead-card-preview{ font-size:12.5px; color:var(--ink-soft,#6B6D76); margin-top:6px; max-width:520px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.e2-lead-badge{ font-size:10.5px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; padding:4px 10px; border-radius:999px; white-space:nowrap; }
+.e2-lead-empty{ text-align:center; padding:40px 20px; color:var(--ink-soft,#6B6D76); font-size:13px; }
+.e2-lead-detail-row{ display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--e2-line); font-size:13px; }
+.e2-lead-detail-row b{ min-width:110px; flex-shrink:0; color:var(--ink-soft,#6B6D76); font-weight:600; }
+.e2-lead-stage-btns{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+.e2-lead-stage-btn{ padding:7px 13px; border-radius:999px; border:1px solid var(--e2-line); background:var(--e2-bg); cursor:pointer; font-size:12px; font-weight:600; }
+.e2-lead-stage-btn.active{ color:#fff; border-color:transparent; }
+.e2-lead-text-box{ background:var(--e2-surface, #F7F7F9); border-radius:10px; padding:12px 14px; font-size:12.5px; white-space:pre-wrap; max-height:220px; overflow:auto; margin-top:6px; }
 .e2-page{ }
 /* Font Raleway + token DSM solo sul contenuto della Dashboard (guscio), non su .e2-page in
    generale: preventivo/listino/rubrica/ecc. restano con il font e i colori attuali. */
@@ -941,6 +960,7 @@ header.top{
 <nav id="e2Sidebar">
   <div class="e2-sidebar-brand"><span class="e2-sidebar-brand-badge">E</span>Estimly <span>2.0</span></div>
   <button type="button" class="e2-nav-item active" data-e2-page="dashboard"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</button>
+  <button type="button" class="e2-nav-item" id="e2NavRichieste" data-e2-page="richieste"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Richieste<span id="e2RichiesteNavBadge" class="e2-nav-badge" style="display:none;"></span></button>
   <button type="button" class="e2-nav-item" data-e2-page="preventivo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>Preventivo</button>
   <button type="button" class="e2-nav-item" data-e2-page="listino"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Listino</button>
   <button type="button" class="e2-nav-item" data-e2-page="contratti"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6M9 16h6M9 8h1"/><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Contratti</button>
@@ -1009,6 +1029,19 @@ header.top{
       <div class="e2-activity-head">Attività recente</div>
       <div id="e2ActivityList"></div>
     </div>
+  </div>
+</div>
+
+<div id="e2PageRichieste" class="e2-page" style="display:none;">
+  <div class="e2-dash-wrap">
+    <div class="e2-hero-card">
+      <div class="e2-hero-eyebrow">Richieste</div>
+      <div class="e2-hero-title">I lead ricevuti via email.</div>
+      <div class="e2-hero-sub">Arrivano automaticamente dalla casella collegata: controlla, assegna uno stato e trasformali in preventivo.</div>
+    </div>
+    <div class="e2-lead-filters" id="e2LeadFilters"></div>
+    <div id="e2LeadList"></div>
+    <div id="e2LeadEmpty" class="e2-lead-empty" style="display:none;">Nessuna richiesta in questa categoria.</div>
   </div>
 </div>
 
@@ -1773,6 +1806,26 @@ header.top{
     </div>
     <div class="modal-actions">
       <button id="followupsPanelCloseBtn" class="btn-cancel">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div id="leadDetailModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="max-width:600px;">
+    <div class="modal-head">
+      <div class="display" style="font-weight:700; font-size:16px;">Dettaglio richiesta</div>
+      <button id="leadDetailClose" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh; overflow:auto;">
+      <div class="e2-lead-stage-btns" id="leadDetailStageBtns"></div>
+      <div id="leadDetailInfo"></div>
+    </div>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button id="leadDetailDeleteBtn" class="btn-cancel" style="color:#C0392B;">Elimina richiesta</button>
+      <div style="display:flex; gap:8px;">
+        <button id="leadDetailCloseBtn" class="btn-cancel">Chiudi</button>
+        <button id="leadDetailCreateQuoteBtn" class="btn-save">Crea preventivo →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -4024,6 +4077,235 @@ document.getElementById('followupsPanelClose').addEventListener('click', ()=>{ d
 document.getElementById('followupsPanelCloseBtn').addEventListener('click', ()=>{ document.getElementById('followupsPanelModal').style.display='none'; });
 /* ===================== fine Follow-up automatico ===================== */
 
+/* ===================== Richieste (lead via mail) ===================== */
+let leadsList = [];
+let leadFilterFase = 'tutte';
+let leadDetailCurrentId = null;
+
+const LEAD_FASE_META = {
+  nuova:               { label:'Nuova',               color:'#4338CA', bg:'#EEEDFB' },
+  contattato:          { label:'Contattato',           color:'#92700C', bg:'#FDF3E0' },
+  preventivo_inviato:  { label:'Preventivo inviato',   color:'#B45309', bg:'#FDF0E3' },
+  vinto:               { label:'Vinto',                color:'#0F766E', bg:'#E5F5F3' },
+  perso:               { label:'Perso',                color:'#7A7C85', bg:'#F0F0F2' }
+};
+const LEAD_FASE_ORDER = ['nuova','contattato','preventivo_inviato','vinto','perso'];
+
+async function loadLeadsCloud(){
+  const key = getLicenseKey();
+  if(!key) return;
+  try{
+    const res = await fetch('/.netlify/functions/leads', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action:'list' })
+    });
+    const data = await res.json();
+    if(data && Array.isArray(data.leads)){
+      leadsList = data.leads;
+      renderLeadsSection();
+      const nuoveCount = leadsList.filter(l=>l.fase==='nuova').length;
+      const badge = document.getElementById('e2RichiesteNavBadge');
+      if(badge){
+        badge.style.display = nuoveCount > 0 ? 'inline-flex' : 'none';
+        badge.textContent = nuoveCount;
+      }
+    }
+  }catch(err){ console.error('Impossibile caricare le richieste', err); }
+}
+
+function leadDisplayName(lead){
+  return lead.nome || lead.mittente || 'Richiesta senza nome';
+}
+
+function renderLeadsSection(){
+  const filtersBox = document.getElementById('e2LeadFilters');
+  const listBox = document.getElementById('e2LeadList');
+  const emptyBox = document.getElementById('e2LeadEmpty');
+  if(!filtersBox || !listBox) return;
+
+  const counts = { tutte: leadsList.length };
+  LEAD_FASE_ORDER.forEach(f=>{ counts[f] = leadsList.filter(l=>l.fase===f).length; });
+
+  const chips = [{ id:'tutte', label:'Tutte' }].concat(LEAD_FASE_ORDER.map(f=>({ id:f, label:LEAD_FASE_META[f].label })));
+  filtersBox.innerHTML = chips.map(c=>`
+    <div class="e2-lead-filter ${leadFilterFase===c.id?'active':''}" data-lead-filter="${c.id}">${c.label} <span class="count">${counts[c.id]||0}</span></div>
+  `).join('');
+
+  const filtered = leadFilterFase==='tutte' ? leadsList : leadsList.filter(l=>l.fase===leadFilterFase);
+
+  if(filtered.length===0){
+    listBox.innerHTML = '';
+    emptyBox.style.display = 'block';
+    return;
+  }
+  emptyBox.style.display = 'none';
+
+  listBox.innerHTML = filtered.map(l=>{
+    const meta = LEAD_FASE_META[l.fase] || LEAD_FASE_META.nuova;
+    const data = formatEventDate ? formatEventDate(l.ricevutoAt) : new Date(l.ricevutoAt).toLocaleDateString('it-IT');
+    const preview = (l.tipoProgetto || l.note || l.testo || '').slice(0, 140);
+    return `
+    <div class="e2-lead-card" data-lead-id="${l.id}">
+      <div style="min-width:0;">
+        <div class="e2-lead-card-name">${escapeHtml(leadDisplayName(l))}</div>
+        <div class="e2-lead-card-meta">${escapeHtml(l.email||l.mittente||'')}${l.telefono?' · '+escapeHtml(l.telefono):''} · ${escapeHtml(data)}</div>
+        ${preview ? `<div class="e2-lead-card-preview">${escapeHtml(preview)}</div>` : ''}
+      </div>
+      <span class="e2-lead-badge" style="color:${meta.color}; background:${meta.bg};">${meta.label}</span>
+    </div>`;
+  }).join('');
+}
+
+function openLeadDetail(leadId){
+  const lead = leadsList.find(l=>l.id===leadId);
+  if(!lead) return;
+  leadDetailCurrentId = leadId;
+  renderLeadDetail(lead);
+  document.getElementById('leadDetailModal').style.display = 'flex';
+}
+function closeLeadDetail(){
+  document.getElementById('leadDetailModal').style.display = 'none';
+  leadDetailCurrentId = null;
+}
+
+function renderLeadDetail(lead){
+  const stageBtnsBox = document.getElementById('leadDetailStageBtns');
+  stageBtnsBox.innerHTML = LEAD_FASE_ORDER.map(f=>{
+    const meta = LEAD_FASE_META[f];
+    const isActive = lead.fase === f;
+    return `<button type="button" class="e2-lead-stage-btn ${isActive?'active':''}" data-set-fase="${f}" style="${isActive?`background:${meta.color};`:''}">${meta.label}</button>`;
+  }).join('');
+
+  const data = formatEventDate ? formatEventDate(lead.ricevutoAt) : new Date(lead.ricevutoAt).toLocaleString('it-IT');
+  const rows = [
+    ['Nome', lead.nome || '—'],
+    ['Email', lead.email || lead.mittente || '—'],
+    ['Telefono', lead.telefono || '—'],
+    ['Tipo progetto', lead.tipoProgetto || '—'],
+    ['Ricevuta', data],
+    ['Oggetto mail', lead.oggetto || '—']
+  ];
+  let html = rows.map(([label,val])=>`<div class="e2-lead-detail-row"><b>${label}</b><span>${escapeHtml(val)}</span></div>`).join('');
+  if(lead.note){
+    html += `<div class="e2-lead-detail-row"><b>Note</b><span>${escapeHtml(lead.note)}</span></div>`;
+  }
+  html += `<div style="margin-top:14px;"><b style="font-size:12.5px; color:var(--ink-soft,#6B6D76);">Testo email ricevuta</b><div class="e2-lead-text-box">${escapeHtml(lead.testo||'')}</div></div>`;
+  document.getElementById('leadDetailInfo').innerHTML = html;
+}
+
+async function updateLeadStage(leadId, fase){
+  const key = getLicenseKey();
+  if(!key) return;
+  const lead = leadsList.find(l=>l.id===leadId);
+  if(lead) lead.fase = fase; // aggiornamento ottimistico, coerente col resto dell'app
+  renderLeadsSection();
+  if(leadDetailCurrentId===leadId) renderLeadDetail(lead);
+  try{
+    await fetch('/.netlify/functions/leads', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action:'updateStage', leadId, fase })
+    });
+  }catch(err){ console.error('Impossibile aggiornare lo stato della richiesta', err); }
+}
+
+async function deleteLeadEntry(leadId){
+  if(!confirm('Eliminare definitivamente questa richiesta?')) return;
+  const key = getLicenseKey();
+  leadsList = leadsList.filter(l=>l.id!==leadId);
+  renderLeadsSection();
+  closeLeadDetail();
+  if(!key) return;
+  try{
+    await fetch('/.netlify/functions/leads', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action:'delete', leadId })
+    });
+  }catch(err){ console.error('Impossibile eliminare la richiesta', err); }
+}
+
+async function startQuoteFromLead(lead){
+  // Stessa pulizia campi del pulsante "Nuovo preventivo" (resetBtn), senza la conferma a schermo
+  // e con i dati del lead applicati subito dopo.
+  cart = [];
+  document.getElementById('fCliente').value = lead.nome || '';
+  document.getElementById('fClienteEmail').value = lead.email || '';
+  document.getElementById('fTipoCliente').value = 'Privato';
+  document.getElementById('fIndirizzo').value = '';
+  document.getElementById('fCF').value = '';
+  document.getElementById('fPiva').value = '';
+  document.getElementById('fProgetto').value = lead.tipoProgetto || '';
+  document.getElementById('fData').value = todayStr();
+  document.getElementById('fNumero').value = defaultNumero();
+  document.getElementById('fRevisione').value = 'Rev. 0';
+  document.getElementById('fValidita').value = 30;
+  document.getElementById('fSconto').value = 0;
+  document.getElementById('fHidePrices').checked = false;
+  // Il telefono non ha ancora un campo dedicato in Rubrica: lo riportiamo nelle note insieme
+  // all'eventuale nota già estratta dall'AI, così non si perde.
+  const noteBits = [lead.telefono ? ('Tel. ' + lead.telefono) : '', lead.note || ''].filter(Boolean);
+  document.getElementById('fNotePagamento').value = noteBits.join(' — ');
+  extraPages = []; if(typeof renderExtraPages==='function') renderExtraPages();
+  document.getElementById('fContributoLabel').value = '';
+  document.getElementById('fContributoPct').value = 0;
+  document.getElementById('fRegime').value = 'ord22';
+  document.getElementById('fAliquotaCustom').value = 22;
+  document.getElementById('regimeCustomField').style.display = 'none';
+  if(typeof estimly3ResetCaratteristiche === 'function') estimly3ResetCaratteristiche();
+
+  // Se esiste già in rubrica un cliente con la stessa email, lo riusa; altrimenti ne crea uno nuovo,
+  // così il lead confluisce nella Rubrica come qualsiasi altro cliente.
+  if(lead.nome){
+    const existing = lead.email ? clients.find(c => (c.email||'').toLowerCase() === lead.email.toLowerCase()) : null;
+    const saved = await saveClientToRubrica({ id: existing ? existing.id : undefined, cliente: lead.nome, tipoCliente: 'Privato', cf:'', indirizzo:'', piva:'', email: lead.email || '' });
+    if(saved){
+      document.getElementById('fCliente').value = saved.cliente || lead.nome;
+      document.getElementById('fClienteEmail').value = saved.email || lead.email || '';
+    }
+  }
+
+  renderCart();
+  renderFollowupSection();
+  updateQuoteClientSummary();
+  renderCartiglio();
+  await saveDraft();
+
+  closeLeadDetail();
+  switchEstimly2Page('preventivo');
+}
+
+document.getElementById('e2LeadFilters').addEventListener('click', (e)=>{
+  const chip = e.target.closest('[data-lead-filter]');
+  if(!chip) return;
+  leadFilterFase = chip.getAttribute('data-lead-filter');
+  renderLeadsSection();
+});
+document.getElementById('e2LeadList').addEventListener('click', (e)=>{
+  const card = e.target.closest('[data-lead-id]');
+  if(!card) return;
+  openLeadDetail(card.getAttribute('data-lead-id'));
+});
+document.getElementById('leadDetailStageBtns').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-set-fase]');
+  if(!btn || !leadDetailCurrentId) return;
+  updateLeadStage(leadDetailCurrentId, btn.getAttribute('data-set-fase'));
+});
+document.getElementById('leadDetailClose').addEventListener('click', closeLeadDetail);
+document.getElementById('leadDetailCloseBtn').addEventListener('click', closeLeadDetail);
+document.getElementById('leadDetailModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'leadDetailModal') closeLeadDetail();
+});
+document.getElementById('leadDetailDeleteBtn').addEventListener('click', ()=>{
+  if(leadDetailCurrentId) deleteLeadEntry(leadDetailCurrentId);
+});
+document.getElementById('leadDetailCreateQuoteBtn').addEventListener('click', ()=>{
+  const lead = leadsList.find(l=>l.id===leadDetailCurrentId);
+  if(lead) startQuoteFromLead(lead);
+});
+/* ===================== fine Richieste (lead via mail) ===================== */
+
 /* ===================== Menu Estimly 2.0 ===================== */
 let e2CurrentPage = 'dashboard';
 function switchEstimly2Page(pageId){
@@ -4032,6 +4314,7 @@ function switchEstimly2Page(pageId){
     btn.classList.toggle('active', btn.getAttribute('data-e2-page') === pageId);
   });
   document.getElementById('e2PageDashboard').style.display = pageId === 'dashboard' ? 'block' : 'none';
+  document.getElementById('e2PageRichieste').style.display = pageId === 'richieste' ? 'block' : 'none';
   document.getElementById('e2PageContratti').style.display = pageId === 'contratti' ? 'block' : 'none';
   document.getElementById('e2PageRubrica').style.display = pageId === 'rubrica' ? 'block' : 'none';
   document.getElementById('e2PageSalvati').style.display = pageId === 'salvati' ? 'block' : 'none';
@@ -4062,7 +4345,8 @@ function switchEstimly2Page(pageId){
   } else {
     preventivoPage.style.display = 'none';
   }
-  if(pageId === 'dashboard') renderDashboard();
+  if(pageId === 'dashboard'){ renderDashboard(); loadLeadsCloud(); }
+  if(pageId === 'richieste') loadLeadsCloud();
   if(pageId === 'rubrica') renderRubricaList();
   if(pageId === 'salvati') renderSavedQuotesList();
   if(pageId === 'seguire'){
