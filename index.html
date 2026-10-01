@@ -161,6 +161,9 @@ body.estimly2-theme #e2OnboardingGate{ font-family:var(--e2-font); }
 .e2-lead-stage-btns{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
 .e2-lead-stage-btn{ padding:7px 13px; border-radius:999px; border:1px solid var(--e2-line); background:var(--e2-bg); cursor:pointer; font-size:12px; font-weight:600; }
 .e2-lead-stage-btn.active{ color:#fff; border-color:transparent; }
+.e2-lead-fonte-custom{ display:flex; gap:8px; margin:0 0 14px; }
+.e2-lead-fonte-custom .e2-lead-edit-input{ font-size:12.5px; }
+.e2-lead-fonte-custom .e2-lead-stage-btn{ flex-shrink:0; }
 .e2-lead-text-box{ background:var(--e2-surface, #F7F7F9); border-radius:10px; padding:12px 14px; font-size:12.5px; white-space:pre-wrap; max-height:220px; overflow:auto; margin-top:6px; }
 .e2-page{ }
 /* Font Raleway + token DSM solo sul contenuto della Dashboard (guscio), non su .e2-page in
@@ -1865,6 +1868,10 @@ header.top{
       <div class="e2-lead-stage-btns" id="leadDetailStageBtns"></div>
       <div style="font-size:11px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; color:var(--ink-soft,#6B6D76); margin:14px 0 6px;">Provenienza</div>
       <div class="e2-lead-stage-btns" id="leadDetailFonteBtns"></div>
+      <div class="e2-lead-fonte-custom">
+        <input type="text" id="leadDetailFonteCustom" class="e2-lead-edit-input" placeholder="Oppure scrivi una provenienza esatta (es. Instagram - campagna ottobre)">
+        <button type="button" id="leadDetailFonteCustomSaveBtn" class="e2-lead-stage-btn">Salva</button>
+      </div>
       <div id="leadDetailInfo"></div>
     </div>
     <div class="modal-actions" style="justify-content:space-between;">
@@ -4156,17 +4163,15 @@ const LEAD_FASE_META = {
 };
 const LEAD_FASE_ORDER = ['nuova','contattato','preventivo_inviato','vinto','perso'];
 
-// Palette categoriale validata (ordine fisso, distinguibile anche per chi ha daltonismo) usata
-// per la provenienza dei lead — unica cosa qui senza un ordine "di stato" naturale.
-const LEAD_FONTE_META = {
-  'Sito web':   { label:'Sito web',   color:'#2a78d6' },
-  'Google':     { label:'Google',     color:'#eb6834' },
-  'Social':     { label:'Social',     color:'#1baf7a' },
-  'Passaparola':{ label:'Passaparola',color:'#eda100' },
-  'Altro':      { label:'Altro',      color:'#e87ba4' },
-  '':           { label:'Non specificata', color:'#9CA3AF' }
-};
-const LEAD_FONTE_ORDER = ['Sito web','Google','Social','Passaparola','Altro',''];
+// Pulsanti rapidi per la provenienza: non è più un elenco chiuso, sono solo scorciatoie —
+// lo studio può sempre scrivere un valore libero nel campo sotto (es. il nome di una
+// campagna pubblicitaria) per testare esattamente da dove arrivano i contatti.
+const LEAD_FONTE_PRESET = ['Sito web', 'Google', 'Instagram', 'Facebook', 'Passaparola'];
+
+// Palette categoriale validata (ordine fisso, distinguibile anche per chi ha daltonismo),
+// assegnata dinamicamente alle provenienze realmente presenti nei lead (vedi
+// buildFonteChartRows), visto che ora la provenienza è testo libero.
+const FONTE_CHART_PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300'];
 
 // Riga di un mini bar-chart orizzontale: etichetta — barra proporzionale al massimo del
 // gruppo — conteggio. Usato per le card di analisi in Dashboard (Richieste per stato/
@@ -4218,6 +4223,30 @@ function renderDonutChart(containerId, rows, emptyText){
     </div>`;
 }
 
+// La provenienza è testo libero (vedi LEAD_FONTE_PRESET), quindi per il grafico raggruppiamo
+// i valori realmente presenti tra i lead: le prime 6 provenienze (ordine alfabetico, per
+// colori stabili) prendono un colore dalla palette categoriale validata; eventuali altre
+// confluiscono in "Altro" e i lead senza provenienza in "Non specificata" (sempre grigio,
+// mai dalla palette, per non far credere che sia una categoria come le altre).
+function buildFonteChartRows(){
+  const counts = {};
+  let senzaFonte = 0;
+  leadsList.forEach(l=>{
+    const v = (l.fonte||'').trim();
+    if(!v){ senzaFonte++; return; }
+    counts[v] = (counts[v]||0) + 1;
+  });
+  const named = Object.keys(counts).sort((a,b)=>a.localeCompare(b,'it'));
+  const MAX_SLICES = 6;
+  const shown = named.slice(0, MAX_SLICES);
+  const overflow = named.slice(MAX_SLICES);
+  const rows = shown.map((label,i)=>({ label, count: counts[label], color: FONTE_CHART_PALETTE[i % FONTE_CHART_PALETTE.length] }));
+  const overflowCount = overflow.reduce((s,k)=>s+counts[k], 0);
+  if(overflowCount>0) rows.push({ label:'Altro', count: overflowCount, color:'#B9BBC6' });
+  if(senzaFonte>0) rows.push({ label:'Non specificata', count: senzaFonte, color:'#DADCE3' });
+  return rows;
+}
+
 function renderLeadDashboardCharts(){
   if(!document.getElementById('e2ChartLeadStato')) return;
   renderDonutChart('e2ChartLeadStato', LEAD_FASE_ORDER.map(f=>({
@@ -4225,10 +4254,7 @@ function renderLeadDashboardCharts(){
     count: leadsList.filter(l=>l.fase===f).length
   })), 'Nessuna richiesta ricevuta ancora.');
 
-  renderDonutChart('e2ChartLeadFonte', LEAD_FONTE_ORDER.map(f=>({
-    label: LEAD_FONTE_META[f].label, color: LEAD_FONTE_META[f].color,
-    count: leadsList.filter(l=>(l.fonte||'')===f).length
-  })), 'Nessuna richiesta ricevuta ancora.');
+  renderDonutChart('e2ChartLeadFonte', buildFonteChartRows(), 'Nessuna richiesta ricevuta ancora.');
 
   renderDonutChart('e2ChartFollowupStato', Object.keys(FOLLOWUP_STATUS_META).map(s=>({
     label: FOLLOWUP_STATUS_META[s].label.split(' — ')[0], color: FOLLOWUP_STATUS_META[s].color,
@@ -4323,11 +4349,14 @@ function renderLeadDetail(lead){
   }).join('');
 
   const fonteBtnsBox = document.getElementById('leadDetailFonteBtns');
-  fonteBtnsBox.innerHTML = LEAD_FONTE_ORDER.map(f=>{
-    const meta = LEAD_FONTE_META[f];
+  fonteBtnsBox.innerHTML = LEAD_FONTE_PRESET.map(f=>{
     const isActive = (lead.fonte||'') === f;
-    return `<button type="button" class="e2-lead-stage-btn ${isActive?'active':''}" data-set-fonte="${f}" style="${isActive?`background:${meta.color};`:''}">${meta.label}</button>`;
+    return `<button type="button" class="e2-lead-stage-btn ${isActive?'active':''}" data-set-fonte="${f}" style="${isActive?'background:#4338CA;':''}">${f}</button>`;
   }).join('');
+  // Il campo libero mostra il valore attuale solo se non coincide con uno dei pulsanti
+  // rapidi sopra (altrimenti è già evidenziato come attivo).
+  const fonteCustomInput = document.getElementById('leadDetailFonteCustom');
+  fonteCustomInput.value = (lead.fonte && !LEAD_FONTE_PRESET.includes(lead.fonte)) ? lead.fonte : '';
 
   const data = formatEventDate ? formatEventDate(lead.ricevutoAt) : new Date(lead.ricevutoAt).toLocaleString('it-IT');
 
@@ -4498,7 +4527,14 @@ document.getElementById('leadDetailStageBtns').addEventListener('click', (e)=>{
 document.getElementById('leadDetailFonteBtns').addEventListener('click', (e)=>{
   const btn = e.target.closest('[data-set-fonte]');
   if(!btn || !leadDetailCurrentId) return;
+  document.getElementById('leadDetailFonteCustom').value = '';
   updateLeadFonte(leadDetailCurrentId, btn.getAttribute('data-set-fonte'));
+});
+document.getElementById('leadDetailFonteCustomSaveBtn').addEventListener('click', ()=>{
+  if(!leadDetailCurrentId) return;
+  const val = document.getElementById('leadDetailFonteCustom').value.trim();
+  if(!val) return;
+  updateLeadFonte(leadDetailCurrentId, val);
 });
 document.getElementById('leadDetailClose').addEventListener('click', closeLeadDetail);
 document.getElementById('leadDetailCloseBtn').addEventListener('click', closeLeadDetail);
@@ -4651,7 +4687,7 @@ function renderDashboard(){
     box.innerHTML = '<div class="e2-activity-empty">Nessuna attività ancora. Attiva un follow-up automatico su un preventivo per iniziare a vedere qui le interazioni dei clienti.</div>';
     return;
   }
-  box.innerHTML = allEvents.slice(0,15).map(ev=>`
+  box.innerHTML = allEvents.slice(0,5).map(ev=>`
     <div class="e2-activity-row">
       <div class="e2-activity-main"><b>${escapeHtml(ev.clienteNome||'—')}</b> (${escapeHtml(ev.numero||'—')}) — ${ACTIVITY_LABELS[ev.type] || ev.type}</div>
       <div class="e2-activity-date">${formatEventDate(ev.at)}</div>

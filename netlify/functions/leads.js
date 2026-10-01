@@ -7,7 +7,10 @@ import { getStore } from '@netlify/blobs';
 // eliminazione.
 
 const VALID_FASI = ['nuova', 'contattato', 'preventivo_inviato', 'vinto', 'perso'];
-const VALID_FONTI = ['Sito web', 'Google', 'Social', 'Passaparola', 'Altro', ''];
+// La provenienza non è più vincolata a un elenco fisso: oltre ai pulsanti rapidi (Sito web,
+// Google, Instagram, ecc.) lo studio può scrivere un valore libero (es. il nome di una
+// campagna pubblicitaria), per poter testare esattamente da dove arrivano i contatti.
+const FONTE_MAX_LEN = 80;
 // Campi della richiesta modificabili a mano dalla scheda lead (niente estrazione AI:
 // nome/email vengono riconosciuti dall'intestazione della mail, il resto si compila a mano).
 const EDITABLE_FIELDS = ['nome', 'email', 'telefono', 'tipoProgetto', 'indirizzoIntervento', 'note'];
@@ -60,8 +63,9 @@ export default async (req) => {
   }
 
   if (action === 'updateFonte') {
-    const { leadId, fonte } = body;
-    if (!leadId || !VALID_FONTI.includes(fonte || '')) {
+    const { leadId } = body;
+    const fonte = String(body.fonte || '').trim().slice(0, FONTE_MAX_LEN);
+    if (!leadId) {
       return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
     }
     const list = (await leadsStore.get(key, { type: 'json' })) || [];
@@ -69,7 +73,7 @@ export default async (req) => {
     if (!entry) {
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
     }
-    entry.fonte = fonte || '';
+    entry.fonte = fonte;
     entry.aggiornatoAt = new Date().toISOString();
     await leadsStore.setJSON(key, list);
     return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
