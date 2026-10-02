@@ -339,6 +339,63 @@
     return node;
   }
 
+  // Margine di stampa (mm) e ricerca di un punto di taglio "pulito" tra una pagina e l'altra
+  // (una riga di pixel quasi tutta bianca vicino al taglio ideale), identico all'approccio usato
+  // in Estimly per il PDF del preventivo: evita di spezzare testo/righe a metà pagina, e se il
+  // documento (tipicamente breve) entra in una sola pagina non viene affatto impaginato a blocchi.
+  const PDF_MARGIN_MM = 12;
+
+  function findPdfSafeBreakRow(ctx, canvasWidth, idealRow, searchBackPx, canvasHeight){
+    try{
+      const maxRow = Math.min(idealRow, canvasHeight);
+      const minRow = Math.max(1, maxRow - searchBackPx);
+      for(let row = maxRow; row >= minRow; row--){
+        const data = ctx.getImageData(0, row, canvasWidth, 1).data;
+        let empty = true;
+        for(let i=0; i<data.length; i += 4*8){
+          if(data[i] < 250 || data[i+1] < 250 || data[i+2] < 250){ empty = false; break; }
+        }
+        if(empty) return row;
+      }
+    }catch(err){ /* canvas non leggibile per CORS: si userà il taglio ideale senza ricerca */ }
+    return idealRow;
+  }
+
+  function renderCanvasToPdfPages(doc, canvas){
+    const pdfWmm = 210, pdfHmm = 297;
+    const usableWmm = pdfWmm - PDF_MARGIN_MM * 2;
+    const usableHmm = pdfHmm - PDF_MARGIN_MM * 2;
+    const pxPerMm = canvas.width / usableWmm;
+    const pageHeightPx = Math.floor(usableHmm * pxPerMm);
+
+    if(canvas.height <= pageHeightPx){
+      const pageData = canvas.toDataURL('image/jpeg', 0.92);
+      doc.addImage(pageData, 'JPEG', PDF_MARGIN_MM, PDF_MARGIN_MM, usableWmm, canvas.height / pxPerMm);
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    const searchBackPx = Math.round(10 * pxPerMm);
+    let renderedPx = 0, first = true;
+    while(renderedPx < canvas.height){
+      let sliceEnd = Math.min(renderedPx + pageHeightPx, canvas.height);
+      if(sliceEnd < canvas.height){
+        const safeEnd = findPdfSafeBreakRow(ctx, canvas.width, sliceEnd, searchBackPx, canvas.height);
+        if(safeEnd > renderedPx) sliceEnd = safeEnd;
+      }
+      const sliceHeightPx = sliceEnd - renderedPx;
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = sliceHeightPx;
+      pageCanvas.getContext('2d').drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+      const pageData = pageCanvas.toDataURL('image/jpeg', 0.92);
+      if(!first) doc.addPage();
+      doc.addImage(pageData, 'JPEG', PDF_MARGIN_MM, PDF_MARGIN_MM, usableWmm, sliceHeightPx / pxPerMm);
+      renderedPx = sliceEnd;
+      first = false;
+    }
+  }
+
   async function generateSignedDocumentPdf(studio, quote){
     if(typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF || typeof window.html2canvas !== 'function') return null;
     const node = buildCertificateNode(studio, quote);
@@ -346,23 +403,8 @@
     try{
       const canvas = await window.html2canvas(node, { scale:2, useCORS:true, backgroundColor:'#ffffff', windowWidth:700 });
       const { jsPDF } = window.jspdf;
-      const pdfWmm = 210, pdfHmm = 297;
-      const pxPerMm = canvas.width / pdfWmm;
-      const pageHeightPx = Math.floor(pdfHmm * pxPerMm);
       const doc = new jsPDF({ unit:'mm', format:'a4' });
-      let renderedPx = 0, first = true;
-      while(renderedPx < canvas.height){
-        const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
-        const pageCanvas = document.createElement('canvas');
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = sliceHeightPx;
-        pageCanvas.getContext('2d').drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
-        const pageData = pageCanvas.toDataURL('image/jpeg', 0.92);
-        if(!first) doc.addPage();
-        doc.addImage(pageData, 'JPEG', 0, 0, pdfWmm, sliceHeightPx / pxPerMm);
-        renderedPx += sliceHeightPx;
-        first = false;
-      }
+      renderCanvasToPdfPages(doc, canvas);
       const numero = (quote.numero || 'documento').replace(/[^a-zA-Z0-9_-]+/g, '_');
       const filename = `Accettazione_firmata_${numero}.pdf`;
       const dataUri = doc.output('datauristring');

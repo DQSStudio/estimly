@@ -1409,6 +1409,14 @@ header.top{
   <div class="e2-dash-wrap">
     <div class="field-section-label" style="margin-top:0;">Preventivi salvati</div>
     <div class="saved-quotes-limit-text" style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Puoi tenere in archivio fino a 20 preventivi recenti. Salvandone uno oltre il limite, il più vecchio viene rimosso automaticamente.</div>
+    <div id="e2SalvatiFirmatiWrap" style="display:none; margin-bottom:22px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <div style="font-weight:700; font-size:13.5px;">✍️ Preventivi firmati</div>
+        <span id="e2SalvatiFirmatiCount" style="font-size:11px; font-weight:700; color:#0F766E; background:#E5F5F3; padding:2px 9px; border-radius:999px;"></span>
+      </div>
+      <div id="e2SalvatiFirmatiList"></div>
+      <div style="border-bottom:2px solid var(--border); margin-top:14px;"></div>
+    </div>
     <div id="e2SalvatiList"></div>
     <div id="e2SalvatiEmpty" style="display:none; font-size:13px; color:var(--ink-soft); padding:20px 0; text-align:center;">Nessun preventivo salvato.</div>
   </div>
@@ -2597,16 +2605,23 @@ async function loadSavedQuotesCloud(){
 
 function savedQuoteSendStatusHtml(q){
   // Cerca un follow-up collegato a questo preventivo (match per numero) per mostrare
-  // in un colpo d'occhio se è stato inviato via email e se è stato aperto dal cliente.
+  // in un colpo d'occhio se è stato inviato via email, se è stato aperto e se è stato firmato.
+  // La firma è un segnale più forte dell'apertura email (che dipende dal tracking pixel di
+  // Resend e può non scattare, es. su invii a se stessi o client che bloccano le immagini):
+  // se il cliente ha firmato, mostriamo sempre "Firmato", mai più "Non ancora letto".
   const numero = q.client && q.client.numero;
-  if(!numero) return '';
-  const f = followupsList.find(x=>x.quoteRef===numero);
-  if(!f) return '';
-  const inviato = (f.events||[]).find(e=>e.type==='inviato_preventivo');
-  if(!inviato) return '';
-  const aperto = (f.events||[]).find(e=>e.type==='aperto');
-  const parts = [`📧 Inviato il ${formatEventDate(inviato.at)}`];
-  parts.push(aperto ? `👁 Letto il ${formatEventDate(aperto.at)}` : '👁 Non ancora letto');
+  const firma = q.client && q.client.firma;
+  const f = numero ? followupsList.find(x=>x.quoteRef===numero) : null;
+  const parts = [];
+  const inviato = f ? (f.events||[]).find(e=>e.type==='inviato_preventivo') : null;
+  if(inviato) parts.push(`📧 Inviato il ${formatEventDate(inviato.at)}`);
+  if(firma && firma.firmato){
+    parts.push(`✍️ Firmato il ${formatEventDate(firma.firmatoAt)}`);
+  } else if(inviato){
+    const aperto = (f.events||[]).find(e=>e.type==='aperto');
+    parts.push(aperto ? `👁 Letto il ${formatEventDate(aperto.at)}` : '👁 Non ancora letto');
+  }
+  if(!parts.length) return '';
   return `<div style="font-size:11px; color:var(--ink-faint); margin-top:2px;">${parts.join(' · ')}</div>`;
 }
 
@@ -2627,6 +2642,7 @@ function savedQuoteRowHtml(q){
       <div>
         <div style="font-weight:600; font-size:13px; display:flex; align-items:center; gap:7px;">
           ${numero} — ${escapeHtml(cliente)}
+          ${(q.client && q.client.firma && q.client.firma.firmato) ? '<span style="font-size:10.5px; font-weight:700; color:#0F766E; background:#E5F5F3; padding:2px 8px; border-radius:999px;">✍️ Firmato</span>' : ''}
           ${q.vinto ? '<span style="font-size:10.5px; font-weight:700; color:#0F766E; background:#E5F5F3; padding:2px 8px; border-radius:999px;">🏆 Vinto</span>' : ''}
           ${isValido ? '' : '<span style="font-size:10.5px; font-weight:700; color:#6B7280; background:#F1F1F1; padding:2px 8px; border-radius:999px;">Escluso dal totale</span>'}
         </div>
@@ -2653,6 +2669,21 @@ function renderSavedQuotesList(){
   // (sidebar > Preventivi salvati, raggruppata per cliente).
   const flatTarget = { list: document.getElementById('savedQuotesList'), empty: document.getElementById('savedQuotesEmpty') };
   const groupedTarget = { list: document.getElementById('e2SalvatiList'), empty: document.getElementById('e2SalvatiEmpty') };
+
+  // Sezione dedicata ai preventivi firmati online dal cliente, in cima alla pagina, così non
+  // bisogna cercarli dentro ai gruppi per cliente per sapere quali sono già stati accettati.
+  const firmatiWrap = document.getElementById('e2SalvatiFirmatiWrap');
+  if(firmatiWrap){
+    const firmati = savedQuotes.filter(q => q.client && q.client.firma && q.client.firma.firmato)
+      .sort((a,b) => new Date(b.client.firma.firmatoAt||0) - new Date(a.client.firma.firmatoAt||0));
+    if(firmati.length){
+      firmatiWrap.style.display = 'block';
+      document.getElementById('e2SalvatiFirmatiCount').textContent = firmati.length;
+      document.getElementById('e2SalvatiFirmatiList').innerHTML = firmati.map(savedQuoteRowHtml).join('');
+    } else {
+      firmatiWrap.style.display = 'none';
+    }
+  }
 
   if(flatTarget.list){
     if(!savedQuotes.length){
@@ -3945,6 +3976,68 @@ function extractPrintDocCss(){
 // resta il link "Visualizza e firma online"): è una copia identica a quella che lo studio
 // già conosce, da allegare come promemoria/archivio.
 // Ritorna { base64, filename } oppure null se qualcosa impedisce la generazione.
+// Margine di stampa (mm) applicato ai PDF generati via html2canvas+jsPDF, così il contenuto
+// non arriva a filo pagina. Cercando, prima di ogni taglio tra una pagina e l'altra, una riga
+// di pixel quasi tutta bianca vicino al punto ideale di taglio, evitiamo di spezzare una riga
+// di testo o una voce del preventivo a metà: se non si trova un punto "pulito" entro la
+// distanza di ricerca, si usa comunque il taglio ideale (meglio quello che niente).
+const PDF_MARGIN_MM = 12;
+
+function findPdfSafeBreakRow(ctx, canvasWidth, idealRow, searchBackPx, canvasHeight){
+  try{
+    const maxRow = Math.min(idealRow, canvasHeight);
+    const minRow = Math.max(1, maxRow - searchBackPx);
+    for(let row = maxRow; row >= minRow; row--){
+      const data = ctx.getImageData(0, row, canvasWidth, 1).data;
+      let empty = true;
+      for(let i=0; i<data.length; i += 4*8){
+        if(data[i] < 250 || data[i+1] < 250 || data[i+2] < 250){ empty = false; break; }
+      }
+      if(empty) return row;
+    }
+  }catch(err){ /* canvas non leggibile per CORS: si userà il taglio ideale senza ricerca */ }
+  return idealRow;
+}
+
+// Impagina un canvas (già renderizzato da html2canvas) dentro un documento jsPDF A4, con
+// margini su tutti i lati. Se il contenuto entra in una pagina non viene affatto tagliato;
+// altrimenti cerca punti di taglio puliti tra una pagina e l'altra (vedi findPdfSafeBreakRow)
+// invece di tagliare alla cieca ogni N pixel, che è ciò che spezzava righe/voci a metà.
+function renderCanvasToPdfPages(doc, canvas){
+  const pdfWmm = 210, pdfHmm = 297; // A4
+  const usableWmm = pdfWmm - PDF_MARGIN_MM * 2;
+  const usableHmm = pdfHmm - PDF_MARGIN_MM * 2;
+  const pxPerMm = canvas.width / usableWmm;
+  const pageHeightPx = Math.floor(usableHmm * pxPerMm);
+
+  if(canvas.height <= pageHeightPx){
+    const pageData = canvas.toDataURL('image/jpeg', 0.92);
+    doc.addImage(pageData, 'JPEG', PDF_MARGIN_MM, PDF_MARGIN_MM, usableWmm, canvas.height / pxPerMm);
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+  const searchBackPx = Math.round(10 * pxPerMm); // fino a ~10mm di ricerca per un taglio pulito
+  let renderedPx = 0, first = true;
+  while(renderedPx < canvas.height){
+    let sliceEnd = Math.min(renderedPx + pageHeightPx, canvas.height);
+    if(sliceEnd < canvas.height){
+      const safeEnd = findPdfSafeBreakRow(ctx, canvas.width, sliceEnd, searchBackPx, canvas.height);
+      if(safeEnd > renderedPx) sliceEnd = safeEnd;
+    }
+    const sliceHeightPx = sliceEnd - renderedPx;
+    const pageCanvas = document.createElement('canvas');
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = sliceHeightPx;
+    pageCanvas.getContext('2d').drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+    const pageData = pageCanvas.toDataURL('image/jpeg', 0.92);
+    if(!first) doc.addPage();
+    doc.addImage(pageData, 'JPEG', PDF_MARGIN_MM, PDF_MARGIN_MM, usableWmm, sliceHeightPx / pxPerMm);
+    renderedPx = sliceEnd;
+    first = false;
+  }
+}
+
 async function buildQuotePdfBase64(){
   if(typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF){
     console.error('jsPDF non caricato: impossibile generare il PDF del preventivo.');
@@ -3973,23 +4066,8 @@ async function buildQuotePdfBase64(){
   try{
     const canvas = await window.html2canvas(printEl, { scale:2, useCORS:true, backgroundColor:'#ffffff', windowWidth:800 });
     const { jsPDF } = window.jspdf;
-    const pdfWmm = 210, pdfHmm = 297; // A4
-    const pxPerMm = canvas.width / pdfWmm;
-    const pageHeightPx = Math.floor(pdfHmm * pxPerMm);
     const doc = new jsPDF({ unit:'mm', format:'a4' });
-    let renderedPx = 0, first = true;
-    while(renderedPx < canvas.height){
-      const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedPx);
-      const pageCanvas = document.createElement('canvas');
-      pageCanvas.width = canvas.width;
-      pageCanvas.height = sliceHeightPx;
-      pageCanvas.getContext('2d').drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
-      const pageData = pageCanvas.toDataURL('image/jpeg', 0.92);
-      if(!first) doc.addPage();
-      doc.addImage(pageData, 'JPEG', 0, 0, pdfWmm, sliceHeightPx / pxPerMm);
-      renderedPx += sliceHeightPx;
-      first = false;
-    }
+    renderCanvasToPdfPages(doc, canvas);
     const numero = document.getElementById('fNumero').value || 'bozza';
     const filename = `Preventivo_${numero.replace(/[^a-zA-Z0-9_-]+/g,'_')}.pdf`;
     const dataUri = doc.output('datauristring');
@@ -4147,10 +4225,14 @@ function renderFollowupsPanel(){
     const hint = clicks>0 ? `Ha aperto il link ${clicks} volt${clicks===1?'a':'e'}` : (opens>0 ? `Ha visualizzato l'email ${opens} volt${opens===1?'a':'e'}` : 'Ancora nessuna interazione');
     const inviato = f.events.find(e=>e.type==='inviato_preventivo');
     const primaApertura = f.events.find(e=>e.type==='aperto');
+    const firmato = f.events.find(e=>e.type==='firmato');
     const agendaBits = [];
     if(inviato) agendaBits.push(`📧 Inviato il ${formatEventDate(inviato.at)}`);
     if(primaApertura) agendaBits.push(`👁 Letto il ${formatEventDate(primaApertura.at)}`);
-    else if(inviato) agendaBits.push('👁 Non ancora letto');
+    // Una volta firmato il cliente ha ovviamente anche letto ed è andato oltre: non ha più senso
+    // mostrare "Non ancora letto" (dipende solo dal pixel di tracking email, che può non scattare).
+    else if(inviato && !firmato) agendaBits.push('👁 Non ancora letto');
+    if(firmato) agendaBits.push(`✍️ Firmato il ${formatEventDate(firmato.at)}`);
     return `
       <div style="border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin-bottom:8px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -6294,6 +6376,7 @@ document.getElementById('savedQuotesModal').addEventListener('click', (e)=>{
 });
 document.getElementById('savedQuotesList').addEventListener('click', handleSavedQuotesListClick);
 document.getElementById('e2SalvatiList').addEventListener('click', handleSavedQuotesListClick);
+document.getElementById('e2SalvatiFirmatiList').addEventListener('click', handleSavedQuotesListClick);
 
 /* ===================== Rubrica clienti: bind UI ===================== */
 document.getElementById('selectClientBtn').addEventListener('click', openClientPickerModal);
@@ -7443,6 +7526,8 @@ if('serviceWorker' in navigator){
     if(list1) list1.addEventListener('click', estimly3HandleCloseQuoteClick);
     const list2 = document.getElementById('e2SalvatiList');
     if(list2) list2.addEventListener('click', estimly3HandleCloseQuoteClick);
+    const list3 = document.getElementById('e2SalvatiFirmatiList');
+    if(list3) list3.addEventListener('click', estimly3HandleCloseQuoteClick);
 
     estimlyUpdateHoursAlert();
     estimlyHandleStripeReturnUrl();
