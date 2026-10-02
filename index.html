@@ -1305,13 +1305,24 @@ header.top{
 
       <div class="followup-section" id="followupSection">
         <div class="field-section-label" style="margin-top:18px;">Invio email &amp; follow-up automatico</div>
-        <div style="font-size:11px; color:var(--ink-soft); margin-bottom:8px;">Invia il preventivo via email direttamente da qui: il cliente lo riceve subito e da quel momento Estimly traccia automaticamente quando l'email viene aperta, oltre a mandare promemoria (dopo 3, 7 e 14 giorni) finché non accetta, rifiuta, o disattivi il follow-up. Richiede l'email del cliente e un account Resend collegato in Impostazioni Studio.</div>
-        <button type="button" id="sendQuoteEmailBtn" class="btn-save" style="padding:8px 16px; font-size:12.5px; margin-bottom:8px;">📧 Invia preventivo via email</button>
+        <div style="font-size:11px; color:var(--ink-soft); margin-bottom:8px;">Invia il preventivo via email direttamente da qui: il cliente lo riceve subito e da quel momento Estimly traccia automaticamente quando l'email viene aperta, oltre a mandare i promemoria scelti qui sotto finché non accetta, rifiuta, o disattivi il follow-up. Richiede l'email del cliente e un account Resend collegato in Impostazioni Studio.</div>
         <div id="followupInactive">
-          <button type="button" id="activateFollowupBtn" class="btn-cancel" style="padding:7px 14px; font-size:12px;">Ho già inviato il preventivo altrove: attiva solo il follow-up</button>
+          <div id="followupScheduleConfig" style="margin-bottom:10px;">
+            <div style="font-size:11px; color:var(--ink-soft); margin-bottom:6px;">Promemoria automatici — scegli dopo quanti giorni dall'invio mandarli (deseleziona quelli che non ti servono per questo cliente):</div>
+            <div style="display:flex; gap:16px; flex-wrap:wrap;">
+              <label style="display:flex; align-items:center; gap:5px; font-size:12px;"><input type="checkbox" id="fuStep1On" checked> dopo <input type="number" id="fuStep1Days" value="3" min="1" max="120" style="width:48px; padding:3px 5px;"> giorni</label>
+              <label style="display:flex; align-items:center; gap:5px; font-size:12px;"><input type="checkbox" id="fuStep2On" checked> dopo <input type="number" id="fuStep2Days" value="7" min="1" max="120" style="width:48px; padding:3px 5px;"> giorni</label>
+              <label style="display:flex; align-items:center; gap:5px; font-size:12px;"><input type="checkbox" id="fuStep3On" checked> dopo <input type="number" id="fuStep3Days" value="14" min="1" max="120" style="width:48px; padding:3px 5px;"> giorni</label>
+            </div>
+          </div>
+          <button type="button" id="sendQuoteEmailBtn" class="btn-save" style="padding:8px 16px; font-size:12.5px; margin-bottom:8px;">📧 Invia preventivo via email</button>
+          <div>
+            <button type="button" id="activateFollowupBtn" class="btn-cancel" style="padding:7px 14px; font-size:12px;">Ho già inviato il preventivo altrove: attiva solo il follow-up</button>
+          </div>
         </div>
         <div id="followupActive" style="display:none;">
           <div id="followupStatusBadge"></div>
+          <div id="followupScheduleSummary" style="font-size:11.5px; color:var(--ink-soft); margin-top:6px;"></div>
           <div id="followupTimeline" style="margin-top:8px;"></div>
           <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
             <button type="button" id="markRepliedBtn" class="btn-cancel" style="padding:5px 10px; font-size:11px;">Cliente ha risposto</button>
@@ -3770,6 +3781,43 @@ function formatEventDate(iso){
   return new Date(iso).toLocaleDateString('it-IT', { day:'numeric', month:'long' });
 }
 
+// Legge dai campi della sezione follow-up quali promemoria automatici lo studio vuole per
+// QUESTO preventivo/cliente (deseleziona pure quelli non graditi), prima di inviare l'email o
+// attivare il follow-up. Restituisce i giorni-offset in ordine crescente, es. [3,7,14] o un
+// sottoinsieme personalizzato; un array vuoto disattiva del tutto i promemoria automatici
+// (resta comunque il tracciamento apertura/click/firma).
+function getFollowupSequenceDays(){
+  const steps = [
+    { on: document.getElementById('fuStep1On'), days: document.getElementById('fuStep1Days') },
+    { on: document.getElementById('fuStep2On'), days: document.getElementById('fuStep2Days') },
+    { on: document.getElementById('fuStep3On'), days: document.getElementById('fuStep3Days') }
+  ];
+  return steps.filter(s => s.on && s.days && s.on.checked)
+    .map(s => Math.max(1, Math.min(120, parseInt(s.days.value, 10) || 0)))
+    .filter(d => d > 0)
+    .sort((a,b) => a-b);
+}
+
+// Rimette i campi della configurazione promemoria ai valori di default (3/7/14, tutti attivi):
+// chiamata quando si apre un preventivo che non ha ancora un follow-up attivo, così non restano
+// per sbaglio le scelte fatte per il cliente visto in precedenza.
+function resetFollowupScheduleInputs(){
+  const defaults = [[1,true,3],[2,true,7],[3,true,14]];
+  defaults.forEach(([n, on, days])=>{
+    const onEl = document.getElementById(`fuStep${n}On`);
+    const daysEl = document.getElementById(`fuStep${n}Days`);
+    if(onEl) onEl.checked = on;
+    if(daysEl) daysEl.value = days;
+    if(onEl) onEl.disabled = false;
+    if(daysEl) daysEl.disabled = false;
+  });
+}
+
+function followupScheduleLabel(sequenceDays){
+  if(!Array.isArray(sequenceDays) || !sequenceDays.length) return 'Nessun promemoria automatico impostato per questo preventivo (solo tracciamento apertura/click/firma).';
+  return `Promemoria automatici impostati per questo preventivo: dopo ${sequenceDays.join(', ')} giorni dall'invio.`;
+}
+
 function renderFollowupSection(){
   const inactive = document.getElementById('followupInactive');
   const active = document.getElementById('followupActive');
@@ -3777,6 +3825,7 @@ function renderFollowupSection(){
   if(!f || !f.active){
     inactive.style.display = 'block';
     active.style.display = 'none';
+    resetFollowupScheduleInputs();
     return;
   }
   inactive.style.display = 'none';
@@ -3787,6 +3836,10 @@ function renderFollowupSection(){
     <span style="display:inline-flex; align-items:center; gap:6px; background:${meta.bg}; color:${meta.color}; font-size:12px; font-weight:600; padding:5px 12px; border-radius:999px;">
       ${meta.emoji} ${meta.label}
     </span>`;
+
+  // La sequenza è decisa una volta sola all'attivazione: per cambiarla basta disattivare e
+  // riattivare il follow-up (il box di configurazione ricompare con i nuovi valori).
+  document.getElementById('followupScheduleSummary').textContent = followupScheduleLabel(f.sequenceDays);
 
   document.getElementById('followupTimeline').innerHTML = f.events.slice().reverse().map(ev => `
     <div style="display:flex; gap:8px; font-size:11.5px; color:var(--ink-soft); padding:3px 0;">
@@ -4148,7 +4201,7 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         key, action:'send',
-        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html },
+        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html, sequenceDays: getFollowupSequenceDays() },
         attachment: pdf ? { filename: pdf.filename, contentBase64: pdf.base64 } : undefined
       })
     });
@@ -4190,7 +4243,7 @@ document.getElementById('activateFollowupBtn').addEventListener('click', async (
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         key, action:'start',
-        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale }
+        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, sequenceDays: getFollowupSequenceDays() }
       })
     });
     const data = await res.json();

@@ -1,12 +1,34 @@
 import { getStore } from '@netlify/blobs';
 
-// Sequenza fissa per la v1: promemoria dopo 3, 7 e 14 giorni dall'attivazione.
-const SEQUENCE_DAYS = [3, 7, 14];
+// Sequenza di default se lo studio non ne sceglie una diversa per il singolo preventivo
+// (vedi sanitizeSequenceDays): promemoria dopo 3, 7 e 14 giorni dall'attivazione.
+const DEFAULT_SEQUENCE_DAYS = [3, 7, 14];
 
 function addDaysIso(fromIso, days) {
   const d = new Date(fromIso);
   d.setDate(d.getDate() + days);
   return d.toISOString();
+}
+
+// Lo studio può personalizzare, per ogni preventivo/cliente, dopo quanti giorni mandare ogni
+// promemoria (o disattivarne alcuni), dal box "Promemoria automatici" nell'editor del
+// preventivo. Qui si valida quanto arriva dal client: solo numeri interi tra 1 e 120 giorni,
+// in ordine crescente; un array vuoto è valido e significa "nessun promemoria automatico, solo
+// tracciamento" (lo studio ha deselezionato tutti e tre). Se il campo manca o non è un array
+// (versioni precedenti del client, o chiamata diretta all'API) si usa la sequenza di default.
+function sanitizeSequenceDays(input) {
+  if (!Array.isArray(input)) return DEFAULT_SEQUENCE_DAYS;
+  const days = input
+    .map((d) => Math.trunc(Number(d)))
+    .filter((d) => Number.isFinite(d) && d > 0 && d <= 120);
+  return Array.from(new Set(days)).sort((a, b) => a - b);
+}
+
+// null quando la sequenza è vuota (nessun promemoria automatico scelto per questo preventivo):
+// il follow-up resta attivo per tracciare apertura/click/firma, ma followup-cron.js non ha
+// nulla da inviare (step < sequenceDays.length è già falso con lunghezza 0).
+function nextDueForSequence(fromIso, sequenceDays) {
+  return sequenceDays.length ? addDaysIso(fromIso, sequenceDays[0]) : null;
 }
 
 export default async (req) => {
@@ -45,6 +67,7 @@ export default async (req) => {
       return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
     }
     const now = new Date().toISOString();
+    const sequenceDays = sanitizeSequenceDays(f.sequenceDays);
     const entry = {
       id: 'fu_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8),
       quoteRef: f.quoteRef,
@@ -57,7 +80,8 @@ export default async (req) => {
       step: 0,
       active: true,
       startedAt: now,
-      nextDueAt: addDaysIso(now, SEQUENCE_DAYS[0]),
+      sequenceDays,
+      nextDueAt: nextDueForSequence(now, sequenceDays),
       events: [{ type: 'attivato', at: now }]
     };
     // Se esisteva già un follow-up per lo stesso preventivo, lo sostituisce (si riparte da zero).
@@ -84,6 +108,7 @@ export default async (req) => {
     }
 
     const now = new Date().toISOString();
+    const sequenceDays = sanitizeSequenceDays(f.sequenceDays);
     let entry = list.find((x) => x.quoteRef === f.quoteRef);
     if (!entry) {
       entry = {
@@ -98,13 +123,16 @@ export default async (req) => {
         step: 0,
         active: true,
         startedAt: now,
-        nextDueAt: addDaysIso(now, SEQUENCE_DAYS[0]),
+        sequenceDays,
+        nextDueAt: nextDueForSequence(now, sequenceDays),
         events: []
       };
       list.push(entry);
     } else {
       // Un nuovo invio del preventivo riparte con il conteggio dei promemoria automatici,
-      // ma mantiene tutta la cronologia eventi precedente.
+      // ma mantiene tutta la cronologia eventi precedente. La sequenza scelta in questo invio
+      // (anche se diversa da quella di un'eventuale attivazione precedente) è quella che vale
+      // da qui in avanti.
       entry.clienteEmail = f.clienteEmail;
       entry.clienteNome = f.clienteNome || entry.clienteNome;
       entry.numero = f.numero || entry.numero;
@@ -113,7 +141,8 @@ export default async (req) => {
       entry.step = 0;
       entry.active = true;
       entry.startedAt = now;
-      entry.nextDueAt = addDaysIso(now, SEQUENCE_DAYS[0]);
+      entry.sequenceDays = sequenceDays;
+      entry.nextDueAt = nextDueForSequence(now, sequenceDays);
     }
 
     const subject = f.subject || `Preventivo${f.numero ? ' n. ' + f.numero : ''}`;

@@ -1,6 +1,12 @@
 import { getStore } from '@netlify/blobs';
 
-const SEQUENCE_DAYS = [3, 7, 14];
+// Sequenza di default, usata solo per i follow-up creati prima dell'introduzione della
+// personalizzazione per cliente (che non hanno ancora il campo 'sequenceDays' salvato).
+const DEFAULT_SEQUENCE_DAYS = [3, 7, 14];
+
+function sequenceFor(entry) {
+  return Array.isArray(entry.sequenceDays) ? entry.sequenceDays : DEFAULT_SEQUENCE_DAYS;
+}
 
 function addDaysIso(fromIso, days) {
   const d = new Date(fromIso);
@@ -46,7 +52,7 @@ export default async (req) => {
     }
     if (!Array.isArray(list) || list.length === 0) continue;
 
-    const dueEntries = list.filter(f => f.active && f.step < SEQUENCE_DAYS.length && new Date(f.nextDueAt) <= new Date());
+    const dueEntries = list.filter(f => f.active && f.step < sequenceFor(f).length && new Date(f.nextDueAt) <= new Date());
     if (dueEntries.length === 0) continue;
 
     console.log(`[followup-cron] key=${key}: ${dueEntries.length} follow-up in scadenza`);
@@ -88,8 +94,9 @@ export default async (req) => {
         if (res.ok) {
           entry.step = nextStep;
           entry.events.push({ type: 'inviato_followup_' + nextStep, at: new Date().toISOString() });
-          if (nextStep < SEQUENCE_DAYS.length) {
-            entry.nextDueAt = addDaysIso(entry.startedAt, SEQUENCE_DAYS[nextStep]);
+          const seq = sequenceFor(entry);
+          if (nextStep < seq.length) {
+            entry.nextDueAt = addDaysIso(entry.startedAt, seq[nextStep]);
           } else {
             entry.active = false;
             entry.events.push({ type: 'sequenza_conclusa', at: new Date().toISOString() });
