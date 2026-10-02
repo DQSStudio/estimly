@@ -2348,7 +2348,8 @@ async function importClientsFromSheet(){
       renderClientPickerList();
       if(statusBox) statusBox.textContent = `Fatto: ${data.created} nuovi, ${data.updated} aggiornati.`;
     } else {
-      if(statusBox) statusBox.textContent = 'Importazione non riuscita: ' + (data && data.error ? data.error : 'errore sconosciuto');
+      const detail = (data && data.message) ? ` (${data.message})` : '';
+      if(statusBox) statusBox.textContent = 'Importazione non riuscita: ' + (data && data.error ? data.error : 'errore sconosciuto') + detail;
     }
   }catch(err){
     console.error('Impossibile importare dal foglio', err);
