@@ -3863,75 +3863,24 @@ async function updateFollowupStatus(newStatus){
   }catch(err){ alert('Impossibile aggiornare lo stato del follow-up.'); }
 }
 
-// Riprende la stessa identità visiva del documento di "Stampa / Salva PDF" (barra accento,
-// intestazione studio/documento, blocchi Cliente/Progetto, tabella per categorie, totali) —
-// per omogeneità tra quello che il cliente vede nel corpo dell'email e l'allegato PDF. Usa
-// però solo tabelle HTML e stili inline (niente flex/grid, niente <style>), perché è quanto
-// di più compatibile esiste tra i client email (compreso Outlook desktop).
+// Email di invio preventivo: deliberatamente NON contiene più il preventivo per intero
+// (niente tabella voci, niente totali) — solo un'intestazione minima di riconoscimento e il
+// pulsante per aprirlo online. Due motivi, entrambi richiesti dallo studio: (1) il cliente deve
+// passare dal link pubblico per vederlo, così l'apertura reale viene tracciata lì (vedi
+// getPublicQuote in public-quote.js) invece di dipendere dal pixel email di Resend, spesso
+// bloccato dai client di posta; (2) l'importo e il dettaglio voci restano confinati alla pagina
+// online, coerente col fatto che anche il PDF non viene più allegato qui (il cliente lo scarica,
+// con la propria firma riportata in calce, solo dopo aver firmato — vedi preventivo.html).
 function buildQuoteEmailHtml(clientLinkUrl){
   const s = studioSettings;
   const accent = s.colorPrimary || '#4338CA';
-  const accentSoft = hexToSoft(accent);
   const cliente = document.getElementById('fCliente').value || '—';
-  const tipoCliente = document.getElementById('fTipoCliente').value || '';
-  const indirizzoCliente = document.getElementById('fIndirizzo').value || '';
-  const cf = document.getElementById('fCF').value || '';
-  const piva = document.getElementById('fPiva').value || '';
-  const fiscaleCliente = [cf, piva].filter(Boolean).join(' / ');
   const progetto = document.getElementById('fProgetto').value || '';
   const numero = document.getElementById('fNumero').value || '—';
-  const revisione = document.getElementById('fRevisione').value || '';
   const dataRaw = document.getElementById('fData').value;
   const dataFmt = dataRaw ? new Date(dataRaw+'T00:00:00').toLocaleDateString('it-IT') : '—';
-  const hidePrices = document.getElementById('fHidePrices').checked;
-
-  const byCat = {};
-  cart.forEach(l=>{
-    const cat = l.categoria || 'Altro';
-    byCat[cat] = byCat[cat] || [];
-    byCat[cat].push(l);
-  });
-  let cats = Object.keys(byCat);
-  cats.sort((a,b)=>{
-    if(a==='Voci libere') return 1;
-    if(b==='Voci libere') return -1;
-    return categorySortIndex(a) - categorySortIndex(b);
-  });
-
-  const colCount = hidePrices ? 2 : 4;
-  let rowsHtml = '';
-  cats.forEach(cat=>{
-    rowsHtml += `<tr><td colspan="${colCount}" style="background:${accentSoft}; padding:8px 10px; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.4px; color:${accent};">${escapeHtml(cat)}</td></tr>`;
-    byCat[cat].forEach(l=>{
-      const isOrario = l.modalita === 'orario';
-      const qty = isOrario ? `${fmt(l.ore)} h` : `${l.qty} ${l.um||'cad'}`;
-      const unit = isOrario ? l.tariffa : l.prezzo;
-      rowsHtml += `<tr>
-        <td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#222;">${escapeHtml(l.nome)}${l.descrizione?`<div style="font-size:11px;color:#888;margin-top:2px;">${escapeHtml(l.descrizione)}</div>`:''}</td>
-        <td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#555; text-align:right; white-space:nowrap;">${qty}</td>
-        ${hidePrices ? '' : `
-        <td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#555; text-align:right; white-space:nowrap;">€ ${fmt(unit)}</td>
-        <td style="padding:7px 10px; border-bottom:1px solid #eee; font-size:13px; color:#111; text-align:right; white-space:nowrap; font-weight:600;">€ ${fmt(lineTotal(l))}</td>`}
-      </tr>`;
-    });
-  });
-
-  const imponibile = cart.reduce((sum,l)=>sum+lineTotal(l),0);
-  const scontoPct = parseFloat(document.getElementById('fSconto').value)||0;
-  const sconto = imponibile*scontoPct/100;
-  const netto = imponibile - sconto;
-  const contributoPct = parseFloat(document.getElementById('fContributoPct').value) || 0;
-  const contributoLabel = document.getElementById('fContributoLabel').value.trim() || 'Contributo cassa/INPS';
-  const contributo = netto * contributoPct/100;
-  const baseIva = netto + contributo;
-  const regime = getRegimeAttivo();
-  const iva = baseIva*regime.rate;
-  const totale = baseIva + iva;
 
   const studioBits = [s.indirizzo, s.piva?('P.IVA '+s.piva):'', s.telefono, s.email].filter(Boolean).map(escapeHtml).join(' &middot; ');
-  const metaRows = [['N.', escapeHtml(numero)], ['Data', dataFmt]];
-  if(revisione) metaRows.push(['Rev.', escapeHtml(revisione)]);
-  const metaHtml = metaRows.map(([label,val])=>`<tr><td style="padding:1px 8px 1px 0; text-align:right; color:#888;">${label}</td><td style="padding:1px 0; text-align:right; font-weight:600; color:#111;">${val}</td></tr>`).join('');
 
   const headerHtml = `
     <div style="height:5px; background:${accent}; border-radius:3px; margin-bottom:16px;"></div>
@@ -3943,25 +3892,13 @@ function buildQuoteEmailHtml(clientLinkUrl){
       </td>
       <td style="vertical-align:top; text-align:right;">
         <div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:${accent}; margin-bottom:5px;">Preventivo</div>
-        <table role="presentation" style="margin-left:auto;">${metaHtml}</table>
+        <div style="font-size:12px; color:#888;">N. <b style="color:#111;">${escapeHtml(numero)}</b> &middot; ${dataFmt}</div>
       </td>
-    </tr></table>
-    <table role="presentation" width="100%" style="border-bottom:1px solid #ddd; padding-bottom:12px; margin-bottom:14px;"><tr>
-      <td style="vertical-align:top; width:50%; padding-bottom:12px;">
-        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:${accent}; font-weight:600; margin-bottom:3px;">Cliente</div>
-        <div style="font-weight:600; font-size:14.5px; color:#111;">${escapeHtml(cliente)}</div>
-        ${(tipoCliente||indirizzoCliente) ? `<div style="font-size:12px; color:#444;">${escapeHtml(tipoCliente)}${indirizzoCliente?' &middot; '+escapeHtml(indirizzoCliente):''}</div>` : ''}
-        ${fiscaleCliente ? `<div style="font-size:12px; color:#444;">${escapeHtml(fiscaleCliente)}</div>` : ''}
-      </td>
-      ${progetto ? `<td style="vertical-align:top; padding-bottom:12px;">
-        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:${accent}; font-weight:600; margin-bottom:3px;">Progetto</div>
-        <div style="font-weight:600; font-size:14.5px; color:#111;">${escapeHtml(progetto)}</div>
-      </td>` : ''}
     </tr></table>
   `;
 
   const ctaHtml = clientLinkUrl ? `
-    <div style="text-align:center; margin:22px 0;">
+    <div style="text-align:center; margin:26px 0;">
       <a href="${clientLinkUrl}" style="display:inline-block; background:${accent}; color:#fff; text-decoration:none; padding:12px 28px; border-radius:6px; font-weight:600; font-size:14px;">Visualizza e firma il preventivo online &rarr;</a>
     </div>` : '';
 
@@ -3969,171 +3906,20 @@ function buildQuoteEmailHtml(clientLinkUrl){
   <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; max-width:640px; margin:0 auto; color:#222;">
     ${headerHtml}
     <p style="font-size:14px; line-height:1.6;">Gentile ${escapeHtml(cliente)},</p>
-    <p style="font-size:14px; line-height:1.6;">di seguito il riepilogo del preventivo${numero!=='—'?` n. <b>${escapeHtml(numero)}</b>`:''}${progetto?` per "${escapeHtml(progetto)}"`:''}, redatto da ${escapeHtml(s.nome||'il nostro studio')} in data ${dataFmt}.${clientLinkUrl ? ' Può visualizzarlo online e firmarlo direttamente dal pulsante qui sotto.' : ''}</p>
-    ${ctaHtml}
-    <table role="presentation" style="width:100%; border-collapse:collapse; margin:18px 0;">
-      <thead>
-        <tr>
-          <th style="text-align:left; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid ${accent};">Descrizione</th>
-          <th style="text-align:right; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid ${accent};">Qt&agrave;/Ore</th>
-          ${hidePrices ? '' : `
-          <th style="text-align:right; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid ${accent};">Prezzo unit.</th>
-          <th style="text-align:right; font-size:11px; text-transform:uppercase; color:#888; padding:6px 10px; border-bottom:2px solid ${accent};">Totale</th>`}
-        </tr>
-      </thead>
-      <tbody>${rowsHtml || `<tr><td colspan="${colCount}" style="padding:14px; text-align:center; color:#999;">Nessuna voce inserita.</td></tr>`}</tbody>
-    </table>
-    ${hidePrices ? '' : `
-    <table role="presentation" style="width:100%; max-width:300px; margin-left:auto; font-size:13px;">
-      <tr><td style="padding:2px 0; color:#555;">Imponibile</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(imponibile)}</td></tr>
-      ${scontoPct>0?`<tr><td style="padding:2px 0; color:#555;">Sconto (${fmt(scontoPct)}%)</td><td style="padding:2px 0; text-align:right;">&minus; &euro; ${fmt(sconto)}</td></tr>`:''}
-      ${contributoPct>0?`<tr><td style="padding:2px 0; color:#555;">${escapeHtml(contributoLabel)} (${fmt(contributoPct)}%)</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(contributo)}</td></tr>`:''}
-      <tr><td style="padding:2px 0; color:#555;">${escapeHtml(regime.label)}</td><td style="padding:2px 0; text-align:right;">&euro; ${fmt(iva)}</td></tr>
-      <tr><td style="padding:8px 0 0; font-weight:700; font-size:16px; border-top:2px solid ${accent};">Totale</td><td style="padding:8px 0 0; font-weight:700; font-size:16px; text-align:right; border-top:2px solid ${accent}; color:${accent};">&euro; ${fmt(totale)}</td></tr>
-    </table>`}
+    <p style="font-size:14px; line-height:1.6;">${escapeHtml(s.nome||'il nostro studio')} ha preparato per${progetto?` "${escapeHtml(progetto)}"`:' lei'} il preventivo${numero!=='—'?` n. <b>${escapeHtml(numero)}</b>`:''}. Può visualizzarlo nel dettaglio e firmarlo direttamente online dal pulsante qui sotto.</p>
     ${ctaHtml}
     <p style="font-size:13px; line-height:1.6; color:#555; margin-top:22px;">Resto a disposizione per qualsiasi chiarimento.<br>Cordiali saluti,<br><b>${escapeHtml(s.nome||'Studio')}</b></p>
   </div>`;
 }
 
-// Estrae dal foglio di stile live SOLO le regole "#printDoc..." che vivono dentro
-// "@media print" (l'unico posto in cui esistono: sono lo stesso identico CSS usato da
-// "Stampa / Salva PDF"). Servono per renderle attive fuori dal contesto di stampa, senza
-// toccare nessun'altra regola della pagina (quelle che nascondono sidebar/toolbar ecc. non
-// vengono copiate, perché non sono scoped su #printDoc e andrebbero a rompere la UI live).
-function extractPrintDocCss(){
-  let css = '';
-  for(const sheet of document.styleSheets){
-    let rules;
-    try{ rules = sheet.cssRules; }catch(e){ continue; }
-    if(!rules) continue;
-    for(const rule of rules){
-      if(typeof CSSMediaRule !== 'undefined' && rule instanceof CSSMediaRule && /print/i.test(rule.media.mediaText)){
-        for(const inner of rule.cssRules){
-          // Le regole del blocco vivono come '#printDoc ...' oppure come classi ".pd-*" nude
-          // (senza il prefisso #printDoc davanti, ma comunque uniche a questo componente):
-          // vanno prese entrambe, altrimenti il layout (flex/grid delle intestazioni, tabella
-          // ecc.) resta non stilizzato e il PDF non assomiglia più alla stampa reale.
-          if(inner.selectorText && (inner.selectorText.indexOf('#printDoc') !== -1 || inner.selectorText.indexOf('.pd-') !== -1)){
-            css += inner.cssText + '\n';
-          }
-        }
-      }
-    }
-  }
-  return css;
-}
-
-// Genera il PDF allegato alle email come "fotografia" dello stesso identico documento che
-// "Stampa / Salva PDF" produce (stessa funzione buildPrintDoc(), stesso HTML/CSS), catturato
-// con html2canvas e impaginato su pagine A4 con jsPDF. Non è il meccanismo di firma (che
-// resta il link "Visualizza e firma online"): è una copia identica a quella che lo studio
-// già conosce, da allegare come promemoria/archivio.
-// Ritorna { base64, filename } oppure null se qualcosa impedisce la generazione.
-// Margine di stampa (mm) applicato ai PDF generati via html2canvas+jsPDF, così il contenuto
-// non arriva a filo pagina. Cercando, prima di ogni taglio tra una pagina e l'altra, una riga
-// di pixel quasi tutta bianca vicino al punto ideale di taglio, evitiamo di spezzare una riga
-// di testo o una voce del preventivo a metà: se non si trova un punto "pulito" entro la
-// distanza di ricerca, si usa comunque il taglio ideale (meglio quello che niente).
-const PDF_MARGIN_MM = 12;
-
-function findPdfSafeBreakRow(ctx, canvasWidth, idealRow, searchBackPx, canvasHeight){
-  try{
-    const maxRow = Math.min(idealRow, canvasHeight);
-    const minRow = Math.max(1, maxRow - searchBackPx);
-    for(let row = maxRow; row >= minRow; row--){
-      const data = ctx.getImageData(0, row, canvasWidth, 1).data;
-      let empty = true;
-      for(let i=0; i<data.length; i += 4*8){
-        if(data[i] < 250 || data[i+1] < 250 || data[i+2] < 250){ empty = false; break; }
-      }
-      if(empty) return row;
-    }
-  }catch(err){ /* canvas non leggibile per CORS: si userà il taglio ideale senza ricerca */ }
-  return idealRow;
-}
-
-// Impagina un canvas (già renderizzato da html2canvas) dentro un documento jsPDF A4, con
-// margini su tutti i lati. Se il contenuto entra in una pagina non viene affatto tagliato;
-// altrimenti cerca punti di taglio puliti tra una pagina e l'altra (vedi findPdfSafeBreakRow)
-// invece di tagliare alla cieca ogni N pixel, che è ciò che spezzava righe/voci a metà.
-function renderCanvasToPdfPages(doc, canvas){
-  const pdfWmm = 210, pdfHmm = 297; // A4
-  const usableWmm = pdfWmm - PDF_MARGIN_MM * 2;
-  const usableHmm = pdfHmm - PDF_MARGIN_MM * 2;
-  const pxPerMm = canvas.width / usableWmm;
-  const pageHeightPx = Math.floor(usableHmm * pxPerMm);
-
-  if(canvas.height <= pageHeightPx){
-    const pageData = canvas.toDataURL('image/jpeg', 0.92);
-    doc.addImage(pageData, 'JPEG', PDF_MARGIN_MM, PDF_MARGIN_MM, usableWmm, canvas.height / pxPerMm);
-    return;
-  }
-
-  const ctx = canvas.getContext('2d');
-  const searchBackPx = Math.round(10 * pxPerMm); // fino a ~10mm di ricerca per un taglio pulito
-  let renderedPx = 0, first = true;
-  while(renderedPx < canvas.height){
-    let sliceEnd = Math.min(renderedPx + pageHeightPx, canvas.height);
-    if(sliceEnd < canvas.height){
-      const safeEnd = findPdfSafeBreakRow(ctx, canvas.width, sliceEnd, searchBackPx, canvas.height);
-      if(safeEnd > renderedPx) sliceEnd = safeEnd;
-    }
-    const sliceHeightPx = sliceEnd - renderedPx;
-    const pageCanvas = document.createElement('canvas');
-    pageCanvas.width = canvas.width;
-    pageCanvas.height = sliceHeightPx;
-    pageCanvas.getContext('2d').drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
-    const pageData = pageCanvas.toDataURL('image/jpeg', 0.92);
-    if(!first) doc.addPage();
-    doc.addImage(pageData, 'JPEG', PDF_MARGIN_MM, PDF_MARGIN_MM, usableWmm, sliceHeightPx / pxPerMm);
-    renderedPx = sliceEnd;
-    first = false;
-  }
-}
-
-async function buildQuotePdfBase64(){
-  if(typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF){
-    console.error('jsPDF non caricato: impossibile generare il PDF del preventivo.');
-    return null;
-  }
-  if(typeof window.html2canvas !== 'function'){
-    console.error('html2canvas non caricato: impossibile generare il PDF del preventivo.');
-    return null;
-  }
-  const printEl = document.getElementById('printDoc');
-  if(!printEl) return null;
-
-  buildPrintDoc(); // stessa funzione usata dal pulsante "Stampa / Salva PDF"
-
-  const printCss = extractPrintDocCss();
-  const styleTag = document.createElement('style');
-  styleTag.textContent = printCss;
-  document.head.appendChild(styleTag);
-
-  const prevStyle = printEl.getAttribute('style') || '';
-  // Fuori campo (mai visibile all'utente) ma pienamente renderizzato: html2canvas cattura
-  // l'elemento anche se posizionato fuori dallo schermo, basta che non sia display:none.
-  printEl.style.cssText = `${prevStyle}; display:block !important; position:absolute; left:-10000px; top:0; width:800px; background:#fff; z-index:-1;`;
-
-  let result = null;
-  try{
-    const canvas = await window.html2canvas(printEl, { scale:2, useCORS:true, backgroundColor:'#ffffff', windowWidth:800 });
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit:'mm', format:'a4' });
-    renderCanvasToPdfPages(doc, canvas);
-    const numero = document.getElementById('fNumero').value || 'bozza';
-    const filename = `Preventivo_${numero.replace(/[^a-zA-Z0-9_-]+/g,'_')}.pdf`;
-    const dataUri = doc.output('datauristring');
-    result = { base64: dataUri.split(',')[1], filename };
-  }catch(err){
-    console.error('Errore nella generazione del PDF del preventivo', err);
-  }finally{
-    printEl.setAttribute('style', prevStyle);
-    styleTag.remove();
-  }
-  return result;
-}
+// Nota: in passato qui c'erano extractPrintDocCss(), findPdfSafeBreakRow(), PDF_MARGIN_MM e
+// renderCanvasToPdfPages(), usate solo da buildQuotePdfBase64() per generare il PDF del
+// preventivo da allegare all'email di invio. L'allegato è stato rimosso (vedi sendQuoteEmailBtn
+// qui sotto) insieme a tutte queste funzioni di supporto, ormai senza nessun altro chiamante:
+// il cliente ora vede il preventivo solo passando dal link online, e può scaricare il PDF —
+// con la propria firma riportata in calce — solo dopo averlo firmato (preventivo.html,
+// generateSignedDocumentPdf). La funzione "Stampa / Salva PDF" per lo studio (printBtn) resta
+// invariata e non dipende da questa: usa window.print() su buildPrintDoc(), non html2canvas.
 
 document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=>{
   const numero = document.getElementById('fNumero').value.trim();
@@ -4156,9 +3942,10 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
   const originalLabel = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Invio in corso...';
-  // Salva il preventivo e genera il link con cui il cliente lo visualizza e firma online: la
-  // firma avviene SEMPRE tramite questo link (non tramite il PDF, che è solo una copia allegata
-  // da conservare — vedi buildQuotePdfBase64).
+  // Salva il preventivo e genera il link con cui il cliente lo visualizza e firma online: è
+  // anche l'unico modo in cui il cliente vede il preventivo (l'email non lo contiene più per
+  // intero e non ha più alcun PDF allegato), quindi senza questo link l'invio non ha senso —
+  // vedi il blocco "linkGenerationFailed" qui sotto.
   let clientLinkUrl = '';
   let linkGenerationFailed = false;
   let linkGenerationErrorCode = '';
@@ -4186,23 +3973,23 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
     }
   }
   if(linkGenerationFailed){
-    const proceed = confirm(`Non sono riuscito a generare il link "Visualizza e firma online" (motivo: ${linkGenerationErrorCode}). L'email partirebbe senza. Vuoi inviarla comunque (solo con il PDF allegato)?`);
-    if(!proceed){
-      btn.disabled = false;
-      btn.textContent = originalLabel;
-      return;
-    }
+    // L'email ora contiene solo il pulsante "Visualizza e firma online": senza link non c'è
+    // più nulla da mostrare al cliente (niente preventivo nel corpo, niente PDF allegato come
+    // in passato), quindi non ha senso offrire di inviarla comunque. Meglio bloccare e far
+    // riprovare, piuttosto che mandare un'email vuota.
+    alert(`Non sono riuscito a generare il link "Visualizza e firma online" (motivo: ${linkGenerationErrorCode}). Riprova tra poco: senza questo link l'email non avrebbe nulla da mostrare al cliente.`);
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    return;
   }
   const html = buildQuoteEmailHtml(clientLinkUrl);
-  const pdf = await buildQuotePdfBase64();
   try{
     const res = await fetch('/.netlify/functions/followups', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         key, action:'send',
-        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html, sequenceDays: getFollowupSequenceDays() },
-        attachment: pdf ? { filename: pdf.filename, contentBase64: pdf.base64 } : undefined
+        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html, sequenceDays: getFollowupSequenceDays() }
       })
     });
     const data = await res.json();

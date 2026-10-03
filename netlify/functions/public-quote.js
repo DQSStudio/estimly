@@ -157,6 +157,26 @@ async function getPublicQuote(licenses, dataStore, body){
   const quote = savedQuotes.find(q => q.id === link.quoteId);
   if(!quote) return { error: 'not_found' };
 
+  // Il cliente che apre questo link ha di fatto letto il preventivo: registriamo l'evento
+  // direttamente qui, invece di dipendere solo dal pixel di apertura email di Resend (che
+  // richiede la configurazione di un webhook lato dashboard Resend e comunque molti client di
+  // posta bloccano il caricamento delle immagini, quindi il pixel spesso non scatta mai anche
+  // quando il cliente ha letto ed è anche entrato nel preventivo). Un solo evento 'aperto' per
+  // follow-up: le visite successive alla stessa pagina non ne aggiungono altri. Non deve mai far
+  // fallire il caricamento del preventivo: eventuali errori restano silenziosi, come per la firma.
+  try{
+    const numero = quote.client && quote.client.numero;
+    if(numero){
+      const followupsStore = getStore('followups');
+      const followupsList = (await followupsStore.get(link.key, { type: 'json', consistency: 'strong' })) || [];
+      const fu = followupsList.find(f => f.quoteRef === numero);
+      if(fu && !fu.events.some(e => e.type === 'aperto')){
+        fu.events.push({ type: 'aperto', at: new Date().toISOString() });
+        await followupsStore.setJSON(link.key, followupsList);
+      }
+    }
+  }catch(err){ /* l'apertura del preventivo non deve mai fallire per questo */ }
+
   return {
     ok: true,
     studio: sanitizeStudio(record && record.studioSettings),
