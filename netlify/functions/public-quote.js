@@ -70,7 +70,8 @@ function sanitizeStudio(settings){
     email: settings.email || '',
     iban: settings.iban || '',
     intestatario: settings.intestatario || '',
-    banca: settings.banca || ''
+    banca: settings.banca || '',
+    sdi: settings.sdi || ''
   };
 }
 
@@ -81,6 +82,12 @@ function sanitizeQuote(q){
     revisione: q.client?.revisione || '',
     cliente: q.client?.cliente || '',
     tipoCliente: q.client?.tipoCliente || 'Privato',
+    // Indirizzo/CF/PIVA del cliente: servono al blocco "Cliente" del documento, con lo stesso
+    // formato del PDF (buildPrintDoc in index.html) — in precedenza non esposti qui perché la
+    // pagina pubblica mostrava solo un riepilogo minimo, non il documento completo.
+    indirizzo: q.client?.indirizzo || '',
+    cf: q.client?.cf || '',
+    piva: q.client?.piva || '',
     progetto: q.client?.progetto || '',
     data: q.client?.data || '',
     validita: q.client?.validita || 30,
@@ -104,6 +111,9 @@ function sanitizeQuote(q){
       id: p.id, label: p.label, importoCent: p.importoCent, stato: p.stato, createdAt: p.createdAt, paidAt: p.paidAt || null
     })),
     cart: (q.cart || []).map(l => ({
+      // codice/custom servono alla colonna "Codice" del documento, nello stesso formato del PDF
+      // (dove una voce libera/custom mostra "—" invece di un codice di listino).
+      codice: l.custom ? '' : (l.codice || ''), custom: !!l.custom,
       nome: l.nome, um: l.um, modalita: l.modalita, qty: l.qty, prezzo: l.prezzo,
       ore: l.ore, tariffa: l.tariffa, categoria: l.categoria, descrizione: l.descrizione || '', nota: l.nota || ''
     }))

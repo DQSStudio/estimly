@@ -13,29 +13,74 @@
   }
   *{ box-sizing:border-box; }
   body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; background:#FAFAFA; color:var(--ink); }
-  .wrap{ max-width:560px; margin:0 auto; padding:24px 16px 60px; }
+  .wrap{ max-width:760px; margin:0 auto; padding:24px 16px 60px; }
   .center-msg{ text-align:center; padding:80px 20px; color:var(--ink-soft); font-size:14px; }
   .card{ background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:0 8px 24px -8px rgba(23,24,28,0.10); overflow:hidden; }
-  .card-head{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--border); gap:10px; }
-  .card-head .studio-name{ font-size:14px; font-weight:700; letter-spacing:-0.01em; }
-  .card-head .doc-tag{ font-size:10.5px; font-weight:600; color:var(--ink-soft); background:var(--surface-alt); padding:4px 10px; border-radius:20px; white-space:nowrap; }
-  .card-body{ padding:20px 18px 22px; }
-  .doc-title{ font-size:17px; font-weight:700; margin-bottom:12px; }
-  .summary-row{ display:flex; justify-content:space-between; gap:10px; font-size:12.5px; padding:6px 0; border-bottom:1px solid #F1F1F3; }
-  .summary-row:last-child{ border-bottom:none; }
-  .summary-row .k{ color:var(--ink-soft); }
-  .summary-row .v{ color:var(--ink); font-weight:600; text-align:right; }
-  .items{ margin-top:18px; }
-  .item-row{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid #F1F1F3; font-size:12.5px; }
-  .item-row .desc{ color:var(--ink); }
-  .item-row .cat{ font-size:10.5px; color:var(--ink-faint); margin-top:1px; }
-  .item-row .val{ font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums; }
-  .totals{ margin-top:16px; background:var(--surface-alt); border-radius:var(--radius-sm); padding:12px 14px; }
-  .total-row{ display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0; }
-  .total-row.grand{ font-size:15px; font-weight:700; border-top:1px solid var(--border); margin-top:6px; padding-top:8px; }
-  .total-row .val{ font-variant-numeric:tabular-nums; }
-  .note-block{ margin-top:14px; font-size:11.5px; color:var(--ink-soft); line-height:1.5; white-space:pre-wrap; }
+  .card-body{ padding:22px 20px 24px; }
   .section-label{ font-size:11px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.05em; margin:20px 0 10px; }
+
+  /* ===== Documento preventivo (stesso formato del PDF allegato in passato all'email / di
+     "Stampa e Salva PDF" in Estimly — vedi buildPrintDoc() in index.html): intestazione studio,
+     blocchi cliente/progetto, tabella voci per categoria, totali. Qui sempre visibile a schermo
+     (non solo in stampa) e in più catturata via html2canvas per generare sia l'anteprima che il
+     PDF scaricabile dopo la firma (vedi buildSignedDocumentNode). ===== */
+  .pd-accent-bar{ height:5px; background:var(--accent); border-radius:3px; margin-bottom:16px; }
+  .pd-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding-bottom:12px; border-bottom:2px solid var(--accent); margin-bottom:14px; flex-wrap:wrap; }
+  .pd-brand{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .pd-logo{ max-height:44px; max-width:160px; object-fit:contain; }
+  .pd-brand-name{ font-weight:700; font-size:16px; color:#111; }
+  .pd-brand-sub{ font-size:11px; color:#666; }
+  .pd-meta{ text-align:right; }
+  .pd-doc-title{ font-weight:700; font-size:11.5px; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:5px; }
+  .pd-meta-grid{ display:inline-grid; grid-template-columns:auto auto; gap:2px 10px; font-size:11.5px; color:#555; text-align:left; }
+  .pd-meta-grid b{ color:#111; font-weight:600; text-align:right; }
+
+  .pd-parties{ display:flex; flex-wrap:wrap; gap:20px; padding-bottom:12px; margin-bottom:12px; border-bottom:1px solid #ddd; }
+  .pd-party{ flex:1; min-width:140px; }
+  .pd-party-label{ font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:var(--accent); font-weight:600; margin-bottom:3px; }
+  .pd-party-name{ font-weight:600; font-size:14px; color:#111; }
+  .pd-party div{ font-size:12px; color:#444; }
+
+  .pd-table-scroll{ overflow-x:auto; margin-bottom:12px; -webkit-overflow-scrolling:touch; }
+  .pd-table{ width:100%; min-width:460px; border-collapse:collapse; font-size:12.5px; }
+  .pd-table thead th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#666; border-bottom:2px solid var(--accent); padding:5px 6px; white-space:nowrap; }
+  .pd-table td{ padding:6px; border-bottom:1px solid #eee; vertical-align:top; }
+  .pd-table .pd-cat-row td{
+    background:var(--pd-accent-soft, #EEEDFB); border-left:3px solid var(--accent); border-bottom:1px solid #eee;
+    font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--accent);
+    padding:6px 8px;
+  }
+  .pd-code{ font-family:ui-monospace,monospace; font-size:11px; color:#888; white-space:nowrap; }
+  .pd-num{ text-align:right; white-space:nowrap; font-family:ui-monospace,monospace; }
+  .pd-strong{ font-weight:600; }
+  .pd-empty{ text-align:center; color:#999; padding:16px; }
+  .pd-item-name{ font-weight:500; color:#111; }
+  .pd-item-desc{ font-size:10.5px; color:#777; margin-top:2px; line-height:1.4; }
+  .pd-item-note{ font-size:10.5px; color:#a15c00; font-style:italic; margin-top:2px; }
+
+  .pd-totals{ max-width:300px; margin-left:auto; }
+  .pd-total-row{ display:flex; justify-content:space-between; font-size:12.5px; color:#555; padding:3px 0; }
+  .pd-total-row.pd-grand{ font-weight:700; font-size:16px; color:#111; border-top:2px solid var(--accent); margin-top:5px; padding-top:7px; }
+  .pd-total-row.pd-grand span:last-child{ color:var(--accent); }
+  .pd-nota{ font-size:10px; color:#777; font-style:italic; margin-top:7px; text-align:right; }
+  .pd-payment{ font-size:11px; color:#444; margin-top:14px; padding-top:9px; border-top:1px dashed #ccc; }
+
+  .cert-sign-box{ margin-top:22px; border:1.5px solid #E6E6E9; border-radius:12px; padding:16px 18px; }
+  .cert-sign-box .h{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:#7A7C85; margin-bottom:10px; }
+  .cert-meta-row{ display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0; gap:14px; }
+  .cert-meta-row .k{ color:#7A7C85; flex-shrink:0; }
+  .cert-meta-row .v{ font-weight:600; text-align:right; }
+  .cert-meta-row.stack{ display:block; padding-top:8px; }
+  .cert-meta-row.stack .k{ display:block; margin-bottom:3px; }
+  .cert-meta-row.stack .v{ display:block; text-align:left; word-break:break-all; font-weight:400; }
+  .cert-sign-img{ max-width:260px; max-height:90px; margin:10px 0; display:block; }
+  .cert-legal{ font-size:10.5px; color:#7A7C85; line-height:1.5; margin-top:12px; }
+  @media (max-width:480px){
+    .pd-header{ flex-direction:column; }
+    .pd-meta{ text-align:left; }
+    .pd-meta-grid{ text-align:left; }
+    .pd-meta-grid b{ text-align:left; }
+  }
   .sign-pad-wrap{ border:1.5px dashed #C7C9D1; border-radius:14px; background:#FCFCFD; position:relative; touch-action:none; }
   .sign-pad-wrap canvas{ display:block; width:100%; height:140px; border-radius:14px; }
   .sign-hint{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:14px; pointer-events:none; }
@@ -60,20 +105,10 @@
   .payment-row .paid-badge{ font-size:11px; font-weight:700; color:var(--success); background:#E7F6EF; padding:4px 10px; border-radius:999px; white-space:nowrap; }
   .pay-btn{ padding:8px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer; white-space:nowrap; }
   .pay-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  /* Contenitore fuori schermo usato da html2canvas per catturare il documento firmato (vedi
+     buildSignedDocumentNode): stessa identità visiva del preventivo online, dimensioni fisse
+     indipendenti dal viewport del cliente, così il PDF generato è sempre uguale. */
   .cert-wrap{ width:700px; padding:34px; background:#fff; color:#17181C; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; }
-  .cert-accent-bar{ height:5px; border-radius:3px; margin-bottom:20px; }
-  .cert-title{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
-  .cert-sub{ font-size:12px; color:#7A7C85; margin-bottom:18px; }
-  .cert-sign-box{ margin-top:24px; border:1.5px solid #E6E6E9; border-radius:12px; padding:16px 18px; }
-  .cert-sign-box .h{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:#7A7C85; margin-bottom:10px; }
-  .cert-meta-row{ display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0; gap:14px; }
-  .cert-meta-row .k{ color:#7A7C85; flex-shrink:0; }
-  .cert-meta-row .v{ font-weight:600; text-align:right; }
-  .cert-meta-row.stack{ display:block; padding-top:8px; }
-  .cert-meta-row.stack .k{ display:block; margin-bottom:3px; }
-  .cert-meta-row.stack .v{ display:block; text-align:left; word-break:break-all; font-weight:400; }
-  .cert-sign-img{ max-width:260px; max-height:90px; margin:10px 0; display:block; }
-  .cert-legal{ font-size:10.5px; color:#7A7C85; line-height:1.5; margin-top:12px; }
   .signed-download-btn{ display:inline-block; margin-top:10px; font-size:11.5px; font-weight:600; color:var(--accent); text-decoration:none; cursor:pointer; background:none; border:none; padding:0; font-family:inherit; }
 </style>
 </head>
@@ -87,13 +122,13 @@
 <script>
 (function(){
   const REGIMI_FISCALI = {
-    ord22:{label:'IVA ordinaria 22%', rate:0.22},
-    rid10:{label:'IVA ridotta 10%', rate:0.10},
-    rid4:{label:'IVA ridotta 4%', rate:0.04},
-    esente:{label:'Esente IVA', rate:0},
-    forfettario:{label:'Regime forfettario', rate:0},
-    reverse:{label:'Reverse charge', rate:0},
-    custom:{label:'Aliquota personalizzata', rate:null}
+    ord22:{label:'IVA ordinaria 22%', rate:0.22, nota:''},
+    rid10:{label:'IVA ridotta 10%', rate:0.10, nota:''},
+    rid4:{label:'IVA ridotta 4%', rate:0.04, nota:''},
+    esente:{label:'Esente IVA', rate:0, nota:'Operazione esente IVA ai sensi dell\'art. 10 DPR 633/72'},
+    forfettario:{label:'Regime forfettario', rate:0, nota:'Operazione senza applicazione dell\'IVA ai sensi dell\'art. 1, commi 54-89, L. 190/2014 (regime forfettario)'},
+    reverse:{label:'Reverse charge', rate:0, nota:'Operazione soggetta a inversione contabile (reverse charge) ai sensi dell\'art. 17, comma 6, DPR 633/72 — IVA a carico del committente'},
+    custom:{label:'Aliquota personalizzata', rate:null, nota:''}
   };
 
   function fmt(n){
@@ -109,7 +144,7 @@
   }
   function regimeAttivo(quote){
     const r = REGIMI_FISCALI[quote.regime] || REGIMI_FISCALI.ord22;
-    if(quote.regime === 'custom') return { label:`IVA ${fmt(quote.aliquotaCustom)}%`, rate:(quote.aliquotaCustom||0)/100 };
+    if(quote.regime === 'custom') return { label:`IVA ${fmt(quote.aliquotaCustom)}%`, rate:(quote.aliquotaCustom||0)/100, nota:'' };
     return r;
   }
   function computeTotals(quote){
@@ -179,42 +214,160 @@
     renderError('Errore di connessione. Riprova tra poco.');
   });
 
-  function render(studio, quote){
-    currentStudio = studio;
+  function hexToSoft(hex){
+    try{
+      const h = (hex || '').replace('#','');
+      const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+      return `rgba(${r}, ${g}, ${b}, 0.1)`;
+    }catch(e){ return '#EEEDFB'; }
+  }
+
+  // Applica il colore dello studio come colore di accento di tutta la pagina (bottoni,
+  // intestazione del documento, riquadri categoria) invece del viola fisso usato finora: così
+  // il preventivo online ha la stessa identità visiva del PDF/email, che usano già s.colorPrimary.
+  function applyAccent(color){
+    const accent = color || '#4338CA';
+    document.documentElement.style.setProperty('--accent', accent);
+    document.documentElement.style.setProperty('--pd-accent-soft', hexToSoft(accent));
+  }
+
+  function addDays(dateStr, days){
+    if(!dateStr) return '—';
+    const d = new Date(dateStr + 'T00:00:00');
+    if(isNaN(d.getTime())) return '—';
+    d.setDate(d.getDate() + (parseInt(days,10)||0));
+    return d.toLocaleDateString('it-IT');
+  }
+
+  // Raggruppa le voci per categoria mantenendo l'ordine di prima comparsa nel carrello (qui non
+  // disponiamo dell'ordine categorie del listino dello studio, usato invece in index.html): è
+  // un'approssimazione ragionevole, dato che le voci sono quasi sempre già inserite in un ordine
+  // sensato. "Voci libere" va comunque sempre per ultima, come nel PDF.
+  function groupByCategoria(cart){
+    const byCat = {};
+    const order = [];
+    cart.forEach(l=>{
+      const cat = l.categoria || 'Altro';
+      if(!byCat[cat]){ byCat[cat] = []; order.push(cat); }
+      byCat[cat].push(l);
+    });
+    order.sort((a,b)=>{
+      if(a==='Voci libere') return 1;
+      if(b==='Voci libere') return -1;
+      return 0;
+    });
+    return order.map(cat => ({ cat, items: byCat[cat] }));
+  }
+
+  // Costruisce il documento del preventivo nello stesso formato del PDF che Estimly produce per
+  // lo studio (buildPrintDoc in index.html, usato anche per il vecchio allegato email): intestazione
+  // con logo/dati studio, blocchi cliente/progetto, tabella voci per categoria (codice, descrizione,
+  // qtà/ore, prezzo unitario, totale) e riepilogo totali. Usata sia per la vista online (dentro
+  // #app) sia, con signatureHtml valorizzato, per il PDF scaricabile dopo la firma.
+  function buildQuoteDocumentHtml(studio, quote, signatureHtml){
     const totals = computeTotals(quote);
     const dataLabel = quote.data ? new Date(quote.data+'T00:00:00').toLocaleDateString('it-IT') : '—';
+    const validitaLabel = addDays(quote.data, quote.validita);
+    const fiscaleCliente = [quote.cf, quote.piva].filter(Boolean).join(' / ');
+    const hidePrices = !!quote.hidePrices;
+    const colCount = hidePrices ? 3 : 5;
 
-    const itemsHtml = quote.hidePrices ? '' : quote.cart.map(l => `
-      <div class="item-row">
-        <div>
-          <div class="desc">${esc(l.nome)}</div>
-          ${l.categoria ? `<div class="cat">${esc(l.categoria)}</div>` : ''}
+    let rowsHtml = '';
+    if(!quote.cart.length){
+      rowsHtml = `<tr><td colspan="${colCount}" class="pd-empty">Nessuna voce inserita.</td></tr>`;
+    } else {
+      groupByCategoria(quote.cart).forEach(({cat, items})=>{
+        rowsHtml += `<tr class="pd-cat-row"><td colspan="${colCount}">${esc(cat)}</td></tr>`;
+        items.forEach(l=>{
+          const isOrario = l.modalita === 'orario';
+          const qty = isOrario ? `${fmt(l.ore)} h` : `${l.qty} ${l.um||'cad'}`;
+          const unit = isOrario ? l.tariffa : l.prezzo;
+          rowsHtml += `<tr>
+            <td class="pd-code">${esc(l.codice || '—')}</td>
+            <td>
+              <div class="pd-item-name">${esc(l.nome)}</div>
+              ${l.descrizione ? `<div class="pd-item-desc">${esc(l.descrizione)}</div>` : ''}
+              ${l.nota ? `<div class="pd-item-note">Nota: ${esc(l.nota)}</div>` : ''}
+            </td>
+            <td class="pd-num">${qty}</td>
+            ${hidePrices ? '' : `
+            <td class="pd-num">€ ${fmt(unit)}</td>
+            <td class="pd-num pd-strong">€ ${fmt(lineTotal(l))}</td>`}
+          </tr>`;
+        });
+      });
+    }
+
+    const totalsHtml = hidePrices ? '' : `
+      <div class="pd-totals">
+        <div class="pd-total-row"><span>Imponibile</span><span>€ ${fmt(totals.imponibile)}</span></div>
+        ${totals.sconto > 0 ? `<div class="pd-total-row"><span>Sconto</span><span>− € ${fmt(totals.sconto)}</span></div>` : ''}
+        ${quote.contributoPct > 0 ? `<div class="pd-total-row"><span>${esc(quote.contributoLabel || 'Contributo')} (${fmt(quote.contributoPct)}%)</span><span>€ ${fmt(totals.contributo)}</span></div>` : ''}
+        <div class="pd-total-row"><span>${esc(totals.regime.label)}</span><span>€ ${fmt(totals.iva)}</span></div>
+        <div class="pd-total-row pd-grand"><span>Totale</span><span>€ ${fmt(totals.totale)}</span></div>
+      </div>`;
+
+    const studioBits = [studio.indirizzo, studio.piva?('P.IVA '+studio.piva):'', studio.telefono, studio.email].filter(Boolean).map(esc).join(' &middot; ');
+
+    let paymentHtml = '';
+    const hasPayment = studio.iban || studio.intestatario || studio.banca || studio.sdi || quote.notePagamento;
+    if(hasPayment){
+      const bits = [];
+      if(studio.iban) bits.push(`IBAN <b>${esc(studio.iban)}</b>`);
+      if(studio.intestatario) bits.push(`Intestatario <b>${esc(studio.intestatario)}</b>`);
+      if(studio.banca) bits.push(`Banca <b>${esc(studio.banca)}</b>`);
+      if(studio.sdi) bits.push(`SDI <b>${esc(studio.sdi)}</b>`);
+      paymentHtml = `<div class="pd-payment"><b>Pagamento</b>${bits.length?' — '+bits.join(' &nbsp;&middot;&nbsp; '):''}${quote.notePagamento?`<br>${esc(quote.notePagamento)}`:''}</div>`;
+    }
+
+    return `
+      <div class="pd-accent-bar"></div>
+      <div class="pd-header">
+        <div class="pd-brand">
+          ${studio.logo ? `<img src="${studio.logo}" alt="" class="pd-logo">` : ''}
+          <div class="pd-brand-name">${esc(studio.nome || 'Studio')}</div>
+          ${studioBits ? `<div class="pd-brand-sub">${studioBits}</div>` : ''}
         </div>
-        <div class="val">€ ${fmt(lineTotal(l))}</div>
-      </div>`).join('');
+        <div class="pd-meta">
+          <div class="pd-doc-title">Preventivo</div>
+          <div class="pd-meta-grid">
+            <span>N.</span><b>${esc(quote.numero || '—')}</b>
+            <span>Data</span><b>${dataLabel}</b>
+            ${quote.revisione ? `<span>Rev.</span><b>${esc(quote.revisione)}</b>` : ''}
+            <span>Valido fino al</span><b>${validitaLabel}</b>
+          </div>
+        </div>
+      </div>
+      <div class="pd-parties">
+        <div class="pd-party">
+          <div class="pd-party-label">Cliente</div>
+          <div class="pd-party-name">${esc(quote.cliente || '—')}</div>
+          ${(quote.tipoCliente || quote.indirizzo) ? `<div>${esc(quote.tipoCliente)}${quote.indirizzo?' &middot; '+esc(quote.indirizzo):''}</div>` : ''}
+          ${fiscaleCliente ? `<div>${esc(fiscaleCliente)}</div>` : ''}
+        </div>
+        ${quote.progetto ? `<div class="pd-party"><div class="pd-party-label">Progetto</div><div class="pd-party-name">${esc(quote.progetto)}</div></div>` : ''}
+      </div>
+      <div class="pd-table-scroll">
+        <table class="pd-table">
+          <thead><tr><th>Codice</th><th>Descrizione</th><th>Qt&agrave;/Ore</th>${hidePrices ? '' : '<th>Prezzo unit.</th><th>Totale</th>'}</tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+      ${totalsHtml}
+      ${totals.regime.nota ? `<div class="pd-nota">${esc(totals.regime.nota)}</div>` : ''}
+      ${paymentHtml}
+      ${signatureHtml || ''}
+    `;
+  }
+
+  function render(studio, quote){
+    currentStudio = studio;
+    applyAccent(studio.colorPrimary);
 
     app.innerHTML = `
       <div class="card">
-        <div class="card-head">
-          <span class="studio-name">${esc(studio.nome)}</span>
-          <span class="doc-tag">Preventivo ${esc(quote.numero || '—')}${quote.revisione ? ' · '+esc(quote.revisione) : ''}</span>
-        </div>
-        <div class="card-body">
-          <div class="doc-title">${esc(quote.progetto || quote.cliente || 'Preventivo')}</div>
-          <div class="summary-row"><span class="k">Cliente</span><span class="v">${esc(quote.cliente || '—')}</span></div>
-          <div class="summary-row"><span class="k">Data</span><span class="v">${dataLabel}</span></div>
-          <div class="summary-row"><span class="k">Validità offerta</span><span class="v">${esc(quote.validita)} giorni</span></div>
-          ${quote.hidePrices ? '' : `
-          <div class="items">${itemsHtml}</div>
-          <div class="totals">
-            <div class="total-row"><span>Imponibile</span><span class="val">€ ${fmt(totals.imponibile)}</span></div>
-            ${totals.sconto > 0 ? `<div class="total-row"><span>Sconto</span><span class="val">− € ${fmt(totals.sconto)}</span></div>` : ''}
-            ${quote.contributoPct > 0 ? `<div class="total-row"><span>${esc(quote.contributoLabel || 'Contributo')} (${fmt(quote.contributoPct)}%)</span><span class="val">€ ${fmt(totals.contributo)}</span></div>` : ''}
-            <div class="total-row"><span>${esc(totals.regime.label)}</span><span class="val">€ ${fmt(totals.iva)}</span></div>
-            <div class="total-row grand"><span>Totale</span><span class="val">€ ${fmt(totals.totale)}</span></div>
-          </div>`}
-          ${quote.notePagamento ? `<div class="note-block">${esc(quote.notePagamento)}</div>` : ''}
-
+        <div class="card-body" id="quoteDocBody">
+          ${buildQuoteDocumentHtml(studio, quote)}
           <div id="signArea"></div>
           <div id="paymentsArea"></div>
         </div>
@@ -288,41 +441,17 @@
   // della firma restituiti dal server (ip, hashDocumento) come prova, oltre a quelli locali
   // (nome, metodo, immagine firma se disegnata).
 
-  function buildCertificateNode(studio, quote){
-    const totals = computeTotals(quote);
-    const dataLabel = quote.data ? new Date(quote.data+'T00:00:00').toLocaleDateString('it-IT') : '—';
-    const accent = (studio && studio.colorPrimary) || '#4338CA';
+  // Il documento di accettazione firmato è ora lo stesso identico formato del preventivo
+  // (buildQuoteDocumentHtml, vedi sopra — intestazione, cliente/progetto, tabella voci, totali),
+  // con in più il blocco di firma "in calce": così il PDF che il cliente scarica dopo aver
+  // firmato è riconoscibile come il preventivo stesso, non un certificato a parte riassuntivo
+  // come in precedenza.
+  function buildSignedDocumentNode(studio, quote){
     const firma = quote.firma || {};
     const firmatoLabel = firma.firmatoAt ? new Date(firma.firmatoAt).toLocaleString('it-IT') : '—';
     const metodoLabel = firma.metodo === 'disegnata' ? 'Firma disegnata' : 'Nome digitato';
 
-    const itemsHtml = quote.hidePrices ? '' : quote.cart.map(l => `
-      <div class="item-row">
-        <div>
-          <div class="desc">${esc(l.nome)}</div>
-          ${l.categoria ? `<div class="cat">${esc(l.categoria)}</div>` : ''}
-        </div>
-        <div class="val">€ ${fmt(lineTotal(l))}</div>
-      </div>`).join('');
-
-    const node = document.createElement('div');
-    node.className = 'cert-wrap';
-    node.innerHTML = `
-      <div class="cert-accent-bar" style="background:${accent};"></div>
-      <div class="cert-title" style="color:${accent};">Documento di accettazione</div>
-      <div class="cert-sub">${esc(studio.nome)} — Preventivo ${esc(quote.numero || '—')}${quote.revisione ? ' · '+esc(quote.revisione) : ''}</div>
-      <div class="doc-title">${esc(quote.progetto || quote.cliente || 'Preventivo')}</div>
-      <div class="summary-row"><span class="k">Cliente</span><span class="v">${esc(quote.cliente || '—')}</span></div>
-      <div class="summary-row"><span class="k">Data preventivo</span><span class="v">${dataLabel}</span></div>
-      ${quote.hidePrices ? '' : `
-      <div class="items">${itemsHtml}</div>
-      <div class="totals">
-        <div class="total-row"><span>Imponibile</span><span class="val">€ ${fmt(totals.imponibile)}</span></div>
-        ${totals.sconto > 0 ? `<div class="total-row"><span>Sconto</span><span class="val">− € ${fmt(totals.sconto)}</span></div>` : ''}
-        ${quote.contributoPct > 0 ? `<div class="total-row"><span>${esc(quote.contributoLabel || 'Contributo')} (${fmt(quote.contributoPct)}%)</span><span class="val">€ ${fmt(totals.contributo)}</span></div>` : ''}
-        <div class="total-row"><span>${esc(totals.regime.label)}</span><span class="val">€ ${fmt(totals.iva)}</span></div>
-        <div class="total-row grand"><span>Totale</span><span class="val">€ ${fmt(totals.totale)}</span></div>
-      </div>`}
+    const signatureHtml = `
       <div class="cert-sign-box">
         <div class="h">Firma e accettazione</div>
         <div class="cert-meta-row"><span class="k">Firmatario</span><span class="v">${esc(firma.firmatarioNome || '—')}</span></div>
@@ -334,6 +463,10 @@
         <div class="cert-legal">Firma elettronica semplice (SES) ai sensi del Regolamento eIDAS (UE) 910/2014, art. 25. Data/ora, indirizzo IP e impronta del documento sono stati registrati al momento della firma come prova dell'accettazione del preventivo sopra riportato.</div>
       </div>
     `;
+
+    const node = document.createElement('div');
+    node.className = 'cert-wrap';
+    node.innerHTML = buildQuoteDocumentHtml(studio, quote, signatureHtml);
     node.style.cssText = 'position:absolute; left:-10000px; top:0; z-index:-1;';
     document.body.appendChild(node);
     return node;
@@ -398,7 +531,7 @@
 
   async function generateSignedDocumentPdf(studio, quote){
     if(typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF || typeof window.html2canvas !== 'function') return null;
-    const node = buildCertificateNode(studio, quote);
+    const node = buildSignedDocumentNode(studio, quote);
     let result = null;
     try{
       const canvas = await window.html2canvas(node, { scale:2, useCORS:true, backgroundColor:'#ffffff', windowWidth:700 });
