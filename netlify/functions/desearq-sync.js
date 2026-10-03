@@ -62,10 +62,20 @@ export async function syncQuoteToDesearqManager(quote, opts){
     progetto_label: client.progetto || null,
     totale: computeTotale(quote),
     payload: {
-      client,
+      // Estimly chiama questo campo "clienteEmail" (vedi currentQuoteState in index.html), ma lo
+      // schema letto da Flow/DSQ Manager per costruire cliente/progetto/pagamenti cerca
+      // "payload.client.email": senza questo alias l'email del cliente non arriverebbe mai a
+      // Flow, pur essendo già salvata qui dentro "clienteEmail". Non rinominiamo il campo
+      // originale per non rompere nient'altro in Estimly che legge "clienteEmail".
+      client: { ...client, email: client.clienteEmail || client.email || '' },
       cart: Array.isArray(quote.cart) ? quote.cart : []
     }
   };
+  // Il preventivo arriva sempre come 'Nuovo' alla prima sincronizzazione (firma online o "Vinto"
+  // manuale): è DSQ Manager/Flow a intercettarlo con una schermata di revisione manuale che crea
+  // cliente+progetto+piano pagamenti e solo a quel punto lo marca 'Confermato' da parte sua
+  // (riempiendo anche desearq_client_id/desearq_project_id). Estimly non deve mai scrivere
+  // 'Confermato' direttamente, altrimenti quella schermata di revisione non si attiva mai.
   if(opts && opts.markNuovo) row.stato = 'Nuovo';
 
   try{
