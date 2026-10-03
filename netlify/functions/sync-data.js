@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs';
+import { syncQuoteToDesearqManager } from './desearq-sync.js';
 
 const MAX_SAVED_QUOTES_BASE = 10;
 const MAX_SAVED_QUOTES_ESTIMLY2 = 100;
@@ -106,7 +107,14 @@ export default async (req) => {
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
     }
     const patch = (body.patch && typeof body.patch === 'object') ? body.patch : {};
+    // "Vinto" spuntato manualmente dallo studio (casi non passati dalla firma online: accettazione
+    // a voce, via email, ecc.) deve comunque far comparire il progetto in Desearq Studio Manager,
+    // esattamente come già avviene alla firma del cliente (vedi signPublicQuote in public-quote.js).
+    // Si sincronizza solo sulla transizione false/assente -> true, non ad ogni salvataggio con
+    // vinto già true, per non rimandare ogni volta lo stesso preventivo.
+    const wasVinto = !!savedQuotes[idx].vinto;
     savedQuotes[idx] = { ...savedQuotes[idx], ...patch };
+    const becameVinto = !wasVinto && savedQuotes[idx].vinto === true;
     const record = {
       catalog: existing.catalog || [],
       studioSettings: existing.studioSettings || {},
@@ -116,6 +124,9 @@ export default async (req) => {
       updatedAt: new Date().toISOString()
     };
     await dataStore.setJSON(key, record);
+    if (becameVinto && license.suiteEnabled) {
+      await syncQuoteToDesearqManager(savedQuotes[idx], { markNuovo: true });
+    }
     return new Response(JSON.stringify({ ok: true, savedQuotes }), { status: 200 });
   }
 

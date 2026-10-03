@@ -202,6 +202,11 @@ async function signPublicQuote(licenses, dataStore, body, req){
   };
 
   quote.client = { ...quote.client, firma };
+  // La firma del cliente è di per sé un'accettazione: segna il preventivo come "Vinto" in
+  // automatico, così lo studio non deve anche spuntarlo a mano (il flag manuale resta comunque
+  // disponibile in Preventivi salvati per tutti i casi accettati fuori da questo link, es. a
+  // voce o via email).
+  quote.vinto = true;
   savedQuotes[idx] = quote;
   await saveStudioRecord(dataStore, link.key, { ...record, savedQuotes });
 
