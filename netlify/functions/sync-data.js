@@ -173,6 +173,11 @@ export default async (req) => {
         pec: body.client.pec || '',
         indirizzoIntervento: body.client.indirizzoIntervento || '',
         note: body.client.note || '',
+        // Provenienza e collegamento alla richiesta d'origine (vedi leads.js): la Rubrica
+        // contiene solo clienti con preventivo, ma conserva da dove sono arrivati.
+        fonte: String(body.client.fonte || '').slice(0, 80),
+        canale: body.client.canale || '',
+        leadId: body.client.leadId || '',
         createdAt: new Date().toISOString()
       };
       updated = [entry, ...clients];

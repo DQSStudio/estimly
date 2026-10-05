@@ -164,6 +164,17 @@ body.estimly2-theme #e2OnboardingGate{ font-family:var(--e2-font); }
 .e2-lead-fonte-custom{ display:flex; gap:8px; margin:0 0 14px; }
 .e2-lead-fonte-custom .e2-lead-edit-input{ font-size:12.5px; }
 .e2-lead-fonte-custom .e2-lead-stage-btn{ flex-shrink:0; }
+.e2-canale-tag{ font-size:10px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; padding:2px 8px; border-radius:999px; color:#4B5563; background:#F0F0F2; vertical-align:middle; margin-left:6px; white-space:nowrap; }
+.e2-canale-tag.modulo{ color:#0F766E; background:#E5F5F3; }
+.e2-scheda-back{ background:none; border:none; cursor:pointer; font-size:13px; font-weight:600; color:var(--ink-soft,#6B6D76); padding:4px 0; margin-bottom:10px; font-family:inherit; }
+.e2-scheda-back:hover{ color:var(--e2-ink,#111); }
+.e2-scheda-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:6px; }
+.e2-scheda-title{ font-weight:700; font-size:22px; color:var(--e2-ink,#111); }
+.e2-scheda-card{ border:1px solid var(--e2-line); border-radius:14px; background:var(--e2-bg); padding:16px 18px; margin-bottom:14px; }
+.e2-scheda-label{ font-size:11px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; color:var(--ink-soft,#6B6D76); margin:0 0 8px; }
+.e2-scheda-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-top:6px; }
+.client-card{ cursor:pointer; }
+.client-card:hover{ background:var(--e2-surface,#F7F7F9); }
 .e2-lead-text-box{ background:var(--e2-surface, #F7F7F9); border-radius:10px; padding:12px 14px; font-size:12.5px; white-space:pre-wrap; max-height:220px; overflow:auto; margin-top:6px; }
 .e2-page{ }
 /* Font Raleway + token DSM solo sul contenuto della Dashboard (guscio), non su .e2-page in
@@ -1074,12 +1085,48 @@ header.top{
   <div class="e2-dash-wrap">
     <div class="e2-hero-card">
       <div class="e2-hero-eyebrow">Richieste</div>
-      <div class="e2-hero-title">I lead ricevuti via email.</div>
-      <div class="e2-hero-sub">Arrivano automaticamente dalla casella collegata: controlla, assegna uno stato e trasformali in preventivo.</div>
+      <div class="e2-hero-title">Tutte le richieste ricevute.</div>
+      <div class="e2-hero-sub">Qui arrivano sia i contatti inoltrati via email sia quelli del modulo collegato al foglio Google. Apri la scheda, assegna uno stato e trasformala in preventivo: solo allora il cliente entra in Rubrica.</div>
     </div>
-    <div class="e2-lead-filters" id="e2LeadFilters"></div>
-    <div id="e2LeadList"></div>
-    <div id="e2LeadEmpty" class="e2-lead-empty" style="display:none;">Nessuna richiesta in questa categoria.</div>
+    <div id="e2LeadListView">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
+        <button type="button" id="importLeadsSheetBtn" class="new-item-btn" style="background:#fff; color:var(--ink); border:1px solid var(--e2-line, #E3E3E8);">⟳ Importa dal foglio Google</button>
+        <span id="importLeadsSheetStatus" style="font-size:12px; color:var(--ink-soft); display:none;"></span>
+      </div>
+      <div class="e2-lead-filters" id="e2LeadFilters"></div>
+      <div id="e2LeadList"></div>
+      <div id="e2LeadEmpty" class="e2-lead-empty" style="display:none;">Nessuna richiesta in questa categoria.</div>
+    </div>
+    <div id="e2LeadSchedaView" style="display:none;">
+      <button type="button" class="e2-scheda-back" id="leadSchedaBackBtn">← Tutte le richieste</button>
+      <div class="e2-scheda-head">
+        <div>
+          <div class="e2-scheda-title" id="leadSchedaTitle"></div>
+          <div id="leadSchedaSub" style="font-size:12.5px; color:var(--ink-soft,#6B6D76); margin-top:3px;"></div>
+        </div>
+        <button id="leadDetailCreateQuoteBtn" class="btn-save">Crea preventivo →</button>
+      </div>
+      <div class="e2-scheda-card">
+        <div class="e2-scheda-label">Stato</div>
+        <div class="e2-lead-stage-btns" id="leadDetailStageBtns" style="margin:0;"></div>
+      </div>
+      <div class="e2-scheda-card">
+        <div class="e2-scheda-label">Provenienza</div>
+        <div class="e2-lead-stage-btns" id="leadDetailFonteBtns" style="margin:0 0 10px;"></div>
+        <div class="e2-lead-fonte-custom" style="margin:0;">
+          <input type="text" id="leadDetailFonteCustom" class="e2-lead-edit-input" placeholder="Oppure scrivi una provenienza esatta (es. Instagram - campagna ottobre)">
+          <button type="button" id="leadDetailFonteCustomSaveBtn" class="e2-lead-stage-btn">Salva</button>
+        </div>
+      </div>
+      <div class="e2-scheda-card">
+        <div class="e2-scheda-label">Dati della richiesta</div>
+        <div id="leadDetailInfo"></div>
+      </div>
+      <div class="e2-scheda-card" id="leadSchedaClientBox" style="display:none;"></div>
+      <div class="e2-scheda-actions">
+        <button id="leadDetailDeleteBtn" class="btn-cancel" style="color:#C0392B;">Elimina richiesta</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1404,15 +1451,56 @@ header.top{
 
 <div id="e2PageRubrica" class="e2-page" style="display:none;">
   <div class="e2-dash-wrap">
-    <div class="field-section-label" style="margin-top:0;">Rubrica clienti</div>
-    <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">I dati dei clienti inseriti nei preventivi vengono salvati qui, così puoi riprenderli in futuro senza reinserirli.</div>
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-      <button type="button" id="addClientBtn" class="new-item-btn">+ Nuovo cliente</button>
-      <button type="button" id="importClientsSheetBtn" class="new-item-btn" style="background:#fff; color:var(--ink); border:1px solid var(--e2-line, #E3E3E8);">⟳ Importa dal foglio richieste</button>
+    <div id="rubricaListView">
+      <div class="field-section-label" style="margin-top:0;">Rubrica clienti</div>
+      <div style="font-size:11px; color:var(--ink-soft); margin-bottom:12px; line-height:1.5;">Qui trovi i clienti a cui hai fatto un preventivo con Estimly: si aggiungono da soli quando salvi un preventivo. Le richieste non ancora trasformate in preventivo restano nella sezione Richieste. Clicca un cliente per aprire la sua scheda.</div>
+      <div id="rubricaList"></div>
+      <div id="rubricaEmpty" style="display:none; font-size:13px; color:var(--ink-soft); padding:20px 0; text-align:center;">Nessun cliente in rubrica.</div>
     </div>
-    <div id="importClientsSheetStatus" style="font-size:12px; color:var(--ink-soft); margin:-4px 0 12px; display:none;"></div>
-    <div id="rubricaList"></div>
-    <div id="rubricaEmpty" style="display:none; font-size:13px; color:var(--ink-soft); padding:20px 0; text-align:center;">Nessun cliente in rubrica.</div>
+    <div id="clientSchedaView" style="display:none;">
+      <button type="button" class="e2-scheda-back" id="clientSchedaBackBtn">← Tutti i clienti</button>
+      <input type="hidden" id="rcId">
+      <div class="e2-scheda-head">
+        <div>
+          <div class="e2-scheda-title" id="clientSchedaTitle"></div>
+          <div id="clientSchedaSub" style="font-size:12.5px; color:var(--ink-soft,#6B6D76); margin-top:3px;"></div>
+        </div>
+        <button id="clientSchedaNewQuoteBtn" class="btn-save">Nuovo preventivo →</button>
+      </div>
+      <div class="e2-scheda-card">
+        <div class="e2-scheda-label">Anagrafica</div>
+        <div class="field-grid">
+          <div class="field full"><label>Cliente / Ragione sociale</label><input id="rcCliente" placeholder="Nome cliente"></div>
+          <div class="field">
+            <label>Tipo cliente</label>
+            <select id="rcTipoCliente"><option value="Privato">Privato</option><option value="Azienda">Azienda</option></select>
+          </div>
+          <div class="field"><label>Codice fiscale</label><input id="rcCF"></div>
+          <div class="field full"><label>Indirizzo / Via di residenza o sede</label><input id="rcIndirizzo" placeholder="Via, civico, città, CAP"></div>
+          <div class="field"><label>Partita IVA</label><input id="rcPiva"></div>
+          <div class="field"><label>Telefono</label><input id="rcTelefono"></div>
+          <div class="field full"><label>Email</label><input id="rcEmail" type="email"></div>
+          <div class="field full"><label>PEC</label><input id="rcPec" type="email"></div>
+          <div class="field full"><label>Indirizzo del luogo di intervento</label><input id="rcIndirizzoIntervento"></div>
+          <div class="field full"><label>Note cliente</label><input id="rcNote" placeholder="Note interne, non visibili al cliente"></div>
+        </div>
+      </div>
+      <div class="e2-scheda-card">
+        <div class="e2-scheda-label">Provenienza</div>
+        <div class="e2-lead-stage-btns" id="rcFonteBtns" style="margin:0 0 10px;"></div>
+        <input type="text" id="rcFonte" class="e2-lead-edit-input" style="width:100%; box-sizing:border-box;" placeholder="Es. Instagram - campagna ottobre">
+        <div id="clientSchedaLeadInfo" style="margin-top:12px; font-size:12.5px; color:var(--ink-soft,#6B6D76);"></div>
+      </div>
+      <div class="e2-scheda-card">
+        <div class="e2-scheda-label">Preventivi</div>
+        <div id="clientSchedaQuotes"></div>
+        <div id="clientSchedaQuotesEmpty" style="display:none; font-size:12.5px; color:var(--ink-soft);">Nessun preventivo salvato per questo cliente.</div>
+      </div>
+      <div class="e2-scheda-actions">
+        <button id="clientSchedaDeleteBtn" class="btn-cancel" style="color:#C0392B;">Elimina cliente</button>
+        <button id="clientSchedaSaveBtn" class="btn-save">Salva modifiche</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1881,32 +1969,6 @@ header.top{
   </div>
 </div>
 
-<div id="leadDetailModal" class="modal-overlay" style="display:none;">
-  <div class="modal-card" style="max-width:600px;">
-    <div class="modal-head">
-      <div class="display" style="font-weight:700; font-size:16px;">Dettaglio richiesta</div>
-      <button id="leadDetailClose" class="modal-close">&times;</button>
-    </div>
-    <div class="modal-body" style="max-height:70vh; overflow:auto;">
-      <div class="e2-lead-stage-btns" id="leadDetailStageBtns"></div>
-      <div style="font-size:11px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; color:var(--ink-soft,#6B6D76); margin:14px 0 6px;">Provenienza</div>
-      <div class="e2-lead-stage-btns" id="leadDetailFonteBtns"></div>
-      <div class="e2-lead-fonte-custom">
-        <input type="text" id="leadDetailFonteCustom" class="e2-lead-edit-input" placeholder="Oppure scrivi una provenienza esatta (es. Instagram - campagna ottobre)">
-        <button type="button" id="leadDetailFonteCustomSaveBtn" class="e2-lead-stage-btn">Salva</button>
-      </div>
-      <div id="leadDetailInfo"></div>
-    </div>
-    <div class="modal-actions" style="justify-content:space-between;">
-      <button id="leadDetailDeleteBtn" class="btn-cancel" style="color:#C0392B;">Elimina richiesta</button>
-      <div style="display:flex; gap:8px;">
-        <button id="leadDetailCloseBtn" class="btn-cancel">Chiudi</button>
-        <button id="leadDetailCreateQuoteBtn" class="btn-save">Crea preventivo →</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div id="historicalProjectModal" class="modal-overlay" style="display:none;">
   <div class="modal-card" style="max-width:520px;">
     <div class="modal-head">
@@ -2335,16 +2397,14 @@ async function loadClientsCloud(){
   }
 }
 
-async function importClientsFromSheet(){
+async function importLeadsFromSheet(){
   const key = getLicenseKey();
-  const statusBox = document.getElementById('importClientsSheetStatus');
-  const btn = document.getElementById('importClientsSheetBtn');
-  if(!key){
-    if(statusBox){ statusBox.style.display='block'; statusBox.textContent='Serve una licenza attiva per importare dal foglio.'; }
-    return;
-  }
+  const statusBox = document.getElementById('importLeadsSheetStatus');
+  const btn = document.getElementById('importLeadsSheetBtn');
+  const say = (t)=>{ if(statusBox){ statusBox.style.display='inline'; statusBox.textContent=t; } };
+  if(!key){ say('Serve una licenza attiva per importare dal foglio.'); return; }
   if(btn) btn.disabled = true;
-  if(statusBox){ statusBox.style.display='block'; statusBox.textContent='Importazione in corso...'; }
+  say('Importazione in corso...');
   try{
     const res = await fetch('/.netlify/functions/clients-sheet-sync', {
       method:'POST',
@@ -2353,18 +2413,16 @@ async function importClientsFromSheet(){
     });
     const data = await res.json();
     if(data && data.ok){
-      clients = data.clients || clients;
-      persistClientsLocal();
-      renderRubricaList();
-      renderClientPickerList();
-      if(statusBox) statusBox.textContent = `Fatto: ${data.created} nuovi, ${data.updated} aggiornati.`;
+      if(Array.isArray(data.clients)){ clients = data.clients; persistClientsLocal(); renderRubricaList(); renderClientPickerList(); }
+      if(Array.isArray(data.leads)){ leadsList = data.leads; renderLeadsSection(); updateLeadsNavBadge(); }
+      say(data.created ? `Fatto: ${data.created} nuove richieste importate.` : 'Fatto: nessuna nuova richiesta.');
     } else {
       const detail = (data && data.message) ? ` (${data.message})` : '';
-      if(statusBox) statusBox.textContent = 'Importazione non riuscita: ' + (data && data.error ? data.error : 'errore sconosciuto') + detail;
+      say('Importazione non riuscita: ' + (data && data.error ? data.error : 'errore sconosciuto') + detail);
     }
   }catch(err){
     console.error('Impossibile importare dal foglio', err);
-    if(statusBox) statusBox.textContent = 'Importazione non riuscita (errore di rete).';
+    say('Importazione non riuscita (errore di rete).');
   }finally{
     if(btn) btn.disabled = false;
   }
@@ -2429,8 +2487,19 @@ function clientSummaryHtml(c){
   if(c.telefono) bits.push(c.telefono);
   if(c.cf) bits.push(c.cf);
   if(c.piva) bits.push(c.piva);
-  const sheetBadge = c.sourceSheet ? ' <span style="font-size:9.5px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; color:#4338CA; background:#EEEDFB; padding:2px 7px; border-radius:999px; vertical-align:middle;">Dal foglio</span>' : '';
-  return `<div class="client-list-name">${escapeHtml(c.cliente || 'Cliente senza nome')}${sheetBadge}</div><div class="client-list-meta">${escapeHtml(bits.join(' · ') || c.tipoCliente || '')}</div>`;
+  const fonteBadge = c.fonte ? ' <span style="font-size:9.5px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; color:#4338CA; background:#EEEDFB; padding:2px 7px; border-radius:999px; vertical-align:middle;">' + escapeHtml(c.fonte) + '</span>' : '';
+  return `<div class="client-list-name">${escapeHtml(c.cliente || 'Cliente senza nome')}${fonteBadge}</div><div class="client-list-meta">${escapeHtml(bits.join(' · ') || c.tipoCliente || '')}</div>`;
+}
+
+function normKey(v){ return String(v||'').trim().toLowerCase().replace(/\s+/g,' '); }
+
+// Preventivi salvati di un cliente: il legame è testuale (stessa email o stesso nome).
+function quotesForClient(c){
+  const e = normKey(c.email), n = normKey(c.cliente);
+  return savedQuotes.filter(q=>{
+    const qc = q.client || {};
+    return (e && normKey(qc.clienteEmail)===e) || (n && normKey(qc.cliente)===n);
+  });
 }
 
 function renderRubricaList(){
@@ -2443,23 +2512,14 @@ function renderRubricaList(){
     return;
   }
   if(empty) empty.style.display = 'none';
-  list.innerHTML = clients.map(c=>`
-    <div class="client-list-row">
+  list.innerHTML = clients.map(c=>{
+    const nq = quotesForClient(c).length;
+    return `
+    <div class="client-list-row client-card" data-open-client="${c.id}">
       <div>${clientSummaryHtml(c)}</div>
-      <div style="display:flex; gap:6px; flex-shrink:0;">
-        <button data-edit-client="${c.id}" class="btn-cancel" style="padding:6px 10px;">Modifica</button>
-        <button data-delete-client="${c.id}" class="btn-cancel" style="padding:6px 10px; color:var(--danger);">Elimina</button>
-      </div>
-    </div>`).join('');
-  list.querySelectorAll('[data-edit-client]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const c = clients.find(x=>x.id===btn.getAttribute('data-edit-client'));
-      if(c) openClientFormModal(c, null);
-    });
-  });
-  list.querySelectorAll('[data-delete-client]').forEach(btn=>{
-    btn.addEventListener('click', ()=>deleteClientFromRubrica(btn.getAttribute('data-delete-client')));
-  });
+      <div style="font-size:12px; color:var(--ink-soft); flex-shrink:0;">${nq} preventiv${nq===1?'o':'i'} →</div>
+    </div>`;
+  }).join('');
 }
 
 function renderClientPickerList(){
@@ -2677,6 +2737,11 @@ function savedQuoteRowHtml(q){
 }
 
 function renderSavedQuotesList(){
+  renderSavedQuotesListCore();
+  // La scheda cliente mostra gli stessi preventivi: la teniamo allineata.
+  if(typeof renderClientSchedaQuotes === 'function') renderClientSchedaQuotes();
+}
+function renderSavedQuotesListCore(){
   // Renderizza sia nel modal (utenti base, lista piatta) sia nella pagina Estimly 2.0
   // (sidebar > Preventivi salvati, raggruppata per cliente).
   const flatTarget = { list: document.getElementById('savedQuotesList'), empty: document.getElementById('savedQuotesEmpty') };
@@ -2838,6 +2903,7 @@ async function persistCurrentQuoteEntry(){
     }catch(err){ console.error('Impossibile salvare il preventivo nel cloud', err); }
   }
   renderSavedQuotesList();
+  await ensureClientForQuote(state.client);
   return entry;
 }
 
@@ -2849,6 +2915,7 @@ async function saveCurrentQuote(){
 function loadQuoteById(id){
   const q = savedQuotes.find(x=>x.id===id);
   if(!q) return;
+  pendingQuoteLeadId = null;
   cart = q.cart || [];
   idCounter = q.idCounter || (cart.length+1);
   const c = q.client || {};
@@ -4237,14 +4304,25 @@ async function loadLeadsCloud(){
     if(data && Array.isArray(data.leads)){
       leadsList = data.leads;
       renderLeadsSection();
-      const nuoveCount = leadsList.filter(l=>l.fase==='nuova').length;
-      const badge = document.getElementById('e2RichiesteNavBadge');
-      if(badge){
-        badge.style.display = nuoveCount > 0 ? 'inline-flex' : 'none';
-        badge.textContent = nuoveCount;
-      }
+      updateLeadsNavBadge();
+      if(typeof renderClientScheda === 'function') renderClientSchedaLeadInfo();
     }
   }catch(err){ console.error('Impossibile caricare le richieste', err); }
+}
+
+function updateLeadsNavBadge(){
+  const nuoveCount = leadsList.filter(l=>l.fase==='nuova').length;
+  const badge = document.getElementById('e2RichiesteNavBadge');
+  if(badge){
+    badge.style.display = nuoveCount > 0 ? 'inline-flex' : 'none';
+    badge.textContent = nuoveCount;
+  }
+}
+
+// Canale di arrivo: le richieste storiche (senza campo) sono tutte arrivate via email.
+function leadCanaleTagHtml(lead){
+  const canale = lead.canale === 'modulo' ? 'modulo' : 'email';
+  return `<span class="e2-canale-tag ${canale}">${canale === 'modulo' ? 'Modulo' : 'Email'}</span>`;
 }
 
 function leadDisplayName(lead){
@@ -4281,8 +4359,8 @@ function renderLeadsSection(){
     return `
     <div class="e2-lead-card" data-lead-id="${l.id}">
       <div style="min-width:0;">
-        <div class="e2-lead-card-name">${escapeHtml(leadDisplayName(l))}</div>
-        <div class="e2-lead-card-meta">${escapeHtml(l.email||l.mittente||'')}${l.telefono?' · '+escapeHtml(l.telefono):''} · ${escapeHtml(data)}</div>
+        <div class="e2-lead-card-name">${escapeHtml(leadDisplayName(l))}${leadCanaleTagHtml(l)}</div>
+        <div class="e2-lead-card-meta">${escapeHtml(l.email||l.mittente||'')}${l.telefono?' · '+escapeHtml(l.telefono):''} · ${escapeHtml(data)}${l.fonte?' · '+escapeHtml(l.fonte):''}</div>
         ${preview ? `<div class="e2-lead-card-preview">${escapeHtml(preview)}</div>` : ''}
       </div>
       <span class="e2-lead-badge" style="color:${meta.color}; background:${meta.bg};">${meta.label}</span>
@@ -4295,14 +4373,22 @@ function openLeadDetail(leadId){
   if(!lead) return;
   leadDetailCurrentId = leadId;
   renderLeadDetail(lead);
-  document.getElementById('leadDetailModal').style.display = 'flex';
+  document.getElementById('e2LeadListView').style.display = 'none';
+  document.getElementById('e2LeadSchedaView').style.display = 'block';
+  window.scrollTo({ top: 0 });
 }
 function closeLeadDetail(){
-  document.getElementById('leadDetailModal').style.display = 'none';
+  const sv = document.getElementById('e2LeadSchedaView');
+  const lv = document.getElementById('e2LeadListView');
+  if(sv) sv.style.display = 'none';
+  if(lv) lv.style.display = 'block';
   leadDetailCurrentId = null;
 }
 
 function renderLeadDetail(lead){
+  const metaF = LEAD_FASE_META[lead.fase] || LEAD_FASE_META.nuova;
+  document.getElementById('leadSchedaTitle').innerHTML = escapeHtml(leadDisplayName(lead)) + leadCanaleTagHtml(lead);
+  document.getElementById('leadSchedaSub').innerHTML = `<span class="e2-lead-badge" style="color:${metaF.color}; background:${metaF.bg};">${metaF.label}</span>`;
   const stageBtnsBox = document.getElementById('leadDetailStageBtns');
   stageBtnsBox.innerHTML = LEAD_FASE_ORDER.map(f=>{
     const meta = LEAD_FASE_META[f];
@@ -4341,11 +4427,28 @@ function renderLeadDetail(lead){
       <b>Note</b>
       <textarea class="e2-lead-edit-input" data-lead-field="note" rows="2" style="resize:vertical; font-family:inherit;">${escapeHtml(lead.note||'')}</textarea>
     </div>`;
+  const isModulo = lead.canale === 'modulo';
   html += `<div class="e2-lead-detail-row"><b>Ricevuta</b><span>${escapeHtml(data)}</span></div>`;
-  html += `<div class="e2-lead-detail-row"><b>Oggetto mail</b><span>${escapeHtml(lead.oggetto || '—')}</span></div>`;
+  html += `<div class="e2-lead-detail-row"><b>Canale</b><span>${isModulo ? 'Modulo collegato al foglio Google' : 'Email inoltrata'}</span></div>`;
+  if(!isModulo) html += `<div class="e2-lead-detail-row"><b>Oggetto mail</b><span>${escapeHtml(lead.oggetto || '—')}</span></div>`;
   html += `<div style="display:flex; justify-content:flex-end; margin-top:4px;"><button type="button" id="leadDetailSaveFieldsBtn" class="btn-save" style="font-size:12.5px; padding:6px 16px;">Salva modifiche</button></div>`;
-  html += `<div style="margin-top:14px;"><b style="font-size:12.5px; color:var(--ink-soft,#6B6D76);">Testo email ricevuta</b><div class="e2-lead-text-box">${escapeHtml(lead.testo||'')}</div></div>`;
+  html += `<div style="margin-top:14px;"><b style="font-size:12.5px; color:var(--ink-soft,#6B6D76);">${isModulo ? 'Risposte del modulo' : 'Testo email ricevuta'}</b><div class="e2-lead-text-box">${escapeHtml(lead.testo||'')}</div></div>`;
   document.getElementById('leadDetailInfo').innerHTML = html;
+
+  // Collegamento al cliente in Rubrica (esiste solo dopo il primo preventivo salvato).
+  const clientBox = document.getElementById('leadSchedaClientBox');
+  const linked = lead.clientId ? clients.find(c=>c.id===lead.clientId) : null;
+  if(linked){
+    clientBox.style.display = 'block';
+    clientBox.innerHTML = `<div class="e2-scheda-label">Cliente in Rubrica</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div style="font-size:13px;">${escapeHtml(linked.cliente || '')}</div>
+        <button type="button" class="btn-cancel" data-goto-client="${linked.id}" style="padding:6px 12px;">Apri scheda cliente →</button>
+      </div>`;
+  } else {
+    clientBox.style.display = 'none';
+    clientBox.innerHTML = '';
+  }
 }
 
 async function updateLeadStage(leadId, fase){
@@ -4411,21 +4514,21 @@ async function deleteLeadEntry(leadId){
   }catch(err){ console.error('Impossibile eliminare la richiesta', err); }
 }
 
-async function startQuoteFromLead(lead){
-  // Stessa pulizia campi del pulsante "Nuovo preventivo" (resetBtn), senza la conferma a schermo
-  // e con i dati del lead applicati subito dopo.
+// Azzera il form del preventivo (stessa pulizia del pulsante "Nuovo preventivo", senza conferma).
+function resetQuoteFormFields(){
   cart = [];
-  document.getElementById('fCliente').value = lead.nome || '';
-  document.getElementById('fClienteEmail').value = lead.email || '';
+  pendingQuoteLeadId = null;
+  document.getElementById('fCliente').value = '';
+  document.getElementById('fClienteEmail').value = '';
   document.getElementById('fTipoCliente').value = 'Privato';
   document.getElementById('fIndirizzo').value = '';
   document.getElementById('fCF').value = '';
   document.getElementById('fPiva').value = '';
-  document.getElementById('fTelefono').value = lead.telefono || '';
+  document.getElementById('fTelefono').value = '';
   document.getElementById('fPec').value = '';
-  document.getElementById('fIndirizzoIntervento').value = lead.indirizzoIntervento || '';
-  document.getElementById('fNoteCliente').value = lead.note || '';
-  document.getElementById('fProgetto').value = lead.tipoProgetto || '';
+  document.getElementById('fIndirizzoIntervento').value = '';
+  document.getElementById('fNoteCliente').value = '';
+  document.getElementById('fProgetto').value = '';
   document.getElementById('fData').value = todayStr();
   document.getElementById('fNumero').value = defaultNumero();
   document.getElementById('fRevisione').value = 'Rev. 0';
@@ -4440,34 +4543,136 @@ async function startQuoteFromLead(lead){
   document.getElementById('fAliquotaCustom').value = 22;
   document.getElementById('regimeCustomField').style.display = 'none';
   if(typeof estimly3ResetCaratteristiche === 'function') estimly3ResetCaratteristiche();
+}
 
-  // Se esiste già in rubrica un cliente con la stessa email, lo riusa; altrimenti ne crea uno nuovo,
-  // così il lead confluisce nella Rubrica come qualsiasi altro cliente.
-  if(lead.nome){
-    const existing = lead.email ? clients.find(c => (c.email||'').toLowerCase() === lead.email.toLowerCase()) : null;
-    const saved = await saveClientToRubrica({
-      id: existing ? existing.id : undefined,
-      cliente: lead.nome, tipoCliente: 'Privato', cf:'', indirizzo:'', piva:'',
-      email: lead.email || '', telefono: lead.telefono || '',
-      indirizzoIntervento: lead.indirizzoIntervento || '', note: lead.note || ''
-    });
-    if(saved){
-      document.getElementById('fCliente').value = saved.cliente || lead.nome;
-      document.getElementById('fClienteEmail').value = saved.email || lead.email || '';
-      document.getElementById('fTelefono').value = saved.telefono || lead.telefono || '';
-      document.getElementById('fIndirizzoIntervento').value = saved.indirizzoIntervento || lead.indirizzoIntervento || '';
-      document.getElementById('fNoteCliente').value = saved.note || lead.note || '';
-    }
-  }
-
+async function finishStartQuote(){
   renderCart();
   renderFollowupSection();
   updateQuoteClientSummary();
   renderCartiglio();
   await saveDraft();
-
-  closeLeadDetail();
   switchEstimly2Page('preventivo');
+}
+
+// La richiesta ricorda da quale lead nasce il preventivo in corso: al salvataggio il cliente
+// entra in Rubrica con provenienza e collegamento alla richiesta (vedi ensureClientForQuote).
+let pendingQuoteLeadId = null;
+
+function findClientForLead(lead){
+  if(lead.clientId){ const c = clients.find(x=>x.id===lead.clientId); if(c) return c; }
+  const e = normKey(lead.email), n = normKey(lead.nome);
+  return clients.find(c=>(e && normKey(c.email)===e) || (n && normKey(c.cliente)===n)) || null;
+}
+
+async function startQuoteFromLead(lead){
+  resetQuoteFormFields();
+  const c = findClientForLead(lead);
+  if(c){
+    applyClientToQuote(c);
+  } else {
+    document.getElementById('fCliente').value = lead.nome || '';
+    document.getElementById('fClienteEmail').value = lead.email || '';
+    document.getElementById('fTelefono').value = lead.telefono || '';
+    document.getElementById('fIndirizzoIntervento').value = lead.indirizzoIntervento || '';
+    document.getElementById('fNoteCliente').value = lead.note || '';
+  }
+  document.getElementById('fProgetto').value = lead.tipoProgetto || '';
+  pendingQuoteLeadId = lead.id;
+  closeLeadDetail();
+  await finishStartQuote();
+}
+
+async function startQuoteFromClient(c){
+  resetQuoteFormFields();
+  applyClientToQuote(c);
+  const lead = findLeadForClient(c);
+  if(lead && lead.tipoProgetto) document.getElementById('fProgetto').value = lead.tipoProgetto;
+  await finishStartQuote();
+}
+
+async function linkLeadToClient(lead, clientId){
+  if(!lead || lead.clientId === clientId) return;
+  lead.clientId = clientId;
+  const key = getLicenseKey();
+  if(!key) return;
+  try{
+    await fetch('/.netlify/functions/leads', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action:'linkClient', leadId: lead.id, clientId })
+    });
+  }catch(err){ console.error('Impossibile collegare la richiesta al cliente', err); }
+}
+
+function findLeadForQuote(qc){
+  if(pendingQuoteLeadId){ const l = leadsList.find(x=>x.id===pendingQuoteLeadId); if(l) return l; }
+  const e = normKey(qc.clienteEmail), n = normKey(qc.cliente);
+  return leadsList.find(l=>(e && normKey(l.email)===e) || (n && normKey(l.nome)===n)) || null;
+}
+
+function findLeadForClient(c){
+  return leadsList.find(l=>l.id===c.leadId)
+    || leadsList.find(l=>l.clientId===c.id)
+    || leadsList.find(l=>{ const e=normKey(c.email), n=normKey(c.cliente); return (e && normKey(l.email)===e) || (n && normKey(l.nome)===n); })
+    || null;
+}
+
+// Chiamata quando un preventivo viene salvato: il cliente entra (o si completa) in Rubrica,
+// con la provenienza presa dalla richiesta d'origine, se esiste.
+async function ensureClientForQuote(qc){
+  const nome = (qc.cliente||'').trim();
+  if(!nome) return;
+  try{
+    if(!leadsList.length) await loadLeadsCloud();
+    const lead = findLeadForQuote(qc);
+    const e = normKey(qc.clienteEmail), n = normKey(nome);
+    let client = clients.find(c=>(e && normKey(c.email)===e) || normKey(c.cliente)===n);
+    const data = {
+      cliente: nome, tipoCliente: qc.tipoCliente || 'Privato', cf: qc.cf||'', indirizzo: qc.indirizzo||'',
+      piva: qc.piva||'', email: qc.clienteEmail||'', telefono: qc.telefono||'', pec: qc.pec||'',
+      indirizzoIntervento: qc.indirizzoIntervento||'', note: qc.noteCliente||''
+    };
+    if(client){
+      const patch = { id: client.id };
+      let changed = false;
+      ['cf','indirizzo','piva','email','telefono','pec','indirizzoIntervento'].forEach(f=>{
+        if(!client[f] && data[f]){ patch[f] = data[f]; changed = true; }
+      });
+      if(lead){
+        if(!client.fonte && lead.fonte){ patch.fonte = lead.fonte; changed = true; }
+        if(!client.leadId){ patch.leadId = lead.id; patch.canale = lead.canale || 'email'; changed = true; }
+      }
+      if(changed) client = await saveClientToRubrica(patch) || client;
+    } else {
+      client = await saveClientToRubrica({
+        ...data,
+        fonte: lead ? (lead.fonte||'') : '',
+        canale: lead ? (lead.canale||'email') : '',
+        leadId: lead ? lead.id : ''
+      });
+    }
+    if(lead && client) await linkLeadToClient(lead, client.id);
+  }catch(err){ console.error('Impossibile aggiornare la rubrica dal preventivo', err); }
+}
+
+// Una tantum per sessione: porta in Rubrica i clienti che hanno già preventivi salvati ma non
+// risultano ancora in elenco (es. preventivi fatti prima di questa regola).
+let rubricaBackfillDone = false;
+async function backfillClientsFromQuotes(){
+  if(rubricaBackfillDone) return;
+  rubricaBackfillDone = true;
+  const seen = new Set();
+  for(const q of savedQuotes){
+    const qc = q.client || {};
+    const k = normKey(qc.clienteEmail) + '|' + normKey(qc.cliente);
+    if(!qc.cliente || seen.has(k)) continue;
+    seen.add(k);
+    const e = normKey(qc.clienteEmail), n = normKey(qc.cliente);
+    if(clients.some(c=>(e && normKey(c.email)===e) || normKey(c.cliente)===n)) continue;
+    const prev = pendingQuoteLeadId; pendingQuoteLeadId = null;
+    await ensureClientForQuote(qc);
+    pendingQuoteLeadId = prev;
+  }
 }
 
 document.getElementById('e2LeadFilters').addEventListener('click', (e)=>{
@@ -4498,11 +4703,12 @@ document.getElementById('leadDetailFonteCustomSaveBtn').addEventListener('click'
   if(!val) return;
   updateLeadFonte(leadDetailCurrentId, val);
 });
-document.getElementById('leadDetailClose').addEventListener('click', closeLeadDetail);
-document.getElementById('leadDetailCloseBtn').addEventListener('click', closeLeadDetail);
-document.getElementById('leadDetailModal').addEventListener('click', (e)=>{
-  if(e.target.id === 'leadDetailModal') closeLeadDetail();
+document.getElementById('leadSchedaBackBtn').addEventListener('click', closeLeadDetail);
+document.getElementById('leadSchedaClientBox').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-goto-client]');
+  if(btn) openClientScheda(btn.getAttribute('data-goto-client'));
 });
+document.getElementById('importLeadsSheetBtn').addEventListener('click', importLeadsFromSheet);
 document.getElementById('leadDetailDeleteBtn').addEventListener('click', ()=>{
   if(leadDetailCurrentId) deleteLeadEntry(leadDetailCurrentId);
 });
@@ -4523,6 +4729,146 @@ document.getElementById('leadDetailInfo').addEventListener('click', (e)=>{
   setTimeout(()=>{ btn.textContent = original; }, 1500);
 });
 /* ===================== fine Richieste (lead via mail) ===================== */
+
+/* ===================== Scheda cliente (Rubrica) ===================== */
+let clientSchedaCurrentId = null;
+
+function openClientScheda(clientId){
+  const c = clients.find(x=>x.id===clientId);
+  if(!c) return;
+  if(e2CurrentPage !== 'rubrica') switchEstimly2Page('rubrica');
+  clientSchedaCurrentId = clientId;
+  renderClientScheda(c);
+  document.getElementById('rubricaListView').style.display = 'none';
+  document.getElementById('clientSchedaView').style.display = 'block';
+  window.scrollTo({ top: 0 });
+  if(!leadsList.length) loadLeadsCloud();
+}
+
+function closeClientScheda(){
+  clientSchedaCurrentId = null;
+  const sv = document.getElementById('clientSchedaView');
+  const lv = document.getElementById('rubricaListView');
+  if(sv) sv.style.display = 'none';
+  if(lv) lv.style.display = 'block';
+  renderRubricaList();
+}
+
+function renderClientScheda(c){
+  document.getElementById('rcId').value = c.id;
+  document.getElementById('clientSchedaTitle').textContent = c.cliente || 'Cliente senza nome';
+  const nq = quotesForClient(c).length;
+  document.getElementById('clientSchedaSub').textContent = `${nq} preventiv${nq===1?'o':'i'}${c.createdAt ? ' · in rubrica dal ' + new Date(c.createdAt).toLocaleDateString('it-IT') : ''}`;
+  document.getElementById('rcCliente').value = c.cliente || '';
+  document.getElementById('rcTipoCliente').value = c.tipoCliente || 'Privato';
+  document.getElementById('rcCF').value = c.cf || '';
+  document.getElementById('rcIndirizzo').value = c.indirizzo || '';
+  document.getElementById('rcPiva').value = c.piva || '';
+  document.getElementById('rcTelefono').value = c.telefono || '';
+  document.getElementById('rcEmail').value = c.email || '';
+  document.getElementById('rcPec').value = c.pec || '';
+  document.getElementById('rcIndirizzoIntervento').value = c.indirizzoIntervento || '';
+  document.getElementById('rcNote').value = c.note || '';
+  document.getElementById('rcFonte').value = c.fonte || '';
+  document.getElementById('rcFonteBtns').innerHTML = LEAD_FONTE_PRESET.map(f=>{
+    const on = (c.fonte||'') === f;
+    return `<button type="button" class="e2-lead-stage-btn ${on?'active':''}" data-rc-fonte="${f}" style="${on?'background:#4338CA;':''}">${f}</button>`;
+  }).join('');
+  renderClientSchedaLeadInfo();
+  renderClientSchedaQuotes();
+}
+
+function renderClientSchedaLeadInfo(){
+  const box = document.getElementById('clientSchedaLeadInfo');
+  if(!box || !clientSchedaCurrentId) return;
+  const c = clients.find(x=>x.id===clientSchedaCurrentId);
+  if(!c) return;
+  const lead = findLeadForClient(c);
+  if(!lead){
+    box.innerHTML = 'Nessuna richiesta collegata: il cliente è stato creato direttamente da un preventivo.';
+    return;
+  }
+  const data = formatEventDate ? formatEventDate(lead.ricevutoAt) : new Date(lead.ricevutoAt).toLocaleDateString('it-IT');
+  box.innerHTML = `Arrivato come richiesta ${leadCanaleTagHtml(lead)} il ${escapeHtml(data)}.
+    <button type="button" class="btn-cancel" data-goto-lead="${lead.id}" style="padding:4px 10px; margin-left:6px;">Apri richiesta →</button>`;
+}
+
+function renderClientSchedaQuotes(){
+  const box = document.getElementById('clientSchedaQuotes');
+  if(!box || !clientSchedaCurrentId) return;
+  const c = clients.find(x=>x.id===clientSchedaCurrentId);
+  if(!c) return;
+  const qs = quotesForClient(c);
+  const empty = document.getElementById('clientSchedaQuotesEmpty');
+  box.innerHTML = qs.map(savedQuoteRowHtml).join('');
+  if(empty) empty.style.display = qs.length ? 'none' : 'block';
+}
+
+async function saveClientScheda(){
+  const id = document.getElementById('rcId').value;
+  const nome = document.getElementById('rcCliente').value.trim();
+  if(!id) return;
+  if(!nome){ alert('Inserisci almeno il nome del cliente.'); return; }
+  const prev = clients.find(x=>x.id===id) || {};
+  const fonte = document.getElementById('rcFonte').value.trim().slice(0,80);
+  const saved = await saveClientToRubrica({
+    id, cliente: nome,
+    tipoCliente: document.getElementById('rcTipoCliente').value,
+    cf: document.getElementById('rcCF').value.trim(),
+    indirizzo: document.getElementById('rcIndirizzo').value.trim(),
+    piva: document.getElementById('rcPiva').value.trim(),
+    email: document.getElementById('rcEmail').value.trim(),
+    telefono: document.getElementById('rcTelefono').value.trim(),
+    pec: document.getElementById('rcPec').value.trim(),
+    indirizzoIntervento: document.getElementById('rcIndirizzoIntervento').value.trim(),
+    note: document.getElementById('rcNote').value.trim(),
+    fonte
+  });
+  // La provenienza resta una sola, anche nella richiesta d'origine (usata dai grafici).
+  const lead = findLeadForClient(prev);
+  if(lead && (lead.fonte||'') !== fonte) updateLeadFonte(lead.id, fonte);
+  if(saved) renderClientScheda(saved);
+  const btn = document.getElementById('clientSchedaSaveBtn');
+  const original = btn.textContent;
+  btn.textContent = 'Salvato ✓';
+  setTimeout(()=>{ btn.textContent = original; }, 1500);
+}
+
+document.getElementById('rubricaList').addEventListener('click', (e)=>{
+  const row = e.target.closest('[data-open-client]');
+  if(row) openClientScheda(row.getAttribute('data-open-client'));
+});
+document.getElementById('clientSchedaBackBtn').addEventListener('click', closeClientScheda);
+document.getElementById('clientSchedaSaveBtn').addEventListener('click', saveClientScheda);
+document.getElementById('clientSchedaNewQuoteBtn').addEventListener('click', ()=>{
+  const c = clients.find(x=>x.id===clientSchedaCurrentId);
+  if(c) startQuoteFromClient(c);
+});
+document.getElementById('clientSchedaDeleteBtn').addEventListener('click', async ()=>{
+  const id = clientSchedaCurrentId;
+  if(!id) return;
+  await deleteClientFromRubrica(id);
+  if(!clients.some(c=>c.id===id)) closeClientScheda();
+});
+document.getElementById('rcFonteBtns').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-rc-fonte]');
+  if(!btn) return;
+  document.getElementById('rcFonte').value = btn.getAttribute('data-rc-fonte');
+  document.querySelectorAll('#rcFonteBtns [data-rc-fonte]').forEach(b=>{
+    const on = b === btn;
+    b.classList.toggle('active', on);
+    b.style.background = on ? '#4338CA' : '';
+  });
+});
+document.getElementById('clientSchedaLeadInfo').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-goto-lead]');
+  if(!btn) return;
+  const id = btn.getAttribute('data-goto-lead');
+  switchEstimly2Page('richieste');
+  openLeadDetail(id);
+});
+document.getElementById('clientSchedaQuotes').addEventListener('click', handleSavedQuotesListClick);
+/* ===================== fine Scheda cliente ===================== */
 
 /* ===================== Menu Estimly 2.0 ===================== */
 let e2CurrentPage = 'dashboard';
@@ -4564,8 +4910,12 @@ function switchEstimly2Page(pageId){
     preventivoPage.style.display = 'none';
   }
   if(pageId === 'dashboard'){ renderDashboard(); loadLeadsCloud().then(renderDashboard); loadFollowupsCloud().then(renderDashboard); }
-  if(pageId === 'richieste') loadLeadsCloud();
-  if(pageId === 'rubrica') renderRubricaList();
+  if(pageId === 'richieste'){ closeLeadDetail(); loadLeadsCloud(); }
+  if(pageId === 'rubrica'){
+    closeClientScheda();
+    if(!leadsList.length) loadLeadsCloud();
+    backfillClientsFromQuotes().then(()=>renderRubricaList());
+  }
   if(pageId === 'salvati') renderSavedQuotesList();
   if(pageId === 'seguire'){
     loadFollowupsCloud().then(renderFollowupsPanel);
@@ -5855,6 +6205,7 @@ document.getElementById('customAddBtn').addEventListener('click', ()=>{
 document.getElementById('resetBtn').addEventListener('click', async ()=>{
   if(!confirm('Vuoi svuotare il preventivo corrente e iniziarne uno nuovo?')) return;
   cart = [];
+  pendingQuoteLeadId = null;
   document.getElementById('fCliente').value='';
   document.getElementById('fClienteEmail').value='';
   document.getElementById('fTipoCliente').value='Privato';
@@ -6229,10 +6580,6 @@ document.getElementById('clientPickerModal').addEventListener('click', (e)=>{
 document.getElementById('clientPickerNewBtn').addEventListener('click', ()=>{
   openClientFormModal(null, { fromPicker: true });
 });
-document.getElementById('addClientBtn').addEventListener('click', ()=>{
-  openClientFormModal(null, null);
-});
-document.getElementById('importClientsSheetBtn').addEventListener('click', importClientsFromSheet);
 document.getElementById('clientFormClose').addEventListener('click', closeClientFormModal);
 document.getElementById('clientFormCancelBtn').addEventListener('click', closeClientFormModal);
 document.getElementById('clientFormModal').addEventListener('click', (e)=>{
@@ -7369,6 +7716,8 @@ if('serviceWorker' in navigator){
     if(list2) list2.addEventListener('click', estimly3HandleCloseQuoteClick);
     const list3 = document.getElementById('e2SalvatiFirmatiList');
     if(list3) list3.addEventListener('click', estimly3HandleCloseQuoteClick);
+    const list4 = document.getElementById('clientSchedaQuotes');
+    if(list4) list4.addEventListener('click', estimly3HandleCloseQuoteClick);
 
     estimlyUpdateHoursAlert();
     estimlyHandleStripeReturnUrl();

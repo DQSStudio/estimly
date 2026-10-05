@@ -2,13 +2,13 @@ import { getStore } from '@netlify/blobs';
 import crypto from 'crypto';
 
 // ===================== Import clienti da Google Sheet (Estimly 2.0) =====================
-// Legge le risposte di un Google Form (raccolte in un Google Sheet) e le importa/aggiorna
-// in Rubrica, con lo stesso meccanismo già usato in DSQ Manager: un Service Account Google
+// Legge le risposte di un Google Form (raccolte in un Google Sheet) e le importa come
+// richieste (sezione Richieste, canale "modulo"), con lo stesso meccanismo già usato in DSQ Manager: un Service Account Google
 // condiviso come Visualizzatore sul foglio, autenticato via JWT (nessun login utente, nessuna
 // condivisione pubblica del foglio).
 //
 // Chiamata da tre punti:
-// - Il pulsante "Importa ora" in Rubrica (sincronizzazione manuale)
+// - Il pulsante "Importa dal foglio" in Richieste (sincronizzazione manuale)
 // - Un piccolo Google Apps Script agganciato al foglio stesso, che fa una chiamata ad ogni
 //   invio del modulo (sincronizzazione quasi istantanea)
 // - Una funzione programmata (clients-sheet-cron.js) ogni 15 minuti, come rete di sicurezza
@@ -104,9 +104,33 @@ function normalize(str) {
   return String(str || '').trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
-// Trasforma le righe grezze del foglio (prima riga = intestazioni) in record cliente pronti
-// per la Rubrica, con tutte le risposte secondarie raccolte in un unico blocco note.
-function rowsToClientRecords(rows) {
+// Trasforma le righe grezze del foglio (prima riga = intestazioni) in "richieste" (lead) con
+// tutte le risposte del modulo. Ogni riga ha una chiave stabile (sheetKey, ricavata da
+// data/ora di invio + email + nome) per non importarla due volte.
+const TIMESTAMP_HEADERS = ['Informazioni cronologiche', 'Timestamp', 'Data e ora'];
+
+function parseSheetTimestamp(str) {
+  const s = String(str || '').trim();
+  if (!s) return null;
+  // Formato italiano dei Moduli Google: 05/10/2026 11:08:32
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (m) {
+    const d = new Date(Date.UTC(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)));
+    return isNaN(d.getTime()) ? null : d.toISOString();
+  }
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+function sheetKeyFor(timestamp, email, nome) {
+  return crypto
+    .createHash('sha1')
+    .update([normalize(timestamp), normalize(email), normalize(nome)].join('|'))
+    .digest('hex')
+    .slice(0, 20);
+}
+
+function rowsToLeadRecords(rows) {
   if (!rows.length) return [];
   const headers = rows[0].map((h) => String(h || '').trim());
   const records = [];
@@ -116,79 +140,65 @@ function rowsToClientRecords(rows) {
     const byHeader = {};
     headers.forEach((h, idx) => { byHeader[h] = (row[idx] || '').toString().trim(); });
 
-    const record = { cliente: '', email: '', telefono: '', indirizzoIntervento: '' };
+    const rec = { nome: '', email: '', telefono: '', indirizzoIntervento: '' };
     Object.entries(FIELD_MAP).forEach(([header, field]) => {
-      if (byHeader[header]) record[field] = byHeader[header];
+      if (byHeader[header]) rec[field === 'cliente' ? 'nome' : field] = byHeader[header];
     });
 
     // Una riga senza nome né email non è un contatto utilizzabile: la saltiamo.
-    if (!record.cliente && !record.email) continue;
+    if (!rec.nome && !rec.email) continue;
 
-    const noteLines = [];
+    const labelOf = {};
+    const lines = [];
     NOTE_LABELS.forEach(([header, label]) => {
       const val = byHeader[header.trim()];
-      if (val) noteLines.push(`${label}: ${val}`);
+      if (val) { lines.push(`${label}: ${val}`); labelOf[label] = val; }
     });
-    record.note = noteLines.join('\n');
-    record.sourceSheet = true;
-    records.push(record);
+    rec.testo = lines.join('\n');
+    rec.tipoProgetto = labelOf['Tipo progetto'] || labelOf['Tipo di servizio'] || '';
+    rec.fonte = (labelOf['Provenienza'] || '').slice(0, 80);
+
+    const tsHeader = TIMESTAMP_HEADERS.find((h) => byHeader[h]);
+    const tsRaw = tsHeader ? byHeader[tsHeader] : '';
+    rec.ricevutoAt = parseSheetTimestamp(tsRaw);
+    rec.sheetKey = sheetKeyFor(tsRaw || ('riga' + i), rec.email, rec.nome);
+    records.push(rec);
   }
   return records;
 }
 
-// Importa i record nella Rubrica dello studio: stesso nome+cognome e/o stessa email ->
-// aggiorna la scheda cliente esistente invece di crearne una nuova. I record vengono
-// processati nell'ordine del foglio, così se la stessa persona ha inviato il modulo più
-// volte vince sempre la risposta più recente (l'ultima riga del foglio per quella persona).
-function mergeClients(existingClients, records) {
-  const clients = existingClients.map((c) => ({ ...c }));
-  let created = 0;
-  let updated = 0;
-
-  records.forEach((rec) => {
-    const emailKey = normalize(rec.email);
-    const nomeKey = normalize(rec.cliente);
-    const idx = clients.findIndex((c) => {
-      const cEmail = normalize(c.email);
-      const cNome = normalize(c.cliente);
-      if (emailKey && cEmail && cEmail === emailKey) return true;
-      if (nomeKey && cNome && cNome === nomeKey) return true;
-      return false;
-    });
-
-    if (idx !== -1) {
-      clients[idx] = {
-        ...clients[idx],
-        cliente: rec.cliente || clients[idx].cliente,
-        email: rec.email || clients[idx].email,
-        telefono: rec.telefono || clients[idx].telefono,
-        indirizzoIntervento: rec.indirizzoIntervento || clients[idx].indirizzoIntervento,
-        note: rec.note || clients[idx].note,
-        sourceSheet: true,
-        updatedAt: new Date().toISOString()
-      };
-      updated++;
-    } else {
-      clients.unshift({
-        id: 'c_sheet_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8),
-        cliente: rec.cliente || '',
-        tipoCliente: 'Privato',
-        cf: '',
-        indirizzo: '',
-        piva: '',
-        email: rec.email || '',
-        telefono: rec.telefono || '',
-        pec: '',
-        indirizzoIntervento: rec.indirizzoIntervento || '',
-        note: rec.note || '',
-        sourceSheet: true,
-        createdAt: new Date().toISOString()
-      });
-      created++;
-    }
+// Un cliente è "già in lavorazione" se esiste un preventivo salvato a suo nome/email.
+function hasQuoteFor(savedQuotes, email, nome) {
+  const e = normalize(email);
+  const n = normalize(nome);
+  return savedQuotes.some((q) => {
+    const c = (q && q.client) || {};
+    if (e && normalize(c.clienteEmail || c.email) === e) return true;
+    if (n && normalize(c.cliente) === n) return true;
+    return false;
   });
+}
 
-  return { clients, created, updated };
+function findClient(clients, email, nome) {
+  const e = normalize(email);
+  const n = normalize(nome);
+  return clients.find((c) => (e && normalize(c.email) === e) || (n && normalize(c.cliente) === n));
+}
+
+// Migrazione conservativa: i clienti importati in passato dal foglio finivano tutti in Rubrica.
+// Ora la Rubrica contiene solo clienti con preventivo, quindi togliamo quelli che sono ancora
+// "intatti": nessun preventivo e nessun dato anagrafico aggiunto a mano. Le loro risposte non
+// si perdono perché la stessa riga del foglio viene importata come richiesta.
+function pruneUntouchedSheetClients(clients, savedQuotes) {
+  const kept = [];
+  let removed = 0;
+  clients.forEach((c) => {
+    const untouched = c.sourceSheet && !c.cf && !c.indirizzo && !c.piva && !c.pec &&
+      (!c.tipoCliente || c.tipoCliente === 'Privato') &&
+      !hasQuoteFor(savedQuotes, c.email, c.cliente);
+    if (untouched) removed++; else kept.push(c);
+  });
+  return { clients: kept, removed };
 }
 
 export default async (req) => {
@@ -222,24 +232,76 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: 'sheet_fetch_failed', message: String(err.message || err) }), { status: 502 });
   }
 
-  const records = rowsToClientRecords(rows);
+  const records = rowsToLeadRecords(rows);
 
   const dataStore = getStore('studio-data');
-  const existing = (await dataStore.get(key, { type: 'json' })) || {};
+  const existing = (await dataStore.get(key, { type: 'json', consistency: 'strong' })) || {};
+  const savedQuotes = Array.isArray(existing.savedQuotes) ? existing.savedQuotes : [];
   const existingClients = Array.isArray(existing.clients) ? existing.clients : [];
-  const { clients, created, updated } = mergeClients(existingClients, records);
 
-  const record = {
-    catalog: existing.catalog || [],
-    studioSettings: existing.studioSettings || {},
-    categoryOrder: existing.categoryOrder || [],
-    savedQuotes: Array.isArray(existing.savedQuotes) ? existing.savedQuotes : [],
-    clients,
-    updatedAt: new Date().toISOString()
-  };
-  await dataStore.setJSON(key, record);
+  // Chiavi già importate (anche se poi la richiesta è stata eliminata): evitano che una
+  // richiesta cancellata ricompaia ad ogni sincronizzazione.
+  const seenStore = getStore('leads-sheet-seen');
+  const seen = new Set((await seenStore.get(key, { type: 'json', consistency: 'strong' })) || []);
 
-  console.log(`[clients-sheet-sync] key=${key} righe_foglio=${rows.length - 1} creati=${created} aggiornati=${updated}`);
+  const leadsStore = getStore('leads');
+  const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
+  list.forEach((l) => { if (l.sheetKey) seen.add(l.sheetKey); });
 
-  return new Response(JSON.stringify({ ok: true, created, updated, total: clients.length, clients }), { status: 200 });
+  const pruned = pruneUntouchedSheetClients(existingClients, savedQuotes);
+  const fresh = records.filter((r) => !seen.has(r.sheetKey));
+  const now = new Date().toISOString();
+  fresh.forEach((r) => {
+    const client = findClient(pruned.clients, r.email, r.nome);
+    const quoted = hasQuoteFor(savedQuotes, r.email, r.nome);
+    const entry = {
+      id: 'lead_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8),
+      canale: 'modulo',
+      sheetKey: r.sheetKey,
+      ricevutoAt: r.ricevutoAt || now,
+      mittente: r.email || r.nome,
+      oggetto: r.tipoProgetto ? 'Modulo: ' + r.tipoProgetto : 'Modulo di contatto',
+      testo: r.testo.slice(0, 4000),
+      nome: r.nome,
+      email: r.email,
+      telefono: r.telefono,
+      tipoProgetto: r.tipoProgetto,
+      indirizzoIntervento: r.indirizzoIntervento,
+      fonte: r.fonte,
+      note: '',
+      // Se c'è già un preventivo per questa persona la richiesta non è "nuova".
+      fase: quoted ? 'preventivo_inviato' : 'nuova'
+    };
+    if (client) entry.clientId = client.id;
+    list.push(entry);
+    seen.add(r.sheetKey);
+  });
+
+  if (fresh.length) {
+    list.sort((a, b) => String(b.ricevutoAt || '').localeCompare(String(a.ricevutoAt || '')));
+    await leadsStore.setJSON(key, list);
+    await seenStore.setJSON(key, Array.from(seen));
+  }
+
+  // Migrazione clienti storici del foglio (una tantum, con backup).
+  let clients = existingClients;
+  if (pruned.removed > 0) {
+    const backupsStore = getStore('studio-data-backups');
+    const backupKey = key + '__pre-rubrica-richieste';
+    const already = await backupsStore.get(backupKey, { type: 'json' });
+    if (!already) await backupsStore.setJSON(backupKey, { savedAt: now, data: existing });
+    clients = pruned.clients;
+    await dataStore.setJSON(key, { ...existing, clients, updatedAt: now });
+  }
+
+  console.log(`[clients-sheet-sync] key=${key} righe_foglio=${rows.length - 1} richieste_nuove=${fresh.length} clienti_rimossi_da_rubrica=${pruned.removed}`);
+
+  return new Response(JSON.stringify({
+    ok: true,
+    created: fresh.length,
+    removedFromRubrica: pruned.removed,
+    total: list.length,
+    leads: list,
+    clients
+  }), { status: 200 });
 };

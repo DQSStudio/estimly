@@ -99,6 +99,23 @@ export default async (req) => {
     return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
   }
 
+  // Collega la richiesta al cliente creato in Rubrica (quando parte il preventivo).
+  if (action === 'linkClient') {
+    const { leadId, clientId } = body;
+    if (!leadId || !clientId) {
+      return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+    }
+    const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
+    const entry = list.find((l) => l.id === leadId);
+    if (!entry) {
+      return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+    }
+    entry.clientId = String(clientId);
+    entry.aggiornatoAt = new Date().toISOString();
+    await leadsStore.setJSON(key, list);
+    return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
+  }
+
   if (action === 'delete') {
     const { leadId } = body;
     if (!leadId) {

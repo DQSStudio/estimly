@@ -102,6 +102,7 @@ export default async (req) => {
   const list = (await leadsStore.get(key, { type: 'json' })) || [];
   const entry = {
     id: 'lead_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8),
+    canale: 'email',
     ricevutoAt: new Date().toISOString(),
     mittente: email.from || '',
     oggetto: subject,
