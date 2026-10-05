@@ -6,7 +6,7 @@ import { getStore } from '@netlify/blobs';
 // function serve il frontend: elenco, cambio fase/provenienza, modifica manuale dei campi,
 // eliminazione.
 
-const VALID_FASI = ['nuova', 'contattato', 'preventivo_inviato', 'vinto', 'perso'];
+const VALID_FASI = ['nuova', 'contattato', 'presentazione_inviata', 'preventivo_inviato', 'vinto', 'perso'];
 // La provenienza non è più vincolata a un elenco fisso: oltre ai pulsanti rapidi (Sito web,
 // Google, Instagram, ecc.) lo studio può scrivere un valore libero (es. il nome di una
 // campagna pubblicitaria), per poter testare esattamente da dove arrivano i contatti.
@@ -95,6 +95,26 @@ export default async (req) => {
       }
     });
     entry.aggiornatoAt = new Date().toISOString();
+    await leadsStore.setJSON(key, list);
+    return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
+  }
+
+  // La presentazione (link Canva) è stata inviata al cliente: salva la data e, se la richiesta è
+  // ancora "nuova"/"contattato", la porta alla fase "Presentazione inviata".
+  if (action === 'markPresentationSent') {
+    const { leadId } = body;
+    if (!leadId) {
+      return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+    }
+    const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
+    const entry = list.find((l) => l.id === leadId);
+    if (!entry) {
+      return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+    }
+    const now = new Date().toISOString();
+    entry.presentazioneInviataAt = now;
+    if (entry.fase === 'nuova' || entry.fase === 'contattato') entry.fase = 'presentazione_inviata';
+    entry.aggiornatoAt = now;
     await leadsStore.setJSON(key, list);
     return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
   }

@@ -1,5 +1,6 @@
 import { getStore } from '@netlify/blobs';
 import { syncQuoteToDesearqManager } from './desearq-sync.js';
+import { normalizeCanvaUrl } from './canva-url.js';
 
 // ===================== Pagina pubblica del preventivo (Estimly 2.0) =====================
 // Espone un preventivo tramite un token opaco (non indovinabile), senza richiedere login al
@@ -363,6 +364,70 @@ async function downloadSignedDocument(licenses, dataStore, body){
   return { ok: true, bytes, filename: `Accettazione_firmata_${numero}.pdf` };
 }
 
+// ===================== Presentazione prima del preventivo =====================
+// Lo studio presenta il progetto con una presentazione Canva prima di fare il preventivo. Dalla
+// scheda della richiesta (lead) si genera un link pubblico a una pagina (presentazione.html) che
+// mostra la presentazione e registra l'apertura nel follow-up 'pres_<leadId>'. Token separati da
+// quelli dei preventivi, stesso store 'public-links' (kind:'presentazione').
+async function createPresentationLink(licenses, body){
+  const key = (body.key || '').trim().toUpperCase();
+  const leadId = body.leadId;
+  const canva = normalizeCanvaUrl(body.url);
+  if(!key || !leadId) return { error: 'missing_fields' };
+  if(!canva) return { error: 'invalid_canva_url' };
+
+  const license = await licenses.get(key, { type: 'json' });
+  if(!license || license.status !== 'active') return { error: 'invalid_license' };
+  if(!license.followupEnabled) return { error: 'not_estimly2' };
+
+  const leadsStore = getStore('leads');
+  const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
+  const lead = list.find(l => l.id === leadId);
+  if(!lead) return { error: 'not_found' };
+
+  const token = lead.presentazioneToken || randomToken();
+  await getLinksStore().setJSON(token, { key, leadId, kind: 'presentazione', url: canva.url, createdAt: new Date().toISOString() });
+  lead.presentazioneToken = token;
+  lead.presentazioneUrl = canva.url;
+  lead.aggiornatoAt = new Date().toISOString();
+  await leadsStore.setJSON(key, list);
+  return { ok: true, token };
+}
+
+async function getPresentation(licenses, dataStore, body){
+  const token = (body.token || '').trim();
+  if(!token) return { error: 'missing_token' };
+  const link = await getLinksStore().get(token, { type: 'json' });
+  if(!link || link.kind !== 'presentazione') return { error: 'not_found' };
+  const license = await licenses.get(link.key, { type: 'json' });
+  if(!license || license.status !== 'active') return { error: 'not_found' };
+  const canva = normalizeCanvaUrl(link.url);
+  if(!canva) return { error: 'not_found' };
+
+  const record = await loadStudioRecord(dataStore, link.key);
+  let nome = '';
+  try{
+    const leads = (await getStore('leads').get(link.key, { type: 'json' })) || [];
+    const lead = leads.find(l => l.id === link.leadId);
+    nome = (lead && lead.nome) || '';
+  }catch(err){ /* il nome è solo un saluto */ }
+
+  // Aprire la pagina = aver visto la presentazione: un solo evento 'aperto' per follow-up, mai
+  // bloccante (stessa logica di getPublicQuote per i preventivi).
+  try{
+    const followupsStore = getStore('followups');
+    const fl = (await followupsStore.get(link.key, { type: 'json', consistency: 'strong' })) || [];
+    const fu = fl.find(f => f.quoteRef === 'pres_' + link.leadId);
+    if(fu && !fu.events.some(e => e.type === 'aperto')){
+      fu.events.push({ type: 'aperto', at: new Date().toISOString() });
+      if(fu.status === 'freddo') fu.status = 'interessato';
+      await followupsStore.setJSON(link.key, fl);
+    }
+  }catch(err){ /* silenzioso */ }
+
+  return { ok: true, studio: sanitizeStudio(record && record.studioSettings), nome, url: canva.url, embedUrl: canva.embedUrl };
+}
+
 function getLinksStore(){
   return getStore('public-links');
 }
@@ -386,6 +451,14 @@ export default async (req) => {
     if (body.mode === 'create-link') {
       const result = await createLink(licenses, dataStore, body);
       return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
+    }
+    if (body.mode === 'create-presentation-link') {
+      const result = await createPresentationLink(licenses, body);
+      return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
+    }
+    if (body.mode === 'get-presentation') {
+      const result = await getPresentation(licenses, dataStore, body);
+      return new Response(JSON.stringify(result), { status: result.error ? 404 : 200 });
     }
     if (body.mode === 'get') {
       const result = await getPublicQuote(licenses, dataStore, body);

@@ -1118,6 +1118,34 @@ header.top{
           <button type="button" id="leadDetailFonteCustomSaveBtn" class="e2-lead-stage-btn">Salva</button>
         </div>
       </div>
+      <div class="e2-scheda-card" id="leadPresCard" style="display:none;">
+        <div class="e2-scheda-label">Presentazione e follow-up</div>
+        <div style="font-size:12px; color:var(--ink-soft,#6B6D76); margin-bottom:10px; line-height:1.5;">Incolla il link di condivisione Canva (visualizzazione per chiunque abbia il link). Il cliente riceve un'email con una pagina che mostra la presentazione; da quel momento Estimly traccia la visualizzazione e manda i promemoria scelti, finché non invii il preventivo.</div>
+        <input type="url" id="leadPresUrl" class="e2-lead-edit-input" style="width:100%; box-sizing:border-box; margin-bottom:10px;" placeholder="https://www.canva.com/design/.../view">
+        <div id="leadPresConfig">
+          <div style="font-size:11px; color:var(--ink-soft); margin-bottom:6px;">Promemoria automatici — dopo quanti giorni dall'invio:</div>
+          <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px;">
+            <label style="display:flex; align-items:center; gap:5px; font-size:12px;"><input type="checkbox" id="presStep1On" checked> dopo <input type="number" id="presStep1Days" value="3" min="1" max="120" style="width:48px; padding:3px 5px;"> giorni</label>
+            <label style="display:flex; align-items:center; gap:5px; font-size:12px;"><input type="checkbox" id="presStep2On" checked> dopo <input type="number" id="presStep2Days" value="7" min="1" max="120" style="width:48px; padding:3px 5px;"> giorni</label>
+            <label style="display:flex; align-items:center; gap:5px; font-size:12px;"><input type="checkbox" id="presStep3On" checked> dopo <input type="number" id="presStep3Days" value="14" min="1" max="120" style="width:48px; padding:3px 5px;"> giorni</label>
+          </div>
+          <button type="button" id="leadPresSendBtn" class="btn-save" style="padding:8px 16px; font-size:12.5px; margin-bottom:8px;">📧 Invia presentazione via email</button>
+          <div><button type="button" id="leadPresActivateBtn" class="btn-cancel" style="padding:7px 14px; font-size:12px;">Ho già inviato il link altrove: attiva solo il follow-up</button></div>
+        </div>
+        <div id="leadPresActive" style="display:none;">
+          <div id="leadPresStatusBadge"></div>
+          <div id="leadPresScheduleSummary" style="font-size:11.5px; color:var(--ink-soft); margin-top:6px;"></div>
+          <div id="leadPresTimeline" style="margin-top:8px;"></div>
+          <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+            <button type="button" class="btn-cancel" data-pres-status="risposto" style="padding:5px 10px; font-size:11px;">Cliente ha risposto</button>
+            <button type="button" class="btn-cancel" data-pres-status="non_interessato" style="padding:5px 10px; font-size:11px;">Non interessato</button>
+            <button type="button" class="btn-cancel" data-pres-status="disattivato" style="padding:5px 10px; font-size:11px; color:var(--danger);">Disattiva follow-up</button>
+          </div>
+        </div>
+        <div id="leadPresLinkRow" style="display:none; margin-top:10px; font-size:12px;">
+          <button type="button" id="leadPresCopyBtn" class="btn-cancel" style="padding:5px 10px; font-size:11.5px;">Copia link della presentazione</button>
+        </div>
+      </div>
       <div class="e2-scheda-card">
         <div class="e2-scheda-label">Dati della richiesta</div>
         <div id="leadDetailInfo"></div>
@@ -3804,6 +3832,8 @@ const FOLLOWUP_STATUS_META = {
 const FOLLOWUP_EVENT_LABELS = {
   attivato: 'Follow-up attivato',
   inviato_preventivo: '📧 Preventivo inviato via email',
+  inviato_presentazione: '📧 Presentazione inviata via email',
+  sostituito_da_preventivo: 'Follow-up passato al preventivo',
   aperto: '👁 Email visualizzata',
   cliccato: '🔗 Link aperto',
   non_recapitato: '⚠ Email non recapitata',
@@ -3834,6 +3864,7 @@ async function loadFollowupsCloud(){
     if(data && Array.isArray(data.followups)){
       followupsList = data.followups;
       renderFollowupSection();
+      if(typeof renderLeadPresentation === 'function') renderLeadPresentation();
     }
   }catch(err){ console.error('Impossibile caricare i follow-up', err); }
 }
@@ -4056,11 +4087,12 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         key, action:'send',
-        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html, sequenceDays: getFollowupSequenceDays() }
+        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html, sequenceDays: getFollowupSequenceDays(), leadId: quoteLeadId() }
       })
     });
     const data = await res.json();
     if(data && data.ok){
+      advanceLeadAfterQuote();
       await loadFollowupsCloud();
       alert(`Preventivo inviato a ${clienteEmail}.`);
     } else if(data && data.error === 'email_not_configured'){
@@ -4097,11 +4129,12 @@ document.getElementById('activateFollowupBtn').addEventListener('click', async (
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         key, action:'start',
-        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, sequenceDays: getFollowupSequenceDays() }
+        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, sequenceDays: getFollowupSequenceDays(), leadId: quoteLeadId() }
       })
     });
     const data = await res.json();
     if(data && data.ok){
+      advanceLeadAfterQuote();
       await loadFollowupsCloud();
     } else {
       alert('Impossibile attivare il follow-up.');
@@ -4131,7 +4164,7 @@ function renderFollowupsPanel(){
     const opens = f.events.filter(e=>e.type==='aperto').length;
     const clicks = f.events.filter(e=>e.type==='cliccato').length;
     const hint = clicks>0 ? `Ha aperto il link ${clicks} volt${clicks===1?'a':'e'}` : (opens>0 ? `Ha visualizzato l'email ${opens} volt${opens===1?'a':'e'}` : 'Ancora nessuna interazione');
-    const inviato = f.events.find(e=>e.type==='inviato_preventivo');
+    const inviato = f.events.find(e=>e.type==='inviato_preventivo' || e.type==='inviato_presentazione');
     const primaApertura = f.events.find(e=>e.type==='aperto');
     const firmato = f.events.find(e=>e.type==='firmato');
     const agendaBits = [];
@@ -4147,7 +4180,7 @@ function renderFollowupsPanel(){
           <div style="font-weight:600; font-size:13px;">${escapeHtml(f.clienteNome)}</div>
           <span style="font-size:11px; font-weight:600; color:${meta.color}; background:${meta.bg}; padding:3px 9px; border-radius:999px;">${meta.emoji} ${meta.label.split(' — ')[0]}</span>
         </div>
-        <div style="font-size:11.5px; color:var(--ink-soft);">Preventivo ${escapeHtml(f.numero)}${f.totale?(' — '+escapeHtml(f.totale)):''}</div>
+        <div style="font-size:11.5px; color:var(--ink-soft);">${f.kind==='presentazione' ? 'Presentazione' : 'Preventivo ' + escapeHtml(f.numero) + (f.totale?(' — '+escapeHtml(f.totale)):'')}</div>
         ${agendaBits.length ? `<div style="font-size:11px; color:var(--ink-faint); margin-top:3px;">${agendaBits.join(' · ')}</div>` : ''}
         <div style="font-size:11.5px; color:var(--ink-soft); margin-top:2px;">${hint}</div>
       </div>`;
@@ -4186,11 +4219,12 @@ let leadDetailCurrentId = null;
 const LEAD_FASE_META = {
   nuova:               { label:'Nuova',               color:'#4338CA', bg:'#EEEDFB' },
   contattato:          { label:'Contattato',           color:'#92700C', bg:'#FDF3E0' },
+  presentazione_inviata:{ label:'Presentazione inviata', color:'#6D28D9', bg:'#F1EBFC' },
   preventivo_inviato:  { label:'Preventivo inviato',   color:'#B45309', bg:'#FDF0E3' },
   vinto:               { label:'Vinto',                color:'#0F766E', bg:'#E5F5F3' },
   perso:               { label:'Perso',                color:'#7A7C85', bg:'#F0F0F2' }
 };
-const LEAD_FASE_ORDER = ['nuova','contattato','preventivo_inviato','vinto','perso'];
+const LEAD_FASE_ORDER = ['nuova','contattato','presentazione_inviata','preventivo_inviato','vinto','perso'];
 
 // Pulsanti rapidi per la provenienza: non è più un elenco chiuso, sono solo scorciatoie —
 // lo studio può sempre scrivere un valore libero nel campo sotto (es. il nome di una
@@ -4376,6 +4410,7 @@ function openLeadDetail(leadId){
   document.getElementById('e2LeadListView').style.display = 'none';
   document.getElementById('e2LeadSchedaView').style.display = 'block';
   window.scrollTo({ top: 0 });
+  if(!followupsList.length) loadFollowupsCloud();
 }
 function closeLeadDetail(){
   const sv = document.getElementById('e2LeadSchedaView');
@@ -4434,6 +4469,8 @@ function renderLeadDetail(lead){
   html += `<div style="display:flex; justify-content:flex-end; margin-top:4px;"><button type="button" id="leadDetailSaveFieldsBtn" class="btn-save" style="font-size:12.5px; padding:6px 16px;">Salva modifiche</button></div>`;
   html += `<div style="margin-top:14px;"><b style="font-size:12.5px; color:var(--ink-soft,#6B6D76);">${isModulo ? 'Risposte del modulo' : 'Testo email ricevuta'}</b><div class="e2-lead-text-box">${escapeHtml(lead.testo||'')}</div></div>`;
   document.getElementById('leadDetailInfo').innerHTML = html;
+
+  renderLeadPresentation();
 
   // Collegamento al cliente in Rubrica (esiste solo dopo il primo preventivo salvato).
   const clientBox = document.getElementById('leadSchedaClientBox');
@@ -4729,6 +4766,208 @@ document.getElementById('leadDetailInfo').addEventListener('click', (e)=>{
   setTimeout(()=>{ btn.textContent = original; }, 1500);
 });
 /* ===================== fine Richieste (lead via mail) ===================== */
+
+/* ===================== Presentazione Canva prima del preventivo ===================== */
+// Il follow-up della presentazione vive nello stesso store dei follow-up dei preventivi, con
+// quoteRef 'pres_<leadId>' (vedi followups.js): così pannello "Da seguire", promemoria e
+// tracciamento aperture funzionano senza duplicare nulla.
+function presFollowupFor(lead){
+  return lead ? (followupsList.find(f=>f.quoteRef === 'pres_' + lead.id) || null) : null;
+}
+
+function getPresSequenceDays(){
+  return [1,2,3].map(n=>({ on: document.getElementById('presStep'+n+'On'), days: document.getElementById('presStep'+n+'Days') }))
+    .filter(s=>s.on && s.days && s.on.checked)
+    .map(s=>Math.max(1, Math.min(120, parseInt(s.days.value, 10) || 0)))
+    .filter(d=>d>0)
+    .sort((a,b)=>a-b);
+}
+
+function renderLeadPresentation(){
+  const card = document.getElementById('leadPresCard');
+  if(!card) return;
+  const lead = leadsList.find(l=>l.id===leadDetailCurrentId);
+  const enabled = FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled;
+  if(!lead || !enabled){ card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const urlInput = document.getElementById('leadPresUrl');
+  if(document.activeElement !== urlInput) urlInput.value = lead.presentazioneUrl || '';
+  const f = presFollowupFor(lead);
+  const active = !!(f && f.active);
+  document.getElementById('leadPresConfig').style.display = active ? 'none' : 'block';
+  document.getElementById('leadPresActive').style.display = f ? 'block' : 'none';
+  document.getElementById('leadPresLinkRow').style.display = lead.presentazioneToken ? 'block' : 'none';
+  if(f){
+    const meta = FOLLOWUP_STATUS_META[f.status] || FOLLOWUP_STATUS_META.freddo;
+    document.getElementById('leadPresStatusBadge').innerHTML = `<span style="display:inline-flex; align-items:center; gap:6px; background:${meta.bg}; color:${meta.color}; font-size:12px; font-weight:600; padding:5px 12px; border-radius:999px;">${meta.emoji} ${active ? meta.label : 'Follow-up concluso'}</span>`;
+    document.getElementById('leadPresScheduleSummary').textContent = followupScheduleLabel(f.sequenceDays).replace('per questo preventivo', 'per questa presentazione');
+    document.getElementById('leadPresTimeline').innerHTML = f.events.slice().reverse().map(ev=>`
+      <div style="display:flex; gap:8px; font-size:11.5px; color:var(--ink-soft); padding:3px 0;">
+        <span style="flex-shrink:0; color:var(--ink-faint);">${formatEventDate(ev.at)}</span>
+        <span>${FOLLOWUP_EVENT_LABELS[ev.type] || ev.type}</span>
+      </div>`).join('');
+    document.querySelectorAll('#leadPresActive [data-pres-status]').forEach(b=>{ b.style.display = active ? '' : 'none'; });
+  }
+}
+
+function buildPresentationEmailHtml(lead, linkUrl){
+  const s = studioSettings;
+  const accent = s.colorPrimary || '#4338CA';
+  const studioBits = [s.indirizzo, s.piva?('P.IVA '+s.piva):'', s.telefono, s.email].filter(Boolean).map(escapeHtml).join(' &middot; ');
+  const nome = lead.nome || '';
+  return `
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; max-width:640px; margin:0 auto; color:#222;">
+    <div style="height:5px; background:${accent}; border-radius:3px; margin-bottom:16px;"></div>
+    ${s.logo ? `<img src="${s.logo}" alt="" style="max-height:44px; max-width:170px; display:block; margin-bottom:6px;">` : ''}
+    <div style="font-weight:700; font-size:16px; color:#111;">${escapeHtml(s.nome||'Studio')}</div>
+    ${studioBits ? `<div style="font-size:11px; color:#666; margin-top:2px; max-width:420px;">${studioBits}</div>` : ''}
+    <p style="font-size:14px; line-height:1.6; margin-top:22px;">Gentile ${escapeHtml(nome || 'Cliente')},</p>
+    <p style="font-size:14px; line-height:1.6;">${escapeHtml(s.nome||'il nostro studio')} ha preparato per lei una breve presentazione del progetto. Può vederla dal pulsante qui sotto.</p>
+    <div style="text-align:center; margin:26px 0;">
+      <a href="${linkUrl}" style="display:inline-block; background:${accent}; color:#fff; text-decoration:none; padding:12px 28px; border-radius:6px; font-weight:600; font-size:14px;">Guarda la presentazione &rarr;</a>
+    </div>
+    <p style="font-size:13px; line-height:1.6; color:#555; margin-top:22px;">Resto a disposizione per qualsiasi chiarimento.<br>Cordiali saluti,<br><b>${escapeHtml(s.nome||'Studio')}</b></p>
+  </div>`;
+}
+
+// Crea (o riusa) il link pubblico della presentazione. Restituisce l'URL oppure null dopo aver
+// avvisato lo studio del problema.
+async function ensurePresentationLink(lead){
+  const key = getLicenseKey();
+  const url = document.getElementById('leadPresUrl').value.trim();
+  if(!url){ alert('Incolla prima il link di condivisione della presentazione Canva.'); return null; }
+  try{
+    const res = await fetch('/.netlify/functions/public-quote', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mode:'create-presentation-link', key, leadId: lead.id, url })
+    });
+    const data = await res.json();
+    if(data && data.token){
+      lead.presentazioneUrl = url;
+      lead.presentazioneToken = data.token;
+      return `${window.location.origin}/presentazione.html?t=${data.token}`;
+    }
+    if(data && data.error === 'invalid_canva_url'){
+      alert('Il link non sembra una presentazione Canva: deve iniziare con https://www.canva.com/ (oppure https://canva.link/).');
+    } else {
+      alert('Non sono riuscito a generare il link della presentazione (' + ((data && data.error) || 'errore') + '). Riprova tra poco.');
+    }
+  }catch(err){
+    console.error('Errore link presentazione', err);
+    alert('Errore di connessione nel generare il link della presentazione.');
+  }
+  return null;
+}
+
+async function markLeadPresentationSent(lead){
+  const key = getLicenseKey();
+  try{
+    const res = await fetch('/.netlify/functions/leads', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action:'markPresentationSent', leadId: lead.id })
+    });
+    const data = await res.json();
+    if(data && data.lead){ Object.assign(lead, data.lead); renderLeadsSection(); updateLeadsNavBadge(); renderLeadDetail(lead); }
+  }catch(err){ console.error('Impossibile aggiornare la fase della richiesta', err); }
+}
+
+async function startPresentationFollowup(lead, mode){
+  const key = getLicenseKey();
+  if(!lead.email){ alert('Serve l\'email del cliente: compilala nei dati della richiesta e salva.'); return; }
+  if(mode === 'send' && (!studioSettings.resendApiKey || !studioSettings.resendFromEmail)){
+    alert('Prima collega un account Resend in Impostazioni Studio → Follow-up automatico.');
+    return;
+  }
+  if(mode === 'send' && !confirm(`Inviare la presentazione a ${lead.email}?`)) return;
+  const btn = document.getElementById(mode === 'send' ? 'leadPresSendBtn' : 'leadPresActivateBtn');
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Un attimo...';
+  try{
+    const linkUrl = await ensurePresentationLink(lead);
+    if(!linkUrl) return;
+    const followup = {
+      kind:'presentazione', leadId: lead.id, quoteRef:'pres_' + lead.id, numero:'', clienteNome: lead.nome || '',
+      clienteEmail: lead.email, oggetto: lead.tipoProgetto || '', linkUrl, sequenceDays: getPresSequenceDays()
+    };
+    if(mode === 'send'){
+      followup.subject = `La nostra presentazione — ${studioSettings.nome || 'Studio'}`;
+      followup.html = buildPresentationEmailHtml(lead, linkUrl);
+    }
+    const res = await fetch('/.netlify/functions/followups', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action: mode, followup })
+    });
+    const data = await res.json();
+    if(data && data.ok){
+      await markLeadPresentationSent(lead);
+      await loadFollowupsCloud();
+      if(mode === 'send') alert(`Presentazione inviata a ${lead.email}.`);
+      else {
+        try{ await navigator.clipboard.writeText(linkUrl); alert('Follow-up attivato. Il link della presentazione è stato copiato: incollalo nel messaggio che invii al cliente.'); }
+        catch(e){ alert('Follow-up attivato. Usa "Copia link della presentazione" per ottenere il link da inviare al cliente.'); }
+      }
+    } else if(data && data.error === 'email_not_configured'){
+      alert('Prima collega un account Resend in Impostazioni Studio → Follow-up automatico.');
+    } else {
+      alert('Operazione non riuscita. Riprova tra poco.' + ((data && data.detail) ? '\n\nDettaglio: ' + data.detail : ''));
+    }
+  }catch(err){
+    console.error(err); alert('Errore di connessione.');
+  }finally{
+    btn.disabled = false; btn.textContent = label;
+  }
+}
+
+// Id della richiesta da cui nasce il preventivo in corso (se esiste): permette di chiudere il
+// follow-up della presentazione quando parte quello del preventivo.
+function quoteLeadId(){
+  const lead = findLeadForQuote({
+    cliente: document.getElementById('fCliente').value,
+    clienteEmail: document.getElementById('fClienteEmail').value
+  });
+  return lead ? lead.id : undefined;
+}
+
+// Preventivo inviato (o follow-up attivato) -> la richiesta passa a "Preventivo inviato" se era
+// ancora in una fase precedente.
+function advanceLeadAfterQuote(){
+  const id = quoteLeadId();
+  const lead = id ? leadsList.find(l=>l.id===id) : null;
+  if(lead && ['nuova','contattato','presentazione_inviata'].includes(lead.fase)) updateLeadStage(lead.id, 'preventivo_inviato');
+}
+
+document.getElementById('leadPresSendBtn').addEventListener('click', ()=>{
+  const lead = leadsList.find(l=>l.id===leadDetailCurrentId);
+  if(lead) startPresentationFollowup(lead, 'send');
+});
+document.getElementById('leadPresActivateBtn').addEventListener('click', ()=>{
+  const lead = leadsList.find(l=>l.id===leadDetailCurrentId);
+  if(lead) startPresentationFollowup(lead, 'start');
+});
+document.getElementById('leadPresCopyBtn').addEventListener('click', async (e)=>{
+  const lead = leadsList.find(l=>l.id===leadDetailCurrentId);
+  if(!lead || !lead.presentazioneToken) return;
+  const url = `${window.location.origin}/presentazione.html?t=${lead.presentazioneToken}`;
+  try{ await navigator.clipboard.writeText(url); e.target.textContent = 'Copiato ✓'; setTimeout(()=>{ e.target.textContent = 'Copia link della presentazione'; }, 1500); }
+  catch(err){ prompt('Copia il link:', url); }
+});
+document.getElementById('leadPresActive').addEventListener('click', async (e)=>{
+  const btn = e.target.closest('[data-pres-status]');
+  if(!btn) return;
+  const lead = leadsList.find(l=>l.id===leadDetailCurrentId);
+  const f = presFollowupFor(lead);
+  if(!f) return;
+  const status = btn.getAttribute('data-pres-status');
+  if(status === 'disattivato' && !confirm('Disattivare il follow-up della presentazione?')) return;
+  try{
+    await fetch('/.netlify/functions/followups', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key: getLicenseKey(), action:'updateStatus', followupId: f.id, newStatus: status })
+    });
+    await loadFollowupsCloud();
+  }catch(err){ alert('Impossibile aggiornare lo stato del follow-up.'); }
+});
+/* ===================== fine Presentazione Canva ===================== */
 
 /* ===================== Scheda cliente (Rubrica) ===================== */
 let clientSchedaCurrentId = null;

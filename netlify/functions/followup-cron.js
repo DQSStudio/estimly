@@ -14,7 +14,24 @@ function addDaysIso(fromIso, days) {
   return d.toISOString();
 }
 
+function presentationMessageForStep(step, f, studioName) {
+  const saluto = f.clienteNome ? `Gentile ${f.clienteNome},` : 'Gentile Cliente,';
+  const link = f.linkUrl ? `<br><br><a href="${f.linkUrl}" style="color:#4338CA;font-weight:600;">Rivedi la presentazione &rarr;</a>` : '';
+  const bodies = [
+    `${saluto}<br><br>Le scriviamo per sapere se ha avuto modo di vedere la presentazione che le abbiamo inviato. Siamo a disposizione per qualsiasi domanda o per fissare una chiamata.${link}<br><br>Cordiali saluti,<br>${studioName}`,
+    `${saluto}<br><br>Non avendo ricevuto sue notizie, le scriviamo per capire se la presentazione le è stata utile e se desidera procedere con una proposta economica.${link}<br><br>Cordiali saluti,<br>${studioName}`,
+    `${saluto}<br><br>Le scriviamo un'ultima volta in merito alla presentazione. Se nel frattempo le esigenze fossero cambiate, ci farebbe piacere saperlo. Restiamo comunque a disposizione.${link}<br><br>Cordiali saluti,<br>${studioName}`
+  ];
+  const subjects = [
+    'La nostra presentazione — un aggiornamento?',
+    'La nostra presentazione — siamo a disposizione',
+    'La nostra presentazione — ultimo promemoria'
+  ];
+  return { subject: subjects[step - 1] || subjects[0], html: bodies[step - 1] || bodies[0] };
+}
+
 function messageForStep(step, f, studioName) {
+  if (f.kind === 'presentazione') return presentationMessageForStep(step, f, studioName);
   const saluto = f.clienteNome ? `Gentile ${f.clienteNome},` : 'Gentile Cliente,';
   const rif = f.numero ? ` (rif. preventivo n. ${f.numero})` : '';
   const bodies = [

@@ -31,6 +31,28 @@ function nextDueForSequence(fromIso, sequenceDays) {
   return sequenceDays.length ? addDaysIso(fromIso, sequenceDays[0]) : null;
 }
 
+// Follow-up "di presentazione": parte dalla richiesta (lead) prima che esista un preventivo.
+// quoteRef è 'pres_<leadId>', quindi non si scontra mai con i numeri di preventivo. linkUrl è la
+// pagina pubblica della presentazione, usata anche nei promemoria automatici (followup-cron.js).
+function presentationFields(f) {
+  if (f.kind !== 'presentazione') return {};
+  let linkUrl = '';
+  try { linkUrl = f.linkUrl ? new URL(String(f.linkUrl)).href : ''; } catch (e) { linkUrl = ''; }
+  return { kind: 'presentazione', leadId: String(f.leadId || ''), linkUrl };
+}
+
+// Quando parte il follow-up del preventivo di una richiesta, quello della presentazione
+// precedente si chiude: il cliente non deve ricevere due sequenze di promemoria insieme.
+function supersedePresentation(list, f, nowIso) {
+  if (f.kind === 'presentazione' || !f.leadId) return;
+  list.forEach((x) => {
+    if (x.kind === 'presentazione' && x.leadId === String(f.leadId) && x.active) {
+      x.active = false;
+      x.events.push({ type: 'sostituito_da_preventivo', at: nowIso });
+    }
+  });
+}
+
 export default async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'method not allowed' }), { status: 405 });
@@ -76,6 +98,7 @@ export default async (req) => {
       clienteEmail: f.clienteEmail,
       oggetto: f.oggetto || '',
       totale: f.totale || '',
+      ...presentationFields(f),
       status: 'freddo',
       step: 0,
       active: true,
@@ -84,6 +107,7 @@ export default async (req) => {
       nextDueAt: nextDueForSequence(now, sequenceDays),
       events: [{ type: 'attivato', at: now }]
     };
+    supersedePresentation(list, f, now);
     // Se esisteva già un follow-up per lo stesso preventivo, lo sostituisce (si riparte da zero).
     const filtered = list.filter(x => x.quoteRef !== f.quoteRef);
     filtered.push(entry);
@@ -119,6 +143,7 @@ export default async (req) => {
         clienteEmail: f.clienteEmail,
         oggetto: f.oggetto || '',
         totale: f.totale || '',
+        ...presentationFields(f),
         status: 'freddo',
         step: 0,
         active: true,
@@ -138,6 +163,7 @@ export default async (req) => {
       entry.numero = f.numero || entry.numero;
       entry.oggetto = f.oggetto || entry.oggetto;
       entry.totale = f.totale || entry.totale;
+      Object.assign(entry, presentationFields(f));
       entry.step = 0;
       entry.active = true;
       entry.startedAt = now;
@@ -145,7 +171,9 @@ export default async (req) => {
       entry.nextDueAt = nextDueForSequence(now, sequenceDays);
     }
 
-    const subject = f.subject || `Preventivo${f.numero ? ' n. ' + f.numero : ''}`;
+    supersedePresentation(list, f, now);
+    const isPres = f.kind === 'presentazione';
+    const subject = f.subject || (isPres ? 'La nostra presentazione' : `Preventivo${f.numero ? ' n. ' + f.numero : ''}`);
     // Allegato PDF opzionale (copia del preventivo da conservare): generato lato client
     // (buildQuotePdfBase64 in index.html) e passato qui come base64 grezzo, nel formato
     // atteso dall'API Resend (`attachments[].content`). La firma resta sempre tramite il
@@ -181,7 +209,7 @@ export default async (req) => {
       return new Response(JSON.stringify({ error: 'send_failed', detail: String(e) }), { status: 502 });
     }
 
-    entry.events.push({ type: 'inviato_preventivo', at: now });
+    entry.events.push({ type: isPres ? 'inviato_presentazione' : 'inviato_preventivo', at: now });
     await followupsStore.setJSON(key, list);
     return new Response(JSON.stringify({ ok: true, followup: entry }), { status: 200 });
   }
