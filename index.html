@@ -2879,6 +2879,7 @@ function renderQuoteScheda(){
   const paymentsBlock = `
     <div class="field-section-label" style="margin-top:22px;">Pagamenti online</div>
     <div id="schedaStripeStatus" style="font-size:12px; color:var(--ink-soft); margin-bottom:10px;">Verifica Stripe…</div>
+    ${(suiteFeatureEnabled && (q.vinto || (q.client && q.client.firma && q.client.firma.firmato))) ? `<div style="font-size:12px; color:var(--ink-soft); margin-bottom:10px;">Desearq Manager: <button type="button" class="btn-cancel" data-sync-manager="${q.id}" style="padding:4px 10px; margin-left:4px;">Invia a Desearq Manager</button> <span id="schedaManagerMsg"></span></div>` : ''}
     ${pagamenti.length ? pagamenti.map(p=>`
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px;">
         <div><b>${escapeHtml(p.label)}</b> <span style="color:var(--ink-soft);">· € ${fmt((p.importoCent||0)/100)}${p.paidAt ? ' · pagato il ' + new Date(p.paidAt).toLocaleDateString('it-IT') : ''}</span></div>
@@ -3157,6 +3158,17 @@ function handleSavedQuotesListClick(e){
   const refreshPayId = e.target.getAttribute && e.target.getAttribute('data-refresh-payments');
   if(sendPayId){ sendPaymentsEmail(sendPayId, e.target); return; }
   if(refreshPayId){ (async()=>{ e.target.disabled = true; const changed = await refreshQuotePayments(refreshPayId); renderSavedQuotesList(); e.target.disabled = false; if(!changed) alert('Pagamenti già aggiornati: nessuna novità da Stripe.'); })(); return; }
+  const syncBtn = e.target.closest && e.target.closest('[data-sync-manager]');
+  if(syncBtn){
+    const msg = document.getElementById('schedaManagerMsg');
+    syncBtn.disabled = true; if(msg) msg.textContent = 'Invio…';
+    fetch('/.netlify/functions/sync-data', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key: getLicenseKey(), action:'syncManager', id: syncBtn.getAttribute('data-sync-manager') }) })
+      .then(r=>r.json()).then(d=>{ if(msg) msg.textContent = d.ok ? '✅ Inviato a Desearq Manager' : (d.error==='suite_disabled' ? 'Collegamento Manager non attivo sulla tua licenza.' : '⚠️ Invio non riuscito, riprova.'); })
+      .catch(()=>{ if(msg) msg.textContent = '⚠️ Invio non riuscito, riprova.'; })
+      .finally(()=>{ syncBtn.disabled = false; });
+    return;
+  }
   if(e.target.closest && e.target.closest('[data-pay-connect]')){ if(window.estimlyStripeConnectClick) window.estimlyStripeConnectClick(); return; }
   if(editId){ editQuoteById(editId); return; }
   if(esitoBtn && quoteSchedaCurrentId){ setQuoteEsito(quoteSchedaCurrentId, esitoBtn.getAttribute('data-set-esito')); return; }

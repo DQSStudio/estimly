@@ -146,6 +146,27 @@ export default async (req) => {
     return new Response(JSON.stringify({ ok: true, savedQuotes }), { status: 200 });
   }
 
+  // Invio (o reinvio) a Desearq Studio Manager dei preventivi firmati o accettati: serve per
+  // recuperare quelli rimasti fuori quando la sincronizzazione automatica non andava a buon fine.
+  if (body.action === 'syncManager') {
+    if (!license.suiteEnabled) {
+      return new Response(JSON.stringify({ error: 'suite_disabled' }), { status: 403 });
+    }
+    const existing = (await dataStore.get(key, { type: 'json', consistency: 'strong' })) || {};
+    const savedQuotes = Array.isArray(existing.savedQuotes) ? existing.savedQuotes : [];
+    const targets = savedQuotes.filter((q) => {
+      if (body.id) return q.id === body.id;
+      return q.vinto === true || (q.client && q.client.firma && q.client.firma.firmato);
+    });
+    let synced = 0;
+    let failed = 0;
+    for (const q of targets) {
+      const ok = await syncQuoteToDesearqManager(q, { markNuovo: true });
+      if (ok) synced++; else failed++;
+    }
+    return new Response(JSON.stringify({ ok: failed === 0, synced, failed, total: targets.length }), { status: 200 });
+  }
+
   if (body.action === 'deleteQuote') {
     if (!body.id) {
       return new Response(JSON.stringify({ error: 'missing id' }), { status: 400 });

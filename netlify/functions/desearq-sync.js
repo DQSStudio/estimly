@@ -6,8 +6,8 @@
 // Spinge i preventivi firmati su Estimly nella tabella public.estimly_quotes del progetto
 // Supabase "Desearq Studio Manager" (qgeiehavpnqdxqnggfzq) — stesso progetto già usato da
 // estimly-benchmarks.js. Tabella e policy RLS sono già predisposte lato Desearq Studio Manager:
-// il ruolo anon può fare INSERT/UPDATE solo su righe con external_id valorizzato (upsert via
-// on_conflict=external_id), quindi Estimly non può toccare le righe gestite da altri strumenti.
+// il ruolo anon può fare INSERT/UPDATE solo su righe con external_id valorizzato (INSERT, poi
+// PATCH per external_id se esiste già), quindi Estimly non può toccare le righe gestite da altri strumenti.
 //
 // Due momenti di sincronizzazione, stessa funzione:
 //   - alla firma del cliente: markNuovo=true -> imposta anche stato:'Nuovo' (il preventivo
@@ -48,7 +48,7 @@ function computeTotale(quote){
 
 export async function syncQuoteToDesearqManager(quote, opts){
   const anonKey = process.env.SUPABASE_ANON_KEY;
-  if(!anonKey || !quote || !quote.id) return;
+  if(!anonKey || !quote || !quote.id) return false;
 
   const client = quote.client || {};
   const row = {
@@ -78,20 +78,35 @@ export async function syncQuoteToDesearqManager(quote, opts){
   // 'Confermato' direttamente, altrimenti quella schermata di revisione non si attiva mai.
   if(opts && opts.markNuovo) row.stato = 'Nuovo';
 
+  const headers = {
+    'Content-Type': 'application/json',
+    apikey: anonKey,
+    Authorization: `Bearer ${anonKey}`,
+    Prefer: 'return=minimal'
+  };
   try{
-    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?on_conflict=external_id`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: anonKey,
-        Authorization: `Bearer ${anonKey}`,
-        Prefer: 'resolution=merge-duplicates,return=minimal'
-      },
-      body: JSON.stringify(row)
+    // NB: niente upsert (on_conflict): PostgREST lo esegue come INSERT ... ON CONFLICT DO UPDATE e
+    // richiede anche il permesso SELECT, che il ruolo anon non ha -> RLS 42501 e nessun dato scritto.
+    // Si fa quindi INSERT semplice e, se la riga esiste già (409), UPDATE senza toccare 'stato'.
+    let res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: 'POST', headers, body: JSON.stringify(row)
     });
+    if(res.status === 409){
+      const { id, external_id, stato, ...patch } = row;
+      res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?external_id=eq.${encodeURIComponent(quote.id)}`, {
+        method: 'PATCH', headers, body: JSON.stringify(patch)
+      });
+    }
+    if(!res.ok){
+      const txt = await res.text().catch(() => '');
+      console.error('Sincronizzazione Desearq Studio Manager rifiutata', res.status, txt.slice(0, 300));
+      return false;
+    }
+    return true;
   }catch(err){
     // Non critico: firma e pagamento devono comunque andare a buon fine su Estimly anche se
     // la sincronizzazione con Desearq Studio Manager fallisce (es. Supabase temporaneamente giù).
     console.error('Sincronizzazione Desearq Studio Manager fallita', err);
+    return false;
   }
 }
