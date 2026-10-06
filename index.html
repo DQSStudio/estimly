@@ -1397,6 +1397,10 @@ header.top{
               <label style="display:flex; align-items:center; gap:5px; font-size:12px;"><input type="checkbox" id="fuStep3On" checked> dopo <input type="number" id="fuStep3Days" value="14" min="1" max="120" style="width:48px; padding:3px 5px;"> giorni</label>
             </div>
           </div>
+          <div style="margin-bottom:10px;">
+            <button type="button" id="editorPaymentsBtn" class="btn-cancel" style="padding:8px 16px; font-size:12.5px;">💳 Piano di pagamento online (acconto / saldo)</button>
+            <div id="editorPaymentsHint" style="font-size:11px; color:var(--ink-soft); margin-top:4px;">Se lo imposti, compare nell'email e il cliente può pagare con carta dopo la firma. Salva il preventivo e collega Stripe da qui.</div>
+          </div>
           <button type="button" id="sendQuoteEmailBtn" class="btn-save" style="padding:8px 16px; font-size:12.5px; margin-bottom:8px;">📧 Invia preventivo via email</button>
           <div>
             <button type="button" id="activateFollowupBtn" class="btn-cancel" style="padding:7px 14px; font-size:12px;">Ho già inviato il preventivo altrove: attiva solo il follow-up</button>
@@ -2133,10 +2137,18 @@ header.top{
     </div>
     <div class="modal-body">
       <div style="font-size:11.5px; color:var(--ink-soft); margin-bottom:14px; line-height:1.5;">
-        Crea una o più richieste di pagamento legate a questo preventivo firmato (es. acconto, saldo a 30 giorni). Il cliente le paga dallo stesso link usato per la firma; i fondi arrivano direttamente sul tuo conto Stripe.
+        Imposta il piano di pagamento di questo preventivo (es. acconto e saldo). Compare nell'email e nella pagina del cliente, che può pagare con carta dopo aver firmato dallo stesso link; i fondi arrivano direttamente sul tuo conto Stripe.
       </div>
       <div id="paymentsStripeWarning" style="display:none; font-size:12px; color:var(--danger); background:#FDEEEC; border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:14px;"></div>
       <div id="paymentsList" style="margin-bottom:14px;"></div>
+      <div id="paymentsPresetsWrap" style="margin-bottom:14px;">
+        <div style="font-size:11px; color:var(--ink-soft); margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em;">Piano rapido (sul totale ivato)</div>
+        <div id="paymentsPresets" style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn-cancel" data-pay-preset="30-70" style="padding:6px 10px; font-size:12px;">Acconto 30% + Saldo 70%</button>
+          <button type="button" class="btn-cancel" data-pay-preset="50-50" style="padding:6px 10px; font-size:12px;">50% + 50%</button>
+          <button type="button" class="btn-cancel" data-pay-preset="100" style="padding:6px 10px; font-size:12px;">Pagamento unico 100%</button>
+        </div>
+      </div>
       <div class="field-grid" style="padding:0;">
         <div class="field full"><label>Descrizione (es. Acconto 20%)</label><input id="paymentNewLabel" placeholder="Es. Acconto 20%" maxlength="120"></div>
         <div class="field"><label>Importo (€)</label><input id="paymentNewAmount" type="number" min="1" step="0.01" placeholder="Es. 2000"></div>
@@ -2860,6 +2872,20 @@ function renderQuoteScheda(){
   }).join('');
 
   const btn = (attr, label, extra) => `<button type="button" ${attr}="${q.id}" class="btn-cancel" style="padding:8px 14px; ${extra||''}">${label}</button>`;
+  const pagamenti = Array.isArray(c.pagamenti) ? c.pagamenti : [];
+  const pagatoCent = pagamenti.filter(p=>p.stato==='pagato').reduce((s,p)=>s+(p.importoCent||0),0);
+  const paymentsBlock = `
+    <div class="field-section-label" style="margin-top:22px;">Pagamenti online</div>
+    <div id="schedaStripeStatus" style="font-size:12px; color:var(--ink-soft); margin-bottom:10px;">Verifica Stripe…</div>
+    ${pagamenti.length ? pagamenti.map(p=>`
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px;">
+        <div><b>${escapeHtml(p.label)}</b> <span style="color:var(--ink-soft);">· € ${fmt((p.importoCent||0)/100)}${p.paidAt ? ' · pagato il ' + new Date(p.paidAt).toLocaleDateString('it-IT') : ''}</span></div>
+        ${p.stato==='pagato'
+          ? '<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:3px 9px; border-radius:999px;">✓ Pagato</span>'
+          : '<span style="font-size:10.5px; font-weight:700; color:#946200; background:#FFF4E0; padding:3px 9px; border-radius:999px;">' + (firmato ? 'In attesa di pagamento' : 'Pagabile dopo la firma') + '</span>'}
+      </div>`).join('') + (pagatoCent ? `<div style="font-size:12px; color:var(--ink-soft); margin-top:6px;">Incassato finora: <b>€ ${fmt(pagatoCent/100)}</b></div>` : '')
+      : '<div style="font-size:12.5px; color:var(--ink-faint);">Nessun pagamento impostato. Crea un piano (es. acconto 30% + saldo 70%): comparirà nell\'email e nella pagina del cliente.</div>'}
+    <div style="margin-top:10px;">${btn('data-payments', pagamenti.length ? 'Gestisci pagamenti' : '+ Imposta pagamenti')}</div>`;
   body.innerHTML = `
     ${banner}
     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:6px;">
@@ -2877,7 +2903,7 @@ function renderQuoteScheda(){
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 6px;">
       ${btn('data-edit-quote', '✏️ Modifica', 'background:var(--ink); color:#fff; border-color:var(--ink); font-weight:700;')}
       ${live ? btn('data-client-link', 'Link cliente') : ''}
-      ${live && firmato ? btn('data-payments', 'Pagamenti') : ''}
+      ${live ? btn('data-payments', '💳 Pagamenti') : ''}
       ${live && firmato && c.firma.documentoConservato ? btn('data-download-signed', 'Documento firmato') : ''}
       ${live ? (q.concluso ? '<span style="font-size:11px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:8px 12px; border-radius:6px;">✓ Concluso</span>' : btn('data-close-quote', 'Concludi progetto')) : ''}
       ${btn('data-toggle-valido', isValido ? '✔ Valido nel totale' : 'Includi nel totale')}
@@ -2893,10 +2919,33 @@ function renderQuoteScheda(){
     </div>
     ${esito==='accettato' && firmato ? '<div style="font-size:11.5px; color:var(--ink-faint); margin-top:6px;">Firmato online: puoi comunque cambiare esito (es. se il cliente poi recede).</div>' : ''}
 
+    ${live ? paymentsBlock : ''}
+
     <div class="field-section-label" style="margin-top:22px;">Voci del preventivo (${(q.cart||[]).length})</div>
     ${righe ? `<table style="width:100%; border-collapse:collapse; font-size:12.5px;">${righe}</table>` : '<div style="font-size:12.5px; color:var(--ink-faint);">Nessuna voce.</div>'}
     ${c.notePagamento ? `<div class="field-section-label" style="margin-top:20px;">Note di pagamento</div><div style="font-size:12.5px; white-space:pre-wrap;">${escapeHtml(c.notePagamento)}</div>` : ''}
   `;
+  if(live) loadSchedaStripeStatus();
+}
+
+// Stato del collegamento Stripe mostrato nella scheda del preventivo, con il pulsante per collegarlo.
+async function loadSchedaStripeStatus(){
+  const el = document.getElementById('schedaStripeStatus');
+  const key = getLicenseKey();
+  if(!el || !key) return;
+  try{
+    const res = await fetch('/.netlify/functions/stripe-connect', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mode:'status', key })
+    });
+    const data = await res.json();
+    const el2 = document.getElementById('schedaStripeStatus');
+    if(!el2) return;
+    if(data.error) el2.textContent = 'Non è stato possibile verificare lo stato di Stripe.';
+    else if(!data.connected) el2.innerHTML = '⚠️ Stripe non collegato: il cliente non potrà pagare online. <button type="button" class="btn-cancel" data-pay-connect style="padding:4px 10px; margin-left:6px;">Collega Stripe</button>';
+    else if(!data.chargesEnabled) el2.innerHTML = '⚠️ Stripe collegato ma configurazione incompleta. <button type="button" class="btn-cancel" data-pay-connect style="padding:4px 10px; margin-left:6px;">Completa configurazione</button>';
+    else el2.innerHTML = '✅ Stripe collegato e attivo: il cliente può pagare con carta dopo la firma.';
+  }catch(err){ const el2 = document.getElementById('schedaStripeStatus'); if(el2) el2.textContent = ''; }
 }
 
 // Imposta l'esito (accettato / in trattativa / perso / nessuno). "Accettato" = vinto (resta
@@ -2988,7 +3037,7 @@ function savedQuoteRowHtml(q){
         <button data-toggle-valido="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${isValido ? 'Escludi questa versione dal totale preventivi in essere (es. superata da una più recente)' : 'Includi di nuovo questa versione nel totale preventivi in essere'}">${isValido ? '✔ Valido' : 'Includi nel totale'}</button>
         <button data-toggle-vinto="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${q.vinto ? 'Segna come non vinto' : 'Segna come vinto'}">${q.vinto ? '🏆 Vinto' : 'Segna vinto'}</button>
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? `<button data-client-link="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Genera/copia il link che il cliente apre per vedere il preventivo e firmare">Link cliente</button>` : ''}
-        ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && q.client && q.client.firma && q.client.firma.firmato) ? `<button data-payments="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Crea e monitora le richieste di pagamento (acconto, saldo a rate, ecc.)">Pagamenti</button>` : ''}
+        ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? `<button data-payments="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Crea e monitora le richieste di pagamento (acconto, saldo a rate, ecc.)">Pagamenti</button>` : ''}
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && q.client && q.client.firma && q.client.firma.firmato && q.client.firma.documentoConservato) ? `<button data-download-signed="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Scarica il documento di accettazione firmato dal cliente, con firma, data/ora, IP e impronta del documento come prova">Documento firmato</button>` : ''}
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? (q.concluso
           ? '<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:6px 10px; border-radius:6px;">✓ Concluso</span>'
@@ -3097,6 +3146,7 @@ function handleSavedQuotesListClick(e){
   const editId = e.target.getAttribute('data-edit-quote');
   const esitoBtn = e.target.closest ? e.target.closest('[data-set-esito]') : null;
   const live = FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled;
+  if(e.target.closest && e.target.closest('[data-pay-connect]')){ if(window.estimlyStripeConnectClick) window.estimlyStripeConnectClick(); return; }
   if(editId){ editQuoteById(editId); return; }
   if(esitoBtn && quoteSchedaCurrentId){ setQuoteEsito(quoteSchedaCurrentId, esitoBtn.getAttribute('data-set-esito')); return; }
   // In Estimly 2.0 "Apri" mostra la scheda definitiva (con tasto Modifica), non il form di un nuovo preventivo.
@@ -4261,7 +4311,7 @@ async function updateFollowupStatus(newStatus){
 // bloccato dai client di posta; (2) l'importo e il dettaglio voci restano confinati alla pagina
 // online, coerente col fatto che anche il PDF non viene più allegato qui (il cliente lo scarica,
 // con la propria firma riportata in calce, solo dopo aver firmato — vedi preventivo.html).
-function buildQuoteEmailHtml(clientLinkUrl){
+function buildQuoteEmailHtml(clientLinkUrl, pagamenti){
   const s = studioSettings;
   const accent = s.colorPrimary || '#4338CA';
   const cliente = document.getElementById('fCliente').value || '—';
@@ -4292,11 +4342,24 @@ function buildQuoteEmailHtml(clientLinkUrl){
       <a href="${clientLinkUrl}" style="display:inline-block; background:${accent}; color:#fff; text-decoration:none; padding:12px 28px; border-radius:6px; font-weight:600; font-size:14px;">Visualizza e firma il preventivo online &rarr;</a>
     </div>` : '';
 
+  // Piano di pagamento (acconto, saldo...) definito dallo studio: informativo nell'email, il cliente
+  // paga dal link dopo aver firmato.
+  const pagList = (Array.isArray(pagamenti) ? pagamenti : []).filter(p => p.stato !== 'pagato');
+  const pagHtml = pagList.length ? `
+    <div style="margin:22px 0 0; padding:14px 16px; border:1px solid #E5E5EA; border-radius:8px; background:#FAFAFB;">
+      <div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:${accent}; margin-bottom:8px;">Modalità di pagamento</div>
+      <table role="presentation" width="100%" style="border-collapse:collapse; font-size:13px;">
+        ${pagList.map(p => `<tr><td style="padding:5px 0; border-bottom:1px solid #EEE;">${escapeHtml(p.label)}</td><td style="padding:5px 0; border-bottom:1px solid #EEE; text-align:right; white-space:nowrap;"><b>&euro; ${fmt((p.importoCent||0)/100)}</b></td></tr>`).join('')}
+      </table>
+      <div style="font-size:12px; color:#666; margin-top:8px; line-height:1.5;">Dopo aver firmato il preventivo dal link qui sotto potrà pagare online con carta, in modo sicuro.</div>
+    </div>` : '';
+
   return `
   <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; max-width:640px; margin:0 auto; color:#222;">
     ${headerHtml}
     <p style="font-size:14px; line-height:1.6;">Gentile ${escapeHtml(cliente)},</p>
     <p style="font-size:14px; line-height:1.6;">${escapeHtml(s.nome||'il nostro studio')} ha preparato per${progetto?` "${escapeHtml(progetto)}"`:' lei'} il preventivo${numero!=='—'?` n. <b>${escapeHtml(numero)}</b>`:''}. Può visualizzarlo nel dettaglio e firmarlo direttamente online dal pulsante qui sotto.</p>
+    ${pagHtml}
     ${ctaHtml}
     <p style="font-size:13px; line-height:1.6; color:#555; margin-top:22px;">Resto a disposizione per qualsiasi chiarimento.<br>Cordiali saluti,<br><b>${escapeHtml(s.nome||'Studio')}</b></p>
   </div>`;
@@ -4310,6 +4373,24 @@ function buildQuoteEmailHtml(clientLinkUrl){
 // con la propria firma riportata in calce — solo dopo averlo firmato (preventivo.html,
 // generateSignedDocumentPdf). La funzione "Stampa / Salva PDF" per lo studio (printBtn) resta
 // invariata e non dipende da questa: usa window.print() su buildPrintDoc(), non html2canvas.
+
+document.getElementById('editorPaymentsBtn').addEventListener('click', async ()=>{
+  const cliente = document.getElementById('fCliente').value.trim();
+  if(!cliente){ alert('Inserisci almeno il nome del cliente.'); return; }
+  if(cart.length === 0){ alert('Aggiungi almeno una voce al preventivo prima di impostare i pagamenti.'); return; }
+  if(!getLicenseKey()){ alert('Chiave di licenza non trovata.'); return; }
+  const btn = document.getElementById('editorPaymentsBtn');
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
+  try{
+    // Il piano di pagamento vive sul preventivo salvato: lo salviamo (o aggiorniamo) e da qui in poi
+    // ogni nuovo salvataggio/invio aggiorna questo stesso preventivo invece di duplicarlo.
+    const entry = await persistCurrentQuoteEntry();
+    editingQuoteId = entry.id; updateEditingQuoteBar();
+    await estimlyOpenPaymentsModal(entry.id);
+  }catch(err){ console.error(err); alert('Non sono riuscito a salvare il preventivo. Riprova.'); }
+  finally{ btn.disabled = false; btn.textContent = label; }
+});
 
 document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=>{
   const numero = document.getElementById('fNumero').value.trim();
@@ -4337,11 +4418,13 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
   // intero e non ha più alcun PDF allegato), quindi senza questo link l'invio non ha senso —
   // vedi il blocco "linkGenerationFailed" qui sotto.
   let clientLinkUrl = '';
+  let savedEntryForEmail = null;
   let linkGenerationFailed = false;
   let linkGenerationErrorCode = '';
   if(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && key){
     try{
       const savedEntry = await persistCurrentQuoteEntry();
+      savedEntryForEmail = savedEntry;
       const linkRes = await fetch('/.netlify/functions/public-quote', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ mode:'create-link', key, quoteId: savedEntry.id })
@@ -4372,7 +4455,7 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
     btn.textContent = originalLabel;
     return;
   }
-  const html = buildQuoteEmailHtml(clientLinkUrl);
+  const html = buildQuoteEmailHtml(clientLinkUrl, savedEntryForEmail && savedEntryForEmail.client ? savedEntryForEmail.client.pagamenti : []);
   try{
     const res = await fetch('/.netlify/functions/followups', {
       method:'POST',
@@ -8057,7 +8140,8 @@ if('serviceWorker' in navigator){
 
   function estimlyPaymentRowHtml(p){
     const importo = (p.importoCent || 0) / 100;
-    const statoHtml = p.stato === 'pagato'
+    const pagato = p.stato === 'pagato';
+    const statoHtml = pagato
       ? `<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:3px 9px; border-radius:999px;">✓ Pagato</span>`
       : `<span style="font-size:10.5px; font-weight:700; color:#946200; background:#FFF4E0; padding:3px 9px; border-radius:999px;">In attesa</span>`;
     return `
@@ -8066,8 +8150,81 @@ if('serviceWorker' in navigator){
           <div style="font-size:12.5px; font-weight:600;">${escapeHtml(p.label)}</div>
           <div style="font-size:11.5px; color:var(--ink-soft);">€ ${fmt(importo)}${p.paidAt ? ' · pagato il ' + new Date(p.paidAt).toLocaleDateString('it-IT') : ''}</div>
         </div>
-        ${statoHtml}
+        <div style="display:flex; align-items:center; gap:8px;">
+          ${statoHtml}
+          ${pagato ? '' : `<button type="button" data-pay-remove="${escapeHtml(p.id)}" title="Elimina questa richiesta" style="border:none; background:none; color:var(--danger); cursor:pointer; font-size:14px; padding:2px 4px;">🗑</button>`}
+        </div>
       </div>`;
+  }
+
+  // Totale del preventivo (ivato) in centesimi, per proporre importi di acconto/saldo.
+  function estimlyQuoteTotalCents(q){
+    const c = q.client || {};
+    const imp = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
+    const netto = imp - imp * (c.sconto||0) / 100;
+    const base = netto + netto * (c.contributoPct||0) / 100;
+    const reg = REGIMI_FISCALI[c.regime] || REGIMI_FISCALI.ord22;
+    const rate = c.regime === 'custom' ? (c.aliquotaCustom||0)/100 : (reg.rate||0);
+    return Math.round(base * (1 + rate) * 100);
+  }
+
+  async function estimlyPostPaymentApi(payload){
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
+    const res = await fetch('/.netlify/functions/stripe-connect', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, ...payload })
+    });
+    return res.json();
+  }
+
+  function estimlyApplyPagamenti(quoteId, pagamenti){
+    const q = estimlyFindSavedQuote(quoteId);
+    if(q){ q.client = { ...q.client, pagamenti }; if(typeof persistSavedQuotesLocal === 'function') persistSavedQuotesLocal(); }
+    estimlyRenderPaymentsList();
+    if(typeof renderSavedQuotesList === 'function') renderSavedQuotesList();
+  }
+
+  async function estimlyApplyPreset(preset){
+    const q = estimlyFindSavedQuote(estimlyPaymentsQuoteId);
+    const errBox = document.getElementById('paymentsErrorBox');
+    if(!q) return;
+    errBox.innerHTML = '';
+    const total = estimlyQuoteTotalCents(q);
+    if(total < 100){ errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Il preventivo non ha ancora un totale: aggiungi le voci prima di impostare i pagamenti.</div>'; return; }
+    const existing = (q.client && Array.isArray(q.client.pagamenti)) ? q.client.pagamenti : [];
+    if(existing.some(p => p.stato !== 'pagato') && !confirm('Esistono già richieste in attesa: il piano rapido le sostituisce. Continuare?')) return;
+    const plan = preset === '30-70' ? [['Acconto 30%', 0.3], ['Saldo 70%', 0.7]]
+      : preset === '50-50' ? [['Acconto 50%', 0.5], ['Saldo 50%', 0.5]]
+      : [['Pagamento unico', 1]];
+    const cents = plan.map(x => Math.round(total * x[1]));
+    cents[cents.length-1] = total - cents.slice(0,-1).reduce((a,b)=>a+b,0);
+    try{
+      for(const p of existing.filter(p => p.stato !== 'pagato')){
+        await estimlyPostPaymentApi({ mode:'remove-payment-request', quoteId: estimlyPaymentsQuoteId, paymentId: p.id });
+      }
+      let last = null;
+      for(let i=0;i<plan.length;i++){
+        last = await estimlyPostPaymentApi({ mode:'add-payment-request', quoteId: estimlyPaymentsQuoteId, label: plan[i][0], importoCent: cents[i] });
+        if(last.error) throw new Error(last.error);
+      }
+      estimlyApplyPagamenti(estimlyPaymentsQuoteId, last.pagamenti);
+    }catch(err){
+      console.error('Errore piano di pagamento', err);
+      errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Non è stato possibile creare il piano di pagamento. Riprova.</div>';
+    }
+  }
+
+  async function estimlyRemovePayment(paymentId){
+    const errBox = document.getElementById('paymentsErrorBox');
+    errBox.innerHTML = '';
+    try{
+      const data = await estimlyPostPaymentApi({ mode:'remove-payment-request', quoteId: estimlyPaymentsQuoteId, paymentId });
+      if(data.error || !Array.isArray(data.pagamenti)){
+        errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Non è stato possibile eliminare la richiesta.</div>';
+        return;
+      }
+      estimlyApplyPagamenti(estimlyPaymentsQuoteId, data.pagamenti);
+    }catch(err){ errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Errore di connessione. Riprova.</div>'; }
   }
 
   function estimlyRenderPaymentsList(){
@@ -8102,10 +8259,10 @@ if('serviceWorker' in navigator){
         const data = await res.json();
         if(!data.connected){
           warnBox.style.display = 'block';
-          warnBox.textContent = 'Non hai ancora collegato Stripe: il cliente non potrà pagare finché non lo colleghi dalle Impostazioni Studio → Pagamento online.';
+          warnBox.innerHTML = 'Non hai ancora collegato Stripe: il cliente non potrà pagare finché non lo colleghi. <button type="button" class="btn-cancel" data-pay-connect style="padding:4px 10px; margin-left:6px;">Collega Stripe</button>';
         } else if(!data.chargesEnabled){
           warnBox.style.display = 'block';
-          warnBox.textContent = 'Il collegamento con Stripe non è ancora completo: completa la configurazione dalle Impostazioni Studio → Pagamento online prima di inviare le richieste al cliente.';
+          warnBox.innerHTML = 'Il collegamento con Stripe non è ancora completo: completa la configurazione su Stripe per poter incassare. <button type="button" class="btn-cancel" data-pay-connect style="padding:4px 10px; margin-left:6px;">Completa configurazione</button>';
         } else {
           warnBox.style.display = 'none';
         }
@@ -8113,6 +8270,7 @@ if('serviceWorker' in navigator){
     }
   }
   window.estimlyOpenPaymentsModal = estimlyOpenPaymentsModal;
+  window.estimlyStripeConnectClick = (...a)=>estimlyStripeConnectClick(...a);
 
   function estimlyClosePaymentsModal(){
     const modal = document.getElementById('paymentsModal');
@@ -8144,11 +8302,9 @@ if('serviceWorker' in navigator){
         errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Non è stato possibile creare la richiesta. Riprova.</div>';
         return;
       }
-      const q = estimlyFindSavedQuote(estimlyPaymentsQuoteId);
-      if(q){ q.client = { ...q.client, pagamenti: data.pagamenti }; }
+      estimlyApplyPagamenti(estimlyPaymentsQuoteId, data.pagamenti);
       document.getElementById('paymentNewLabel').value = '';
       document.getElementById('paymentNewAmount').value = '';
-      estimlyRenderPaymentsList();
     }catch(err){
       console.error('Errore creazione richiesta di pagamento', err);
       errBox.innerHTML = '<div style="font-size:12px; color:var(--danger);">Errore di connessione. Riprova.</div>';
@@ -8298,6 +8454,15 @@ if('serviceWorker' in navigator){
     if(paymentsCancel) paymentsCancel.addEventListener('click', estimlyClosePaymentsModal);
     const paymentsModalEl = document.getElementById('paymentsModal');
     if(paymentsModalEl) paymentsModalEl.addEventListener('click', (e)=>{ if(e.target.id==='paymentsModal') estimlyClosePaymentsModal(); });
+    if(paymentsModalEl) paymentsModalEl.addEventListener('click', (e)=>{
+      const t = e.target;
+      const preset = t.closest ? t.closest('[data-pay-preset]') : null;
+      const rem = t.closest ? t.closest('[data-pay-remove]') : null;
+      const conn = t.closest ? t.closest('[data-pay-connect]') : null;
+      if(preset) estimlyApplyPreset(preset.getAttribute('data-pay-preset'));
+      else if(rem) estimlyRemovePayment(rem.getAttribute('data-pay-remove'));
+      else if(conn) estimlyStripeConnectClick();
+    });
     const paymentsAddBtn = document.getElementById('paymentsAddBtn');
     if(paymentsAddBtn) paymentsAddBtn.addEventListener('click', estimlyAddPaymentRequest);
     const cpjOrePrecise = document.getElementById('cpjOrePrecise');

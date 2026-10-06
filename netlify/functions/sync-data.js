@@ -100,7 +100,7 @@ export default async (req) => {
     if (!body.id) {
       return new Response(JSON.stringify({ error: 'missing id' }), { status: 400 });
     }
-    const existing = (await dataStore.get(key, { type: 'json' })) || {};
+    const existing = (await dataStore.get(key, { type: 'json', consistency: 'strong' })) || {};
     const savedQuotes = Array.isArray(existing.savedQuotes) ? existing.savedQuotes : [];
     const idx = savedQuotes.findIndex((q) => q.id === body.id);
     if (idx === -1) {
@@ -113,6 +113,22 @@ export default async (req) => {
     // Si sincronizza solo sulla transizione false/assente -> true, non ad ogni salvataggio con
     // vinto già true, per non rimandare ogni volta lo stesso preventivo.
     const wasVinto = !!savedQuotes[idx].vinto;
+    // Firma e pagamenti già incassati vivono solo sul server (firma online, webhook Stripe): una copia
+    // locale più vecchia del preventivo non deve mai cancellarli o riportarli a "in attesa".
+    if (patch.client && typeof patch.client === 'object') {
+      const prevClient = savedQuotes[idx].client || {};
+      const merged = { ...patch.client };
+      if (prevClient.firma) merged.firma = prevClient.firma;
+      if (Array.isArray(patch.client.pagamenti) || Array.isArray(prevClient.pagamenti)) {
+        const prevPag = Array.isArray(prevClient.pagamenti) ? prevClient.pagamenti : [];
+        const incoming = Array.isArray(patch.client.pagamenti) ? patch.client.pagamenti : prevPag;
+        const paidPrev = prevPag.filter(p => p.stato === 'pagato');
+        const byId = new Map(incoming.map(p => [p.id, p]));
+        paidPrev.forEach(p => byId.set(p.id, p));
+        merged.pagamenti = Array.from(byId.values());
+      }
+      patch.client = merged;
+    }
     savedQuotes[idx] = { ...savedQuotes[idx], ...patch };
     const becameVinto = !wasVinto && savedQuotes[idx].vinto === true;
     const record = {

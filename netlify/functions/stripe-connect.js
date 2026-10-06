@@ -64,7 +64,7 @@ function randomId(){
 }
 
 export async function loadStudioRecord(dataStore, key){
-  return (await dataStore.get(key, { type: 'json' })) || null;
+  return (await dataStore.get(key, { type: 'json', consistency: 'strong' })) || null;
 }
 
 export async function saveStudioRecord(dataStore, key, record){
@@ -203,10 +203,10 @@ async function addPaymentRequest(licenses, dataStore, body){
   const idx = savedQuotes.findIndex(q => q.id === quoteId);
   if(idx === -1) return { error: 'not_found' };
 
+  // Il piano di pagamento (acconto, saldo...) si può definire già prima dell'invio: compare nell'email
+  // e nella pagina del cliente, che però può pagare solo dopo aver firmato (vedi createPaymentCheckoutSession).
   const quote = savedQuotes[idx];
-  if(!quote.client || !quote.client.firma || !quote.client.firma.firmato){
-    return { error: 'not_signed' };
-  }
+  quote.client = quote.client || {};
 
   const pagamento = {
     id: randomId(), label, importoCent, stato: 'in_attesa',
@@ -217,6 +217,32 @@ async function addPaymentRequest(licenses, dataStore, body){
   savedQuotes[idx] = quote;
   await saveStudioRecord(dataStore, key, { ...record, savedQuotes });
 
+  return { ok: true, pagamenti: quote.client.pagamenti };
+}
+
+async function removePaymentRequest(licenses, dataStore, body){
+  const key = (body.key || '').trim().toUpperCase();
+  const quoteId = body.quoteId;
+  const paymentId = body.paymentId;
+  if(!key || !quoteId || !paymentId) return { error: 'missing_fields' };
+
+  const check = await requireEstimly2(licenses, key);
+  if(check.error) return check;
+
+  const record = await dataStore.get(key, { type: 'json', consistency: 'strong' });
+  const savedQuotes = (record && Array.isArray(record.savedQuotes)) ? record.savedQuotes : [];
+  const idx = savedQuotes.findIndex(q => q.id === quoteId);
+  if(idx === -1) return { error: 'not_found' };
+
+  const quote = savedQuotes[idx];
+  const pagamenti = Array.isArray(quote.client && quote.client.pagamenti) ? quote.client.pagamenti : [];
+  const target = pagamenti.find(p => p.id === paymentId);
+  if(!target) return { error: 'not_found' };
+  if(target.stato === 'pagato') return { error: 'already_paid' };
+
+  quote.client = { ...quote.client, pagamenti: pagamenti.filter(p => p.id !== paymentId) };
+  savedQuotes[idx] = quote;
+  await saveStudioRecord(dataStore, key, { ...record, savedQuotes });
   return { ok: true, pagamenti: quote.client.pagamenti };
 }
 
@@ -246,6 +272,8 @@ async function createPaymentCheckoutSession(licenses, dataStore, body){
   const record = resolved.record;
   const stripeAccountId = record && record.studioSettings && record.studioSettings.stripeAccountId;
   if(!stripeAccountId) return { error: 'stripe_not_connected' };
+
+  if(!quote.client || !quote.client.firma || !quote.client.firma.firmato) return { error: 'not_signed' };
 
   const pagamenti = Array.isArray(quote.client && quote.client.pagamenti) ? quote.client.pagamenti : [];
   const pagamento = pagamenti.find(p => p.id === paymentId);
@@ -362,6 +390,10 @@ export default async (req) => {
     }
     if(body.mode === 'add-payment-request'){
       const result = await addPaymentRequest(licenses, dataStore, body);
+      return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
+    }
+    if(body.mode === 'remove-payment-request'){
+      const result = await removePaymentRequest(licenses, dataStore, body);
       return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
     }
     if(body.mode === 'create-checkout-session'){

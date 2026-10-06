@@ -466,21 +466,23 @@
   function renderPaymentsArea(quote){
     const area = document.getElementById('paymentsArea');
     const pagamenti = Array.isArray(quote.pagamenti) ? quote.pagamenti : [];
-    // Le richieste di pagamento compaiono solo dopo la firma (è lo studio a crearle a quel punto,
-    // una o più volte nel tempo — es. acconto, saldo a 30gg — tutte legate a questo preventivo).
-    if(!quote.firma || !quote.firma.firmato || !pagamenti.length){
+    // Il piano di pagamento (acconto, saldo...) è visibile subito; il pulsante "Paga adesso" compare
+    // solo dopo la firma, perché si paga un preventivo accettato.
+    if(!pagamenti.length){
       area.innerHTML = '';
       return;
     }
+    const signed = !!(quote.firma && quote.firma.firmato);
     area.innerHTML = `
       <div class="section-label">Pagamenti</div>
+      ${signed ? '' : '<div style="font-size:12px; color:var(--ink-soft); margin-bottom:6px;">Potrai pagare online con carta subito dopo aver firmato il preventivo.</div>'}
       <div>${pagamenti.map(p => `
         <div class="payment-row">
           <div>
             <div class="label">${esc(p.label)}</div>
             <div class="amount">€ ${fmt((p.importoCent||0)/100)}</div>
           </div>
-          ${paymentStatusLabel(p)}
+          ${signed ? paymentStatusLabel(p) : (p.stato === 'pagato' ? '<span class="paid-badge">✓ Pagato</span>' : '<span style="font-size:11px; color:var(--ink-soft);">Dopo la firma</span>')}
         </div>`).join('')}</div>
       <div id="paymentErrorBox"></div>
     `;

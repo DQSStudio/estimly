@@ -77,7 +77,7 @@ export default async (req) => {
   }
 
   const followupsStore = getStore('followups');
-  const list = (await followupsStore.get(key, { type: 'json' })) || [];
+  const list = (await followupsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
 
   if (body.action === 'list') {
     return new Response(JSON.stringify({ followups: list }), { status: 200 });
@@ -225,9 +225,10 @@ export default async (req) => {
     entry.events.push({ type: newStatus, at: now });
     if (stopStatuses.includes(newStatus)) {
       entry.active = false;
-      entry.status = newStatus === 'accettato' ? 'convertito' : entry.status;
+      // Lo stato scelto resta visibile (prima cambiava solo per "accettato" e il resto sembrava non salvato).
+      entry.status = newStatus === 'accettato' ? 'convertito' : newStatus;
     }
-    if (newStatus === 'disattivato') entry.status = entry.status; // resta l'ultimo stato raggiunto
+    entry.aggiornatoAt = now;
     await followupsStore.setJSON(key, list);
     return new Response(JSON.stringify({ ok: true, followup: entry }), { status: 200 });
   }
@@ -257,7 +258,9 @@ export default async (req) => {
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
     }
     entry.active = true;
-    if (entry.status === 'convertito') entry.status = 'freddo';
+    const opens = (entry.events || []).filter(e => e.type === 'aperto').length;
+    const clicks = (entry.events || []).filter(e => e.type === 'cliccato').length;
+    entry.status = (clicks >= 2 || opens >= 3) ? 'caldo' : clicks >= 1 ? 'attivo' : opens >= 1 ? 'interessato' : 'freddo';
     entry.events = entry.events || [];
     entry.events.push({ type: 'riaperto', at: new Date().toISOString() });
     await followupsStore.setJSON(key, fresh);
