@@ -375,6 +375,9 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: 'unknown_mode' }), { status: 400 });
   }catch(err){
     const code = err && err.code === 'stripe_not_configured' ? 'stripe_not_configured' : 'server_error';
-    return new Response(JSON.stringify({ error: code, message: String(err.message || err) }), { status: code === 'stripe_not_configured' ? 503 : 500 });
+    // Registra il motivo reale nei log delle funzioni Netlify (prima l'errore era visibile solo
+    // nel corpo della risposta). Solo codice e messaggio: mai chiavi o dati di licenza.
+    console.error('stripe-connect errore', body && body.mode, err && err.code, String((err && err.message) || err));
+    return new Response(JSON.stringify({ error: code, stripeCode: (err && err.code) || null, message: String(err.message || err) }), { status: code === 'stripe_not_configured' ? 503 : 500 });
   }
 };

@@ -7839,9 +7839,11 @@ if('serviceWorker' in navigator){
       });
       const data = await res.json();
       if(data.error || !data.url){
+        console.error('Collegamento Stripe non riuscito', data);
+        const dettaglio = data.stripeCode || data.error;
         alert(data.error === 'stripe_not_configured'
           ? 'Il pagamento online non è ancora configurato su Estimly. Riprova più tardi.'
-          : 'Non è stato possibile avviare il collegamento con Stripe. Riprova.');
+          : 'Non è stato possibile avviare il collegamento con Stripe. Riprova.' + (dettaglio ? '\n\n(codice: ' + dettaglio + ')' : ''));
         return;
       }
       window.location.href = data.url;
