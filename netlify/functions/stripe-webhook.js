@@ -89,7 +89,9 @@ export default async (req) => {
   }
 
   // Rispondiamo comunque 200 per gli eventi che non ci interessano, così Stripe non li ritenta.
-  if(event.type !== 'checkout.session.completed'){
+  // checkout.session.async_payment_succeeded: metodi di pagamento asincroni (es. SEPA), dove
+  // la sessione risulta "completed" prima che i fondi siano effettivamente incassati.
+  if(event.type !== 'checkout.session.completed' && event.type !== 'checkout.session.async_payment_succeeded'){
     return new Response(JSON.stringify({ received: true }), { status: 200 });
   }
 
