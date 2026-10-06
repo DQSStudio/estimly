@@ -26,37 +26,60 @@
      PDF scaricabile dopo la firma (vedi buildSignedDocumentNode). ===== */
   .pd-accent-bar{ height:5px; background:var(--accent); border-radius:3px; margin-bottom:16px; }
   .pd-header{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding-bottom:12px; border-bottom:2px solid var(--accent); margin-bottom:14px; flex-wrap:wrap; }
-  .pd-brand{ display:flex; flex-direction:column; gap:4px; min-width:0; }
-  .pd-logo{ max-height:44px; max-width:160px; object-fit:contain; }
-  .pd-brand-name{ font-weight:700; font-size:16px; color:#111; }
-  .pd-brand-sub{ font-size:11px; color:#666; }
+  .pd-brand{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-width:0; }
+  /* Il logo mantiene sempre le proporzioni originali (width/height auto + max-*), allineato a
+     sinistra: con object-fit dentro una colonna flex veniva stirato al contenitore e, nel PDF
+     (html2canvas non supporta object-fit), deformato. */
+  .pd-logo{ display:block; width:auto; height:auto; max-height:64px; max-width:220px; }
+  .pd-brand-name{ font-weight:700; font-size:17px; color:#111; }
+  .pd-brand-sub{ font-size:11px; color:#666; max-width:420px; }
   .pd-meta{ text-align:right; }
-  .pd-doc-title{ font-weight:700; font-size:11.5px; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:5px; }
+  .pd-doc-title{ font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:5px; }
   .pd-meta-grid{ display:inline-grid; grid-template-columns:auto auto; gap:2px 10px; font-size:11.5px; color:#555; text-align:left; }
   .pd-meta-grid b{ color:#111; font-weight:600; text-align:right; }
+  .pd-meta-standalone{ text-align:left; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #ddd; }
+  .pd-letterhead-header{ display:block; width:100%; height:auto; margin-bottom:14px; }
+  .pd-letterhead-footer{ display:block; width:100%; height:auto; margin-top:18px; }
 
-  .pd-parties{ display:flex; flex-wrap:wrap; gap:20px; padding-bottom:12px; margin-bottom:12px; border-bottom:1px solid #ddd; }
+  .pd-parties{ display:flex; flex-wrap:wrap; gap:20px; padding-bottom:12px; margin-bottom:14px; border-bottom:1px solid #ddd; }
   .pd-party{ flex:1; min-width:140px; }
   .pd-party-label{ font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:var(--accent); font-weight:600; margin-bottom:3px; }
-  .pd-party-name{ font-weight:600; font-size:14px; color:#111; }
+  .pd-party-name{ font-weight:600; font-size:14.5px; color:#111; }
   .pd-party div{ font-size:12px; color:#444; }
 
   .pd-table-scroll{ overflow-x:auto; margin-bottom:12px; -webkit-overflow-scrolling:touch; }
   .pd-table{ width:100%; min-width:460px; border-collapse:collapse; font-size:12.5px; }
-  .pd-table thead th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#666; border-bottom:2px solid var(--accent); padding:5px 6px; white-space:nowrap; }
-  .pd-table td{ padding:6px; border-bottom:1px solid #eee; vertical-align:top; }
+  .pd-table thead th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#666; border-bottom:2px solid var(--accent); padding:6px 6px 8px; white-space:nowrap; }
+  /* Righe più spaziate (richiesta dello studio): un po' più d'aria sopra/sotto ogni voce. */
+  .pd-table td{ padding:10px 6px; border-bottom:1px solid #eee; vertical-align:top; }
   .pd-table .pd-cat-row td{
     background:var(--pd-accent-soft, #EEEDFB); border-left:3px solid var(--accent); border-bottom:1px solid #eee;
     font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--accent);
-    padding:6px 8px;
+    padding:9px 8px;
   }
   .pd-code{ font-family:ui-monospace,monospace; font-size:11px; color:#888; white-space:nowrap; }
   .pd-num{ text-align:right; white-space:nowrap; font-family:ui-monospace,monospace; }
   .pd-strong{ font-weight:600; }
   .pd-empty{ text-align:center; color:#999; padding:16px; }
   .pd-item-name{ font-weight:500; color:#111; }
-  .pd-item-desc{ font-size:10.5px; color:#777; margin-top:2px; line-height:1.4; }
-  .pd-item-note{ font-size:10.5px; color:#a15c00; font-style:italic; margin-top:2px; }
+  .pd-item-desc{ font-size:10.5px; color:#777; margin-top:4px; line-height:1.5; }
+  .pd-item-note{ font-size:10.5px; color:#a15c00; font-style:italic; margin-top:4px; }
+
+  /* Combinazioni di font/layout scelte dallo studio (stesse regole del PDF di Estimly). */
+  .doc-root[data-font="minimale"] .pd-code,
+  .doc-root[data-font="minimale"] .pd-num{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; }
+  .doc-root[data-font="tecnico"] .pd-doc-title,
+  .doc-root[data-font="tecnico"] .pd-party-label{ font-family:ui-monospace,monospace; letter-spacing:0.5px; }
+  .doc-root[data-custom-font],
+  .doc-root[data-custom-font] *{ font-family:'EstimlyCustomFont',-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif !important; }
+  .doc-root[data-layout="minimale"] .pd-accent-bar{ display:none; }
+  .doc-root[data-layout="minimale"] .pd-header{ border-bottom:1px solid #ddd; }
+  .doc-root[data-layout="minimale"] .pd-table thead th{ border-bottom:1px solid #ccc; color:#888; }
+  .doc-root[data-layout="minimale"] .pd-table .pd-cat-row td{ background:transparent; border-left:none; color:#333; }
+  .doc-root[data-layout="minimale"] .pd-total-row.pd-grand{ border-top:1px solid #ccc; color:#111; }
+  .doc-root[data-layout="minimale"] .pd-total-row.pd-grand span:last-child{ color:#111; }
+  .doc-root[data-layout="banner"] .pd-accent-bar{ display:none; }
+  .doc-root[data-layout="banner"] .pd-header{ border:2px solid var(--accent); border-radius:8px; padding:16px 20px; margin-bottom:18px; }
 
   .pd-totals{ max-width:300px; margin-left:auto; }
   .pd-total-row{ display:flex; justify-content:space-between; font-size:12.5px; color:#555; padding:3px 0; }
@@ -108,7 +131,7 @@
   /* Contenitore fuori schermo usato da html2canvas per catturare il documento firmato (vedi
      buildSignedDocumentNode): stessa identità visiva del preventivo online, dimensioni fisse
      indipendenti dal viewport del cliente, così il PDF generato è sempre uguale. */
-  .cert-wrap{ width:700px; padding:34px; background:#fff; color:#17181C; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; }
+  .cert-wrap{ width:703px; padding:0; background:#fff; color:#17181C; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; }
   .signed-download-btn{ display:inline-block; margin-top:10px; font-size:11.5px; font-weight:600; color:var(--accent); text-decoration:none; cursor:pointer; background:none; border:none; padding:0; font-family:inherit; }
 </style>
 </head>
@@ -264,7 +287,9 @@
   // con logo/dati studio, blocchi cliente/progetto, tabella voci per categoria (codice, descrizione,
   // qtà/ore, prezzo unitario, totale) e riepilogo totali. Usata sia per la vista online (dentro
   // #app) sia, con signatureHtml valorizzato, per il PDF scaricabile dopo la firma.
-  function buildQuoteDocumentHtml(studio, quote, signatureHtml){
+  function buildQuoteDocumentHtml(studio, quote, signatureHtml, opts){
+    const forPdf = !!(opts && opts.forPdf);
+    const useLH = studio.letterheadMode === 'custom' && !!studio.letterheadHeader;
     const totals = computeTotals(quote);
     const dataLabel = quote.data ? new Date(quote.data+'T00:00:00').toLocaleDateString('it-IT') : '—';
     const validitaLabel = addDays(quote.data, quote.validita);
@@ -320,7 +345,21 @@
       paymentHtml = `<div class="pd-payment"><b>Pagamento</b>${bits.length?' — '+bits.join(' &nbsp;&middot;&nbsp; '):''}${quote.notePagamento?`<br>${esc(quote.notePagamento)}`:''}</div>`;
     }
 
-    return `
+    const metaGrid = `
+            <span>N.</span><b>${esc(quote.numero || '—')}</b>
+            <span>Data</span><b>${dataLabel}</b>
+            ${quote.revisione ? `<span>Rev.</span><b>${esc(quote.revisione)}</b>` : ''}
+            <span>Valido fino al</span><b>${validitaLabel}</b>`;
+    // Con carta intestata personalizzata (come nel PDF di Estimly): l'immagine di intestazione
+    // sostituisce logo e dati studio, e sotto restano solo titolo e riferimenti del documento. Nel
+    // PDF le immagini di intestazione/piè di pagina vengono applicate su ogni pagina (vedi
+    // generateSignedDocumentPdf), quindi qui non vanno incluse.
+    const headerHtml = useLH ? `
+      ${forPdf ? '' : `<img src="${studio.letterheadHeader}" alt="" class="pd-letterhead-header">`}
+      <div class="pd-meta pd-meta-standalone">
+        <div class="pd-doc-title">Preventivo</div>
+        <div class="pd-meta-grid">${metaGrid}</div>
+      </div>` : `
       <div class="pd-accent-bar"></div>
       <div class="pd-header">
         <div class="pd-brand">
@@ -330,14 +369,15 @@
         </div>
         <div class="pd-meta">
           <div class="pd-doc-title">Preventivo</div>
-          <div class="pd-meta-grid">
-            <span>N.</span><b>${esc(quote.numero || '—')}</b>
-            <span>Data</span><b>${dataLabel}</b>
-            ${quote.revisione ? `<span>Rev.</span><b>${esc(quote.revisione)}</b>` : ''}
-            <span>Valido fino al</span><b>${validitaLabel}</b>
-          </div>
+          <div class="pd-meta-grid">${metaGrid}</div>
         </div>
-      </div>
+      </div>`;
+    const footerHtml = (useLH && !forPdf && studio.letterheadFooter) ? `<img src="${studio.letterheadFooter}" alt="" class="pd-letterhead-footer">` : '';
+    const rootAttrs = `class="doc-root" data-font="${esc(studio.fontPairing || 'moderno')}" data-layout="${esc(studio.pdfLayout || 'classico')}"${studio.customFontData ? ' data-custom-font' : ''}`;
+
+    return `
+      <div ${rootAttrs}>
+      ${headerHtml}
       <div class="pd-parties">
         <div class="pd-party">
           <div class="pd-party-label">Cliente</div>
@@ -357,12 +397,50 @@
       ${totals.regime.nota ? `<div class="pd-nota">${esc(totals.regime.nota)}</div>` : ''}
       ${paymentHtml}
       ${signatureHtml || ''}
+      ${footerHtml}
+      </div>
     `;
+  }
+
+  // Font personalizzato dello studio (lo stesso caricato in Estimly): senza di esso il documento
+  // online e il PDF non avrebbero lo stesso aspetto del PDF classico.
+  function ensureStudioFont(studio){
+    let el = document.getElementById('studioFontStyle');
+    if(!studio.customFontData){ if(el) el.textContent = ''; return; }
+    if(!el){ el = document.createElement('style'); el.id = 'studioFontStyle'; document.head.appendChild(el); }
+    const fmtName = String(studio.customFontFormat || '').replace(/[^a-z0-9-]/gi, '');
+    const fmtAttr = fmtName ? ` format('${fmtName}')` : '';
+    el.textContent = `@font-face{ font-family:'EstimlyCustomFont'; src:url(${studio.customFontData})${fmtAttr}; font-weight:normal; font-style:normal; }`;
+  }
+
+  function loadImage(src){
+    return new Promise(resolve => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => resolve(null);
+      im.src = src;
+    });
+  }
+
+  // Dimensiona il logo dello studio sempre in proporzione (mai stirato) dentro un riquadro
+  // massimo 220x64 px, anche ingrandendo i logo piccoli (fino a 3 volte): le dimensioni vengono
+  // scritte esplicitamente perché html2canvas (PDF) non rispetta object-fit.
+  async function fitLogos(root){
+    const imgs = Array.from(root.querySelectorAll('img.pd-logo'));
+    await Promise.all(imgs.map(async img => {
+      const im = await loadImage(img.src);
+      if(!im || !im.naturalWidth || !im.naturalHeight) return;
+      const k = Math.min(220 / im.naturalWidth, 64 / im.naturalHeight, 3);
+      img.style.width = Math.round(im.naturalWidth * k) + 'px';
+      img.style.height = Math.round(im.naturalHeight * k) + 'px';
+      img.style.maxWidth = 'none'; img.style.maxHeight = 'none';
+    }));
   }
 
   function render(studio, quote){
     currentStudio = studio;
     applyAccent(studio.colorPrimary);
+    ensureStudioFont(studio);
 
     app.innerHTML = `
       <div class="card">
@@ -374,6 +452,7 @@
       </div>
     `;
 
+    fitLogos(app);
     renderSignArea(quote);
     renderPaymentsArea(quote);
   }
@@ -466,78 +545,127 @@
 
     const node = document.createElement('div');
     node.className = 'cert-wrap';
-    node.innerHTML = buildQuoteDocumentHtml(studio, quote, signatureHtml);
+    node.innerHTML = buildQuoteDocumentHtml(studio, quote, signatureHtml, { forPdf: true });
     node.style.cssText = 'position:absolute; left:-10000px; top:0; z-index:-1;';
     document.body.appendChild(node);
     return node;
   }
 
-  // Margine di stampa (mm) e ricerca di un punto di taglio "pulito" tra una pagina e l'altra
-  // (una riga di pixel quasi tutta bianca vicino al taglio ideale), identico all'approccio usato
-  // in Estimly per il PDF del preventivo: evita di spezzare testo/righe a metà pagina, e se il
-  // documento (tipicamente breve) entra in una sola pagina non viene affatto impaginato a blocchi.
+  // ---------- Impaginazione PDF ----------
+  // Come nel PDF di stampa di Estimly: A4 con margini di 12 mm, carta intestata (immagine di
+  // intestazione e di piè di pagina) ripetuta su OGNI pagina, intestazione delle colonne della
+  // tabella ripetuta quando una pagina riprende a metà tabella. Il corpo del documento viene
+  // catturato una sola volta (html2canvas) e tagliato solo tra una riga e l'altra della tabella,
+  // mai a metà di una voce, di un blocco totali o del riquadro firma.
   const PDF_MARGIN_MM = 12;
+  const PDF_GAP_MM = 5;
 
-  function findPdfSafeBreakRow(ctx, canvasWidth, idealRow, searchBackPx, canvasHeight){
-    try{
-      const maxRow = Math.min(idealRow, canvasHeight);
-      const minRow = Math.max(1, maxRow - searchBackPx);
-      for(let row = maxRow; row >= minRow; row--){
-        const data = ctx.getImageData(0, row, canvasWidth, 1).data;
-        let empty = true;
-        for(let i=0; i<data.length; i += 4*8){
-          if(data[i] < 250 || data[i+1] < 250 || data[i+2] < 250){ empty = false; break; }
-        }
-        if(empty) return row;
-      }
-    }catch(err){ /* canvas non leggibile per CORS: si userà il taglio ideale senza ricerca */ }
-    return idealRow;
+  function imageForPdf(im, src){
+    const m = /^data:image\/(png|jpe?g)/i.exec(src);
+    if(m) return { data: src, fmt: m[1].toLowerCase() === 'png' ? 'PNG' : 'JPEG' };
+    const c = document.createElement('canvas');
+    c.width = im.naturalWidth; c.height = im.naturalHeight;
+    const cx = c.getContext('2d');
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+    cx.drawImage(im, 0, 0);
+    return { data: c.toDataURL('image/jpeg', 0.92), fmt: 'JPEG' };
   }
 
-  function renderCanvasToPdfPages(doc, canvas){
-    const pdfWmm = 210, pdfHmm = 297;
-    const usableWmm = pdfWmm - PDF_MARGIN_MM * 2;
-    const usableHmm = pdfHmm - PDF_MARGIN_MM * 2;
-    const pxPerMm = canvas.width / usableWmm;
-    const pageHeightPx = Math.floor(usableHmm * pxPerMm);
-
-    if(canvas.height <= pageHeightPx){
-      const pageData = canvas.toDataURL('image/jpeg', 0.92);
-      doc.addImage(pageData, 'JPEG', PDF_MARGIN_MM, PDF_MARGIN_MM, usableWmm, canvas.height / pxPerMm);
-      return;
-    }
-
-    const ctx = canvas.getContext('2d');
-    const searchBackPx = Math.round(10 * pxPerMm);
-    let renderedPx = 0, first = true;
-    while(renderedPx < canvas.height){
-      let sliceEnd = Math.min(renderedPx + pageHeightPx, canvas.height);
-      if(sliceEnd < canvas.height){
-        const safeEnd = findPdfSafeBreakRow(ctx, canvas.width, sliceEnd, searchBackPx, canvas.height);
-        if(safeEnd > renderedPx) sliceEnd = safeEnd;
-      }
-      const sliceHeightPx = sliceEnd - renderedPx;
-      const pageCanvas = document.createElement('canvas');
-      pageCanvas.width = canvas.width;
-      pageCanvas.height = sliceHeightPx;
-      pageCanvas.getContext('2d').drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
-      const pageData = pageCanvas.toDataURL('image/jpeg', 0.92);
-      if(!first) doc.addPage();
-      doc.addImage(pageData, 'JPEG', PDF_MARGIN_MM, PDF_MARGIN_MM, usableWmm, sliceHeightPx / pxPerMm);
-      renderedPx = sliceEnd;
-      first = false;
-    }
+  function collectBreakPoints(node, scale){
+    const top = node.getBoundingClientRect().top;
+    const sel = 'tr, .pd-meta-standalone, .pd-header, .pd-parties, .pd-totals, .pd-nota, .pd-payment, .cert-sign-box';
+    const pts = Array.from(node.querySelectorAll(sel)).map(el => ({
+      bottom: Math.round((el.getBoundingClientRect().bottom - top) * scale),
+      isCat: el.classList.contains('pd-cat-row')
+    })).filter(p => p.bottom > 0);
+    pts.sort((a, b) => a.bottom - b.bottom);
+    return pts;
   }
 
   async function generateSignedDocumentPdf(studio, quote){
     if(typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF || typeof window.html2canvas !== 'function') return null;
+    ensureStudioFont(studio);
     const node = buildSignedDocumentNode(studio, quote);
     let result = null;
     try{
-      const canvas = await window.html2canvas(node, { scale:2, useCORS:true, backgroundColor:'#ffffff', windowWidth:700 });
+      await fitLogos(node);
+      try{
+        if(studio.customFontData && document.fonts && document.fonts.load) await document.fonts.load("12px 'EstimlyCustomFont'");
+        if(document.fonts && document.fonts.ready) await document.fonts.ready;
+      }catch(e){ /* senza font personalizzato il documento usa il font di sistema */ }
+
+      const useLH = studio.letterheadMode === 'custom' && !!studio.letterheadHeader;
+      const hdrIm = useLH ? await loadImage(studio.letterheadHeader) : null;
+      const ftrIm = (useLH && studio.letterheadFooter) ? await loadImage(studio.letterheadFooter) : null;
+
+      const CAP_SCALE = 2.5;
+      const canvas = await window.html2canvas(node, { scale: CAP_SCALE, useCORS:true, backgroundColor:'#ffffff', windowWidth: node.offsetWidth });
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:'mm', format:'a4' });
-      renderCanvasToPdfPages(doc, canvas);
+
+      const W = 210, H = 297, CW = W - PDF_MARGIN_MM * 2;
+      const hh = hdrIm ? CW * hdrIm.naturalHeight / hdrIm.naturalWidth : 0;
+      const fh = ftrIm ? CW * ftrIm.naturalHeight / ftrIm.naturalWidth : 0;
+      const topY = PDF_MARGIN_MM + (hdrIm ? hh + PDF_GAP_MM : 0);
+      const bottomReserve = PDF_MARGIN_MM + (ftrIm ? fh + PDF_GAP_MM : 0);
+      const pxPerMm = canvas.width / CW;
+      const areaPx = Math.floor((H - topY - bottomReserve) * pxPerMm);
+      const hdrPdf = hdrIm ? imageForPdf(hdrIm, studio.letterheadHeader) : null;
+      const ftrPdf = ftrIm ? imageForPdf(ftrIm, studio.letterheadFooter) : null;
+
+      const scale = canvas.width / node.offsetWidth;
+      const pts = collectBreakPoints(node, scale);
+      const nodeTop = node.getBoundingClientRect().top;
+      const theadEl = node.querySelector('.pd-table thead');
+      const tableEl = node.querySelector('.pd-table');
+      const theadTop = theadEl ? Math.round((theadEl.getBoundingClientRect().top - nodeTop) * scale) : 0;
+      const theadBottom = theadEl ? Math.round((theadEl.getBoundingClientRect().bottom - nodeTop) * scale) : 0;
+      const tableBottom = tableEl ? Math.round((tableEl.getBoundingClientRect().bottom - nodeTop) * scale) : 0;
+      const stripH = theadBottom - theadTop;
+
+      let start = 0, pageIdx = 0;
+      while(start < canvas.height){
+        const needStrip = theadEl && pageIdx > 0 && start >= theadBottom && start < tableBottom;
+        const avail = areaPx - (needStrip ? stripH : 0);
+        let end = Math.min(start + avail, canvas.height);
+        if(end < canvas.height){
+          // Punto di taglio: l'ultimo bordo di riga entro lo spazio disponibile; se subito prima
+          // del taglio c'è una riga-categoria (titolo rimasto solo a fine pagina) si taglia prima.
+          let idx = -1;
+          for(let k = pts.length - 1; k >= 0; k--){
+            if(pts[k].bottom <= end && pts[k].bottom > start + 30){ idx = k; break; }
+          }
+          while(idx >= 0 && pts[idx].isCat){
+            idx--;
+            while(idx >= 0 && pts[idx].bottom <= start + 30) idx--;
+          }
+          if(idx >= 0) end = pts[idx].bottom;
+        }
+        const sliceH = end - start;
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceH + (needStrip ? stripH : 0);
+        const pcx = pageCanvas.getContext('2d');
+        pcx.fillStyle = '#fff'; pcx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        let yy = 0;
+        if(needStrip){ pcx.drawImage(canvas, 0, theadTop, canvas.width, stripH, 0, 0, canvas.width, stripH); yy = stripH; }
+        pcx.drawImage(canvas, 0, start, canvas.width, sliceH, 0, yy, canvas.width, sliceH);
+
+        if(pageIdx > 0) doc.addPage();
+        if(hdrPdf) doc.addImage(hdrPdf.data, hdrPdf.fmt, PDF_MARGIN_MM, PDF_MARGIN_MM, CW, hh);
+        const contentMm = pageCanvas.height / pxPerMm;
+        doc.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', PDF_MARGIN_MM, topY, CW, contentMm);
+        if(ftrPdf){
+          const isLast = end >= canvas.height;
+          const fy = isLast
+            ? Math.min(topY + contentMm + PDF_GAP_MM, H - PDF_MARGIN_MM - fh)
+            : H - PDF_MARGIN_MM - fh;
+          doc.addImage(ftrPdf.data, ftrPdf.fmt, PDF_MARGIN_MM, fy, CW, fh);
+        }
+        start = end;
+        pageIdx++;
+      }
+
       const numero = (quote.numero || 'documento').replace(/[^a-zA-Z0-9_-]+/g, '_');
       const filename = `Accettazione_firmata_${numero}.pdf`;
       const dataUri = doc.output('datauristring');

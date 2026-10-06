@@ -72,7 +72,18 @@ function sanitizeStudio(settings){
     iban: settings.iban || '',
     intestatario: settings.intestatario || '',
     banca: settings.banca || '',
-    sdi: settings.sdi || ''
+    sdi: settings.sdi || '',
+    cf: settings.cf || '',
+    // Aspetto del documento: stessi parametri usati da Estimly per la stampa/PDF del preventivo
+    // (carta intestata personalizzata, font caricato, layout), così il preventivo online e il PDF
+    // firmato risultano identici al PDF "classico" dello studio.
+    letterheadMode: settings.letterheadMode === 'custom' ? 'custom' : 'standard',
+    letterheadHeader: settings.letterheadHeader || '',
+    letterheadFooter: settings.letterheadFooter || '',
+    fontPairing: settings.fontPairing || 'moderno',
+    pdfLayout: settings.pdfLayout || 'classico',
+    customFontData: settings.customFontData || '',
+    customFontFormat: settings.customFontFormat || ''
   };
 }
 
