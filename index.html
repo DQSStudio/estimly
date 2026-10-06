@@ -1159,6 +1159,13 @@ header.top{
 </div>
 
 <div id="e2PagePreventivo" class="e2-page">
+<div id="editingQuoteBar" style="display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:#FDF3E0; color:#92700C; border:1px solid #F1DDB4; border-radius:10px; padding:10px 14px; margin:0 0 12px; font-size:12.5px; font-weight:600;">
+  <span id="editingQuoteBarText"></span>
+  <span style="display:flex; gap:8px;">
+    <button type="button" class="btn-cancel" id="editingQuoteBackBtn" style="padding:6px 10px;">← Torna alla scheda</button>
+    <button type="button" class="btn-cancel" id="editingQuoteExitBtn" style="padding:6px 10px;" title="Il form resta com'è, ma il prossimo salvataggio crea un nuovo preventivo">Salva come nuovo</button>
+  </span>
+</div>
 <div class="layout">
   <div class="catalog">
     <div class="toolbar">
@@ -1533,7 +1540,11 @@ header.top{
 </div>
 
 <div id="e2PageSalvati" class="e2-page" style="display:none;">
-  <div class="e2-dash-wrap">
+  <div class="e2-dash-wrap" id="quoteSchedaView" style="display:none;">
+    <button type="button" class="btn-cancel" id="quoteSchedaBackBtn" style="margin-bottom:14px;">← Preventivi salvati</button>
+    <div id="quoteSchedaBody"></div>
+  </div>
+  <div class="e2-dash-wrap" id="e2SalvatiListView">
     <div class="field-section-label" style="margin-top:0;">Preventivi salvati</div>
     <div class="saved-quotes-limit-text" style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Puoi tenere in archivio fino a 20 preventivi recenti. Salvandone uno oltre il limite, il più vecchio viene rimosso automaticamente.</div>
     <div id="e2SalvatiFirmatiWrap" style="display:none; margin-bottom:22px;">
@@ -2725,6 +2736,230 @@ function savedQuoteSendStatusHtml(q){
   return `<div style="font-size:11px; color:var(--ink-faint); margin-top:2px;">${parts.join(' · ')}</div>`;
 }
 
+/* ===================== Scheda preventivo (stato, bozze/inviati, modifica) ===================== */
+// "Inviato" = c'è l'evento di invio email nel follow-up collegato, oppure il cliente ha già
+// firmato (quindi lo ha ricevuto). Tutto il resto è una bozza.
+function quoteFollowup(q){
+  const numero = q && q.client && q.client.numero;
+  return numero ? (followupsList.find(x=>x.quoteRef===numero && x.kind!=='presentazione') || null) : null;
+}
+function quoteIsSent(q){
+  if(q.client && q.client.firma && q.client.firma.firmato) return true;
+  const f = quoteFollowup(q);
+  return !!(f && (f.events||[]).some(e=>e.type==='inviato_preventivo'));
+}
+const QUOTE_ESITO_META = {
+  accettato:     { label:'Accettato',     emoji:'🏆', color:'#FFFFFF', bg:'#0F766E', soft:'#E5F5F3', ink:'#0F766E' },
+  in_trattativa: { label:'In trattativa', emoji:'🤝', color:'#FFFFFF', bg:'#B45309', soft:'#FDF0E3', ink:'#B45309' },
+  perso:         { label:'Perso',         emoji:'✖',  color:'#FFFFFF', bg:'#6B6E78', soft:'#F0F0F2', ink:'#6B6E78' }
+};
+function quoteEsito(q){
+  if(q.esito && QUOTE_ESITO_META[q.esito]) return q.esito;
+  if(q.vinto || (q.client && q.client.firma && q.client.firma.firmato)) return 'accettato';
+  return '';
+}
+let quoteSchedaCurrentId = null;
+let editingQuoteId = null;
+
+function savedQuoteCompactRowHtml(q){
+  const totale = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
+  let dataLabel = '—';
+  if(q.client && q.client.data){
+    const d = new Date(q.client.data + 'T00:00:00');
+    if(!isNaN(d.getTime())) dataLabel = d.toLocaleDateString('it-IT');
+  }
+  const numero = (q.client && q.client.numero) ? q.client.numero : 'Senza numero';
+  const cliente = (q.client && q.client.cliente) ? q.client.cliente : 'Cliente non specificato';
+  const esito = quoteEsito(q);
+  const m = esito ? QUOTE_ESITO_META[esito] : null;
+  const firmato = q.client && q.client.firma && q.client.firma.firmato;
+  const isValido = q.valido !== false;
+  return `
+    <div data-open-scheda="${q.id}" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 8px; border-bottom:1px solid var(--border); cursor:pointer; ${isValido || esito==='perso' ? '' : 'opacity:0.6;'}">
+      <div style="min-width:0;">
+        <div style="font-weight:600; font-size:13px; display:flex; align-items:center; gap:7px; flex-wrap:wrap;">
+          ${escapeHtml(numero)} — ${escapeHtml(cliente)}
+          ${m ? `<span style="font-size:10.5px; font-weight:700; color:${m.ink}; background:${m.soft}; padding:2px 8px; border-radius:999px;">${m.emoji} ${m.label}</span>` : ''}
+          ${firmato ? '<span style="font-size:10.5px; font-weight:700; color:#0F766E; background:#E5F5F3; padding:2px 8px; border-radius:999px;">✍️ Firmato</span>' : ''}
+          ${isValido ? '' : '<span style="font-size:10.5px; font-weight:700; color:#6B7280; background:#F1F1F1; padding:2px 8px; border-radius:999px;">Escluso dal totale</span>'}
+        </div>
+        <div style="font-size:12px; color:var(--ink-soft);">${dataLabel} · € ${fmt(totale)}</div>
+        ${savedQuoteSendStatusHtml(q)}
+      </div>
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <button data-open-scheda="${q.id}" class="btn-cancel" style="padding:6px 12px;">Apri</button>
+      </div>
+    </div>`;
+}
+
+function openQuoteScheda(id){
+  if(!savedQuotes.find(x=>x.id===id)) return;
+  quoteSchedaCurrentId = id;
+  if(typeof switchEstimly2Page === 'function') switchEstimly2Page('salvati');
+  document.getElementById('e2SalvatiListView').style.display = 'none';
+  document.getElementById('quoteSchedaView').style.display = 'block';
+  renderQuoteScheda();
+  window.scrollTo({ top:0 });
+}
+function closeQuoteScheda(){
+  quoteSchedaCurrentId = null;
+  document.getElementById('quoteSchedaView').style.display = 'none';
+  document.getElementById('e2SalvatiListView').style.display = 'block';
+}
+
+function renderQuoteScheda(){
+  const q = savedQuotes.find(x=>x.id===quoteSchedaCurrentId);
+  const body = document.getElementById('quoteSchedaBody');
+  if(!q){ closeQuoteScheda(); return; }
+  const c = q.client || {};
+  const totale = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
+  const esito = quoteEsito(q);
+  const sent = quoteIsSent(q);
+  const firmato = !!(c.firma && c.firma.firmato);
+  const isValido = q.valido !== false;
+  let dataLabel = '—';
+  if(c.data){
+    const d = new Date(c.data + 'T00:00:00');
+    if(!isNaN(d.getTime())) dataLabel = d.toLocaleDateString('it-IT');
+  }
+
+  // Segnale in alto: lo stato del preventivo a colpo d'occhio.
+  let banner;
+  if(esito){
+    const m = QUOTE_ESITO_META[esito];
+    const sub = esito==='accettato' ? (firmato ? 'Firmato online dal cliente' : 'Accettazione registrata a mano')
+      : esito==='perso' ? 'Escluso dal totale dei preventivi in essere' : 'Il cliente sta valutando';
+    banner = `<div style="background:${m.bg}; color:${m.color}; border-radius:12px; padding:16px 20px; display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+      <span style="font-size:30px; line-height:1;">${m.emoji}</span>
+      <div><div style="font-size:19px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;">${m.label}</div>
+      <div style="font-size:12.5px; opacity:.9;">${sub}</div></div></div>`;
+  } else if(sent){
+    banner = `<div style="background:#E8EEF9; color:#1F4E9E; border-radius:12px; padding:16px 20px; display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+      <span style="font-size:30px; line-height:1;">📧</span>
+      <div><div style="font-size:19px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;">Inviato</div>
+      <div style="font-size:12.5px;">In attesa di risposta dal cliente</div></div></div>`;
+  } else {
+    banner = `<div style="background:#FDF3E0; color:#92700C; border-radius:12px; padding:16px 20px; display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+      <span style="font-size:30px; line-height:1;">📝</span>
+      <div><div style="font-size:19px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;">Bozza</div>
+      <div style="font-size:12.5px;">Salvato, non ancora inviato al cliente</div></div></div>`;
+  }
+
+  const esitoBtn = (val, label) => {
+    const on = esito === val;
+    const m = QUOTE_ESITO_META[val];
+    return `<button type="button" data-set-esito="${val}" class="btn-cancel" style="padding:8px 14px; font-weight:700; ${on ? `background:${m.bg}; color:${m.color}; border-color:${m.bg};` : ''}">${m.emoji} ${label}</button>`;
+  };
+
+  const live = FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled;
+  const righe = (q.cart||[]).map(l=>{
+    const qty = l.modalita==='orario' ? `${l.ore||0} h × € ${fmt(l.tariffa||0)}` : `${l.qty||0} × € ${fmt(l.prezzo||0)}`;
+    return `<tr><td style="padding:6px 8px 6px 0; border-bottom:1px solid var(--border);">${escapeHtml(l.nome||'')}</td>
+      <td style="padding:6px 8px; border-bottom:1px solid var(--border); color:var(--ink-soft); white-space:nowrap;">${qty}</td>
+      <td style="padding:6px 0 6px 8px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap;">€ ${fmt(lineTotal(l))}</td></tr>`;
+  }).join('');
+
+  const btn = (attr, label, extra) => `<button type="button" ${attr}="${q.id}" class="btn-cancel" style="padding:8px 14px; ${extra||''}">${label}</button>`;
+  body.innerHTML = `
+    ${banner}
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:6px;">
+      <div>
+        <div class="display" style="font-weight:700; font-size:20px;">${escapeHtml(c.numero || 'Senza numero')} — ${escapeHtml(c.cliente || 'Cliente non specificato')}</div>
+        <div style="font-size:12.5px; color:var(--ink-soft); margin-top:3px;">${escapeHtml(c.progetto || 'Nessun progetto indicato')} · ${dataLabel} · ${escapeHtml(c.revisione || 'Rev. 0')}${c.clienteEmail ? ' · ' + escapeHtml(c.clienteEmail) : ''}</div>
+        ${savedQuoteSendStatusHtml(q)}
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em;">Totale imponibile voci</div>
+        <div class="display" style="font-weight:800; font-size:24px;">€ ${fmt(totale)}</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 6px;">
+      ${btn('data-edit-quote', '✏️ Modifica', 'background:var(--ink); color:#fff; border-color:var(--ink); font-weight:700;')}
+      ${live ? btn('data-client-link', 'Link cliente') : ''}
+      ${live && firmato ? btn('data-payments', 'Pagamenti') : ''}
+      ${live && firmato && c.firma.documentoConservato ? btn('data-download-signed', 'Documento firmato') : ''}
+      ${live ? (q.concluso ? '<span style="font-size:11px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:8px 12px; border-radius:6px;">✓ Concluso</span>' : btn('data-close-quote', 'Concludi progetto')) : ''}
+      ${btn('data-toggle-valido', isValido ? '✔ Valido nel totale' : 'Includi nel totale')}
+      ${btn('data-delete-quote', 'Elimina', 'color:var(--danger); margin-left:auto;')}
+    </div>
+
+    <div class="field-section-label" style="margin-top:20px;">Esito del preventivo</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      ${esitoBtn('accettato','Accettato')}
+      ${esitoBtn('in_trattativa','In trattativa')}
+      ${esitoBtn('perso','Perso')}
+      ${esito && !(esito==='accettato' && firmato) ? '<button type="button" data-set-esito="" class="btn-cancel" style="padding:8px 14px;">Togli esito</button>' : ''}
+    </div>
+    ${esito==='accettato' && firmato ? '<div style="font-size:11.5px; color:var(--ink-faint); margin-top:6px;">Firmato online: puoi comunque cambiare esito (es. se il cliente poi recede).</div>' : ''}
+
+    <div class="field-section-label" style="margin-top:22px;">Voci del preventivo (${(q.cart||[]).length})</div>
+    ${righe ? `<table style="width:100%; border-collapse:collapse; font-size:12.5px;">${righe}</table>` : '<div style="font-size:12.5px; color:var(--ink-faint);">Nessuna voce.</div>'}
+    ${c.notePagamento ? `<div class="field-section-label" style="margin-top:20px;">Note di pagamento</div><div style="font-size:12.5px; white-space:pre-wrap;">${escapeHtml(c.notePagamento)}</div>` : ''}
+  `;
+}
+
+// Imposta l'esito (accettato / in trattativa / perso / nessuno). "Accettato" = vinto (resta
+// coerente con dashboard e Desearq Studio Manager); "Perso" esce dal totale in essere.
+async function setQuoteEsito(id, esito, opts){
+  const q = savedQuotes.find(x=>x.id===id);
+  if(!q) return;
+  const wasPerso = q.esito === 'perso';
+  q.esito = esito || '';
+  q.vinto = esito === 'accettato';
+  const patch = { esito: q.esito, vinto: q.vinto };
+  if(esito === 'perso'){ q.valido = false; patch.valido = false; }
+  else if(wasPerso){ q.valido = true; patch.valido = true; }
+  await persistSavedQuotesLocal();
+  renderSavedQuotesList();
+  if(document.getElementById('e2StatTotal')) renderDashboard();
+  const key = getLicenseKey();
+  if(key){
+    try{
+      await fetch('/.netlify/functions/sync-data', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ key, action:'updateQuote', id, patch })
+      });
+    }catch(err){ console.error('Impossibile aggiornare l\'esito del preventivo', err); }
+    // Tiene allineato il follow-up collegato (si ferma se accettato/perso).
+    const f = (!opts || !opts.skipFollowup) ? quoteFollowup(q) : null;
+    const target = esito === 'accettato' ? 'accettato' : (esito === 'perso' ? 'rifiutato' : null);
+    if(f && f.active && target){
+      try{
+        await fetch('/.netlify/functions/followups', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ key, action:'updateStatus', followupId:f.id, newStatus:target })
+        });
+        await loadFollowupsCloud();
+        renderFollowupsPanel();
+      }catch(err){ console.error('Impossibile aggiornare il follow-up collegato', err); }
+    }
+  }
+}
+
+// Apre il preventivo nell'editor per modificarlo: il salvataggio aggiorna QUESTO preventivo
+// invece di crearne uno nuovo (vedi persistCurrentQuoteEntry).
+function editQuoteById(id){
+  const q = savedQuotes.find(x=>x.id===id);
+  if(!q) return;
+  if(q.client && q.client.firma && q.client.firma.firmato){
+    if(!confirm('Questo preventivo è già stato firmato dal cliente. Se lo modifichi, il documento firmato resta quello originale. Vuoi modificarlo comunque?')) return;
+  } else if(quoteIsSent(q)){
+    if(!confirm('Questo preventivo è già stato inviato al cliente. Le modifiche saranno visibili dal link solo dopo il salvataggio. Procedere?')) return;
+  }
+  loadQuoteById(id);
+  editingQuoteId = id;
+  updateEditingQuoteBar();
+}
+function updateEditingQuoteBar(){
+  const bar = document.getElementById('editingQuoteBar');
+  if(!bar) return;
+  const q = editingQuoteId ? savedQuotes.find(x=>x.id===editingQuoteId) : null;
+  if(!q){ bar.style.display = 'none'; return; }
+  document.getElementById('editingQuoteBarText').textContent = `✏️ Stai modificando il preventivo ${(q.client && q.client.numero) || ''} — "Salva preventivo" aggiorna quello esistente.`;
+  bar.style.display = 'flex';
+}
+
 function savedQuoteRowHtml(q){
   const totale = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
   let dataLabel = '—';
@@ -2768,6 +3003,7 @@ function renderSavedQuotesList(){
   renderSavedQuotesListCore();
   // La scheda cliente mostra gli stessi preventivi: la teniamo allineata.
   if(typeof renderClientSchedaQuotes === 'function') renderClientSchedaQuotes();
+  if(quoteSchedaCurrentId) renderQuoteScheda();
 }
 function renderSavedQuotesListCore(){
   // Renderizza sia nel modal (utenti base, lista piatta) sia nella pagina Estimly 2.0
@@ -2777,18 +3013,9 @@ function renderSavedQuotesListCore(){
 
   // Sezione dedicata ai preventivi firmati online dal cliente, in cima alla pagina, così non
   // bisogna cercarli dentro ai gruppi per cliente per sapere quali sono già stati accettati.
+  // (Sostituita dalla divisione Bozze / Inviati: i firmati stanno tra gli inviati con il loro badge.)
   const firmatiWrap = document.getElementById('e2SalvatiFirmatiWrap');
-  if(firmatiWrap){
-    const firmati = savedQuotes.filter(q => q.client && q.client.firma && q.client.firma.firmato)
-      .sort((a,b) => new Date(b.client.firma.firmatoAt||0) - new Date(a.client.firma.firmatoAt||0));
-    if(firmati.length){
-      firmatiWrap.style.display = 'block';
-      document.getElementById('e2SalvatiFirmatiCount').textContent = firmati.length;
-      document.getElementById('e2SalvatiFirmatiList').innerHTML = firmati.map(savedQuoteRowHtml).join('');
-    } else {
-      firmatiWrap.style.display = 'none';
-    }
-  }
+  if(firmatiWrap) firmatiWrap.style.display = 'none';
 
   if(flatTarget.list){
     if(!savedQuotes.length){
@@ -2805,40 +3032,56 @@ function renderSavedQuotesListCore(){
       groupedTarget.list.innerHTML = '';
       if(groupedTarget.empty) groupedTarget.empty.style.display = 'block';
     } else {
-      // Raggruppa per nome cliente (testuale: non esiste un id rubrica collegato al preventivo).
-      const groups = [];
-      const groupByName = new Map();
-      savedQuotes.forEach(q=>{
-        const nome = ((q.client && q.client.cliente) || '').trim() || 'Cliente non specificato';
-        const keyName = nome.toLowerCase();
-        let group = groupByName.get(keyName);
-        if(!group){
-          group = { nome, quotes: [] };
-          groupByName.set(keyName, group);
-          groups.push(group);
-        }
-        group.quotes.push(q);
-      });
-      // Ordina i gruppi mettendo prima quelli con il preventivo più recente.
-      groups.sort((a,b)=>{
-        const aLatest = a.quotes[0] ? a.quotes[0].savedAt : '';
-        const bLatest = b.quotes[0] ? b.quotes[0].savedAt : '';
-        return new Date(bLatest) - new Date(aLatest);
-      });
-      groupedTarget.list.innerHTML = groups.map(g=>{
-        const vinti = g.quotes.filter(q=>q.vinto).length;
-        const validi = g.quotes.filter(q=>q.valido !== false).length;
-        const validiLabel = validi < g.quotes.length ? ` · ${validi} valid${validi===1?'o':'i'} per il totale` : '';
-        const countLabel = `${g.quotes.length} preventiv${g.quotes.length===1?'o':'i'}${validiLabel}${vinti ? ` · 🏆 ${vinti} vint${vinti===1?'o':'i'}` : ''}`;
-        return `
-          <div style="margin-bottom:20px;">
-            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:2px solid var(--border); margin-bottom:4px;">
+      // Due sezioni distinte: bozze (salvati ma mai inviati) e inviati. Dentro ciascuna, raggruppati
+      // per nome cliente (testuale: non esiste un id rubrica collegato al preventivo).
+      function groupsHtml(quotes){
+        const groups = [];
+        const groupByName = new Map();
+        quotes.forEach(q=>{
+          const nome = ((q.client && q.client.cliente) || '').trim() || 'Cliente non specificato';
+          const keyName = nome.toLowerCase();
+          let group = groupByName.get(keyName);
+          if(!group){
+            group = { nome, quotes: [] };
+            groupByName.set(keyName, group);
+            groups.push(group);
+          }
+          group.quotes.push(q);
+        });
+        groups.sort((a,b)=>{
+          const aLatest = a.quotes[0] ? a.quotes[0].savedAt : '';
+          const bLatest = b.quotes[0] ? b.quotes[0].savedAt : '';
+          return new Date(bLatest) - new Date(aLatest);
+        });
+        return groups.map(g=>{
+          const vinti = g.quotes.filter(q=>q.vinto).length;
+          const countLabel = `${g.quotes.length} preventiv${g.quotes.length===1?'o':'i'}${vinti ? ` · 🏆 ${vinti} vint${vinti===1?'o':'i'}` : ''}`;
+          return `
+          <div style="margin-bottom:16px;">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); margin-bottom:2px;">
               <div style="font-weight:700; font-size:13.5px;">${escapeHtml(g.nome)}</div>
               <div style="font-size:11.5px; color:var(--ink-faint);">${countLabel}</div>
             </div>
-            ${g.quotes.map(savedQuoteRowHtml).join('')}
+            ${g.quotes.map(savedQuoteCompactRowHtml).join('')}
           </div>`;
-      }).join('');
+        }).join('');
+      }
+      const bozze = savedQuotes.filter(q=>!quoteIsSent(q));
+      const inviati = savedQuotes.filter(q=>quoteIsSent(q));
+      function sectionHtml(title, hint, quotes, accent){
+        return `
+        <div style="margin-bottom:28px;">
+          <div style="display:flex; align-items:center; gap:8px; padding-bottom:8px; border-bottom:2px solid ${accent}; margin-bottom:10px;">
+            <div style="font-weight:700; font-size:14.5px;">${title}</div>
+            <span style="font-size:11px; font-weight:700; color:${accent}; padding:2px 9px; border-radius:999px; border:1px solid ${accent};">${quotes.length}</span>
+            <div style="font-size:11.5px; color:var(--ink-faint); margin-left:4px;">${hint}</div>
+          </div>
+          ${quotes.length ? groupsHtml(quotes) : '<div style="font-size:12.5px; color:var(--ink-faint); padding:6px 0 2px;">Nessun preventivo in questa sezione.</div>'}
+        </div>`;
+      }
+      groupedTarget.list.innerHTML =
+        sectionHtml('📝 Bozze', 'salvati, non ancora inviati al cliente', bozze, '#92700C') +
+        sectionHtml('📧 Inviati', 'già mandati al cliente', inviati, '#0F766E');
       if(groupedTarget.empty) groupedTarget.empty.style.display = 'none';
     }
   }
@@ -2849,7 +3092,16 @@ function handleSavedQuotesListClick(e){
   const delId = e.target.getAttribute('data-delete-quote');
   const vintoId = e.target.getAttribute('data-toggle-vinto');
   const validoId = e.target.getAttribute('data-toggle-valido');
-  if(openId) loadQuoteById(openId);
+  const schedaEl = e.target.closest ? e.target.closest('[data-open-scheda]') : null;
+  const schedaId = schedaEl ? schedaEl.getAttribute('data-open-scheda') : null;
+  const editId = e.target.getAttribute('data-edit-quote');
+  const esitoBtn = e.target.closest ? e.target.closest('[data-set-esito]') : null;
+  const live = FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled;
+  if(editId){ editQuoteById(editId); return; }
+  if(esitoBtn && quoteSchedaCurrentId){ setQuoteEsito(quoteSchedaCurrentId, esitoBtn.getAttribute('data-set-esito')); return; }
+  // In Estimly 2.0 "Apri" mostra la scheda definitiva (con tasto Modifica), non il form di un nuovo preventivo.
+  if(schedaId){ openQuoteScheda(schedaId); return; }
+  if(openId){ if(live) openQuoteScheda(openId); else loadQuoteById(openId); }
   if(delId) deleteQuoteById(delId);
   if(vintoId) toggleQuoteVinto(vintoId);
   if(validoId) toggleQuoteValido(validoId);
@@ -2879,6 +3131,11 @@ async function toggleQuoteValido(id){
 async function toggleQuoteVinto(id){
   const q = savedQuotes.find(x=>x.id===id);
   if(!q) return;
+  if(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled){
+    // Estimly 2.0: "vinto" è l'esito "Accettato" (vedi scheda preventivo).
+    await setQuoteEsito(id, q.vinto ? '' : 'accettato');
+    return;
+  }
   q.vinto = !q.vinto;
   await persistSavedQuotesLocal();
   renderSavedQuotesList();
@@ -2901,6 +3158,28 @@ async function toggleQuoteVinto(id){
 // link cliente da includere nel messaggio.
 async function persistCurrentQuoteEntry(){
   const state = currentQuoteState();
+  // Modifica di un preventivo già salvato: aggiorna quello esistente invece di crearne uno nuovo
+  // (si conserva firma, esito, validità e il resto dei dati lato server).
+  const existing = editingQuoteId ? savedQuotes.find(x=>x.id===editingQuoteId) : null;
+  if(existing){
+    existing.cart = state.cart;
+    existing.idCounter = state.idCounter;
+    existing.client = { ...(existing.client||{}), ...state.client };
+    existing.modificatoAt = new Date().toISOString();
+    await persistSavedQuotesLocal();
+    const key = getLicenseKey();
+    if(key){
+      try{
+        await fetch('/.netlify/functions/sync-data', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ key, action:'updateQuote', id: existing.id, patch:{ cart: existing.cart, idCounter: existing.idCounter, client: existing.client, modificatoAt: existing.modificatoAt } })
+        });
+      }catch(err){ console.error('Impossibile aggiornare il preventivo nel cloud', err); }
+    }
+    renderSavedQuotesList();
+    await ensureClientForQuote(state.client);
+    return existing;
+  }
   let entry = {
     id: 'q_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8),
     savedAt: new Date().toISOString(),
@@ -2936,7 +3215,14 @@ async function persistCurrentQuoteEntry(){
 }
 
 async function saveCurrentQuote(){
-  await persistCurrentQuoteEntry();
+  const wasEditing = editingQuoteId;
+  const entry = await persistCurrentQuoteEntry();
+  if(wasEditing && entry && FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled){
+    // Dopo la modifica si torna alla scheda aggiornata.
+    editingQuoteId = null; updateEditingQuoteBar();
+    openQuoteScheda(entry.id);
+    return;
+  }
   alert('Preventivo salvato nell\'elenco.');
 }
 
@@ -2944,6 +3230,7 @@ function loadQuoteById(id){
   const q = savedQuotes.find(x=>x.id===id);
   if(!q) return;
   pendingQuoteLeadId = null;
+  editingQuoteId = null; updateEditingQuoteBar();
   cart = q.cart || [];
   idCounter = q.idCounter || (cart.length+1);
   const c = q.client || {};
@@ -2984,7 +3271,9 @@ function loadQuoteById(id){
 async function deleteQuoteById(id){
   if(!confirm('Eliminare questo preventivo salvato?')) return;
   savedQuotes = savedQuotes.filter(q=>q.id!==id);
+  if(editingQuoteId === id){ editingQuoteId = null; updateEditingQuoteBar(); }
   await persistSavedQuotesLocal();
+  if(quoteSchedaCurrentId === id) closeQuoteScheda();
   renderSavedQuotesList();
   const key = getLicenseKey();
   if(key){
@@ -3847,7 +4136,8 @@ const FOLLOWUP_EVENT_LABELS = {
   accettato: '🟢 Segnato come accettato',
   rifiutato: 'Segnato come rifiutato',
   non_interessato: 'Segnato come non interessato',
-  disattivato: 'Follow-up disattivato manualmente'
+  disattivato: 'Follow-up disattivato manualmente',
+  riaperto: '↩ Riportato in "da seguire"'
 };
 
 async function loadFollowupsCloud(){
@@ -3864,6 +4154,8 @@ async function loadFollowupsCloud(){
     if(data && Array.isArray(data.followups)){
       followupsList = data.followups;
       renderFollowupSection();
+      // L'elenco dei preventivi distingue bozze/inviati in base ai follow-up: va riallineato.
+      if(typeof renderSavedQuotesList === 'function') renderSavedQuotesList();
       if(typeof renderLeadPresentation === 'function') renderLeadPresentation();
     }
   }catch(err){ console.error('Impossibile caricare i follow-up', err); }
@@ -4183,6 +4475,18 @@ function renderFollowupsPanel(){
         <div style="font-size:11.5px; color:var(--ink-soft);">${f.kind==='presentazione' ? 'Presentazione' : 'Preventivo ' + escapeHtml(f.numero) + (f.totale?(' — '+escapeHtml(f.totale)):'')}</div>
         ${agendaBits.length ? `<div style="font-size:11px; color:var(--ink-faint); margin-top:3px;">${agendaBits.join(' · ')}</div>` : ''}
         <div style="font-size:11.5px; color:var(--ink-soft); margin-top:2px;">${hint}</div>
+        <div style="display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap;">
+          <select data-fu-status="${f.id}" style="font-size:12px; padding:5px 8px; border:1px solid var(--border); border-radius:8px; background:var(--surface, #fff);" title="Cambia lo stato di questo follow-up">
+            <option value="">Cambia stato…</option>
+            ${f.active ? '' : '<option value="__reopen">↩ Riporta in "da seguire"</option>'}
+            <option value="risposto">💬 Il cliente ha risposto</option>
+            <option value="accettato">🟢 Accettato</option>
+            <option value="rifiutato">⚫ Rifiutato / perso</option>
+            <option value="non_interessato">⚫ Non interessato</option>
+            ${f.active ? '<option value="disattivato">⏸ Ferma i promemoria</option>' : ''}
+          </select>
+          <button type="button" data-fu-delete="${f.id}" class="btn-cancel" style="padding:5px 10px; font-size:12px; color:var(--danger);" title="Elimina questo follow-up (es. email inviata per sbaglio)">🗑 Elimina</button>
+        </div>
       </div>`;
   }
 
@@ -4201,6 +4505,64 @@ function renderFollowupsPanel(){
   }
   bodies.forEach(b => b.innerHTML = html);
 }
+
+async function followupApi(payload){
+  const key = getLicenseKey();
+  const res = await fetch('/.netlify/functions/followups', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ key, ...payload })
+  });
+  return res.json();
+}
+
+// Cambia stato a un follow-up dalla lista "Da seguire". Accettato/rifiutato aggiornano anche l'esito
+// del preventivo collegato, così le due viste restano coerenti.
+async function changeFollowupStatusFromList(followupId, value){
+  const f = followupsList.find(x=>x.id===followupId);
+  if(!f || !value) return;
+  try{
+    if(value === '__reopen'){
+      await followupApi({ action:'reopen', followupId });
+    } else {
+      await followupApi({ action:'updateStatus', followupId, newStatus:value });
+      if(f.kind !== 'presentazione' && (value==='accettato' || value==='rifiutato' || value==='non_interessato')){
+        const q = savedQuotes.find(x=>x.client && x.client.numero===f.quoteRef);
+        if(q) await setQuoteEsito(q.id, value==='accettato' ? 'accettato' : 'perso', { skipFollowup:true });
+      }
+    }
+    await loadFollowupsCloud();
+    renderFollowupsPanel();
+    if(document.getElementById('e2StatTotal')) renderDashboard();
+  }catch(err){ alert('Impossibile aggiornare il follow-up.'); }
+}
+
+async function deleteFollowupFromList(followupId){
+  const f = followupsList.find(x=>x.id===followupId);
+  if(!f) return;
+  const what = f.kind==='presentazione' ? 'la presentazione' : `il preventivo ${f.numero||''}`;
+  if(!confirm(`Eliminare il follow-up di ${f.clienteNome||'questo cliente'} (${what})?\n\nI promemoria automatici si fermano e sparisce dalla lista. L'email già inviata non si può richiamare. Il preventivo resta salvato.`)) return;
+  try{
+    const data = await followupApi({ action:'delete', followupId });
+    if(data && data.ok){
+      await loadFollowupsCloud();
+      renderFollowupsPanel();
+      if(document.getElementById('e2StatTotal')) renderDashboard();
+    } else alert('Impossibile eliminare il follow-up.');
+  }catch(err){ alert('Errore di connessione.'); }
+}
+
+['followupsPanelBody','e2SeguireBody'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('change', e=>{
+    const sel = e.target.closest ? e.target.closest('[data-fu-status]') : null;
+    if(sel && sel.value){ changeFollowupStatusFromList(sel.getAttribute('data-fu-status'), sel.value); }
+  });
+  el.addEventListener('click', e=>{
+    const del = e.target.closest ? e.target.closest('[data-fu-delete]') : null;
+    if(del) deleteFollowupFromList(del.getAttribute('data-fu-delete'));
+  });
+});
 
 document.getElementById('followupsPanelBtn').addEventListener('click', async ()=>{
   await loadFollowupsCloud();
@@ -4555,6 +4917,7 @@ async function deleteLeadEntry(leadId){
 function resetQuoteFormFields(){
   cart = [];
   pendingQuoteLeadId = null;
+  editingQuoteId = null; updateEditingQuoteBar();
   document.getElementById('fCliente').value = '';
   document.getElementById('fClienteEmail').value = '';
   document.getElementById('fTipoCliente').value = 'Privato';
@@ -5113,6 +5476,8 @@ document.getElementById('clientSchedaQuotes').addEventListener('click', handleSa
 let e2CurrentPage = 'dashboard';
 function switchEstimly2Page(pageId){
   e2CurrentPage = pageId;
+  // Uscendo da "Preventivi salvati" la scheda si chiude: tornandoci dal menu si vede l'elenco.
+  if(pageId !== 'salvati' && typeof quoteSchedaCurrentId !== 'undefined' && quoteSchedaCurrentId) closeQuoteScheda();
   document.querySelectorAll('.e2-nav-item[data-e2-page]').forEach(btn=>{
     btn.classList.toggle('active', btn.getAttribute('data-e2-page') === pageId);
   });
@@ -6445,6 +6810,7 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
   if(!confirm('Vuoi svuotare il preventivo corrente e iniziarne uno nuovo?')) return;
   cart = [];
   pendingQuoteLeadId = null;
+  editingQuoteId = null; updateEditingQuoteBar();
   document.getElementById('fCliente').value='';
   document.getElementById('fClienteEmail').value='';
   document.getElementById('fTipoCliente').value='Privato';
@@ -6808,6 +7174,14 @@ document.getElementById('savedQuotesModal').addEventListener('click', (e)=>{
 document.getElementById('savedQuotesList').addEventListener('click', handleSavedQuotesListClick);
 document.getElementById('e2SalvatiList').addEventListener('click', handleSavedQuotesListClick);
 document.getElementById('e2SalvatiFirmatiList').addEventListener('click', handleSavedQuotesListClick);
+document.getElementById('quoteSchedaBody').addEventListener('click', handleSavedQuotesListClick);
+document.getElementById('quoteSchedaBackBtn').addEventListener('click', closeQuoteScheda);
+document.getElementById('editingQuoteBackBtn').addEventListener('click', ()=>{
+  const id = editingQuoteId;
+  editingQuoteId = null; updateEditingQuoteBar();
+  if(id) openQuoteScheda(id);
+});
+document.getElementById('editingQuoteExitBtn').addEventListener('click', ()=>{ editingQuoteId = null; updateEditingQuoteBar(); });
 
 /* ===================== Rubrica clienti: bind UI ===================== */
 document.getElementById('selectClientBtn').addEventListener('click', openClientPickerModal);
@@ -7957,6 +8331,8 @@ if('serviceWorker' in navigator){
     if(list3) list3.addEventListener('click', estimly3HandleCloseQuoteClick);
     const list4 = document.getElementById('clientSchedaQuotes');
     if(list4) list4.addEventListener('click', estimly3HandleCloseQuoteClick);
+    const list5 = document.getElementById('quoteSchedaBody');
+    if(list5) list5.addEventListener('click', estimly3HandleCloseQuoteClick);
 
     estimlyUpdateHoursAlert();
     estimlyHandleStripeReturnUrl();

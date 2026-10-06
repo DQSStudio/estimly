@@ -232,5 +232,37 @@ export default async (req) => {
     return new Response(JSON.stringify({ ok: true, followup: entry }), { status: 200 });
   }
 
+  // Elimina il follow-up (es. email inviata per sbaglio): spariscono dalla lista e i promemoria
+  // automatici si fermano. L'email già partita ovviamente non si può richiamare.
+  if (body.action === 'delete') {
+    const { followupId } = body;
+    if (!followupId) {
+      return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+    }
+    const fresh = (await followupsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
+    const filtered = fresh.filter(x => x.id !== followupId);
+    if (filtered.length === fresh.length) {
+      return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+    }
+    await followupsStore.setJSON(key, filtered);
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  }
+
+  // Riporta un follow-up concluso (accettato/rifiutato/disattivato...) in "da seguire".
+  if (body.action === 'reopen') {
+    const { followupId } = body;
+    const fresh = (await followupsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
+    const entry = fresh.find(x => x.id === followupId);
+    if (!entry) {
+      return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+    }
+    entry.active = true;
+    if (entry.status === 'convertito') entry.status = 'freddo';
+    entry.events = entry.events || [];
+    entry.events.push({ type: 'riaperto', at: new Date().toISOString() });
+    await followupsStore.setJSON(key, fresh);
+    return new Response(JSON.stringify({ ok: true, followup: entry }), { status: 200 });
+  }
+
   return new Response(JSON.stringify({ error: 'unknown_action' }), { status: 400 });
 };
