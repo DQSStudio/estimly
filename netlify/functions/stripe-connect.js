@@ -345,6 +345,48 @@ async function confirmPayment(licenses, dataStore, body){
   return { ok: true, pagamenti: (updatedQuote && updatedQuote.client && updatedQuote.client.pagamenti) || pagamenti, confirmed: true };
 }
 
+// Riallinea i pagamenti di un preventivo con Stripe: controlla le sessioni di checkout recenti dell'account
+// collegato e segna come "pagato" le richieste che risultano incassate. Serve quando il cliente ha pagato ma
+// non è tornato sulla pagina (chiude il browser) o quando il webhook non è (ancora) configurato.
+async function refreshPayments(licenses, dataStore, body){
+  const key = (body.key || '').trim().toUpperCase();
+  const quoteId = body.quoteId;
+  if(!key || !quoteId) return { error: 'missing_fields' };
+
+  const check = await requireEstimly2(licenses, key);
+  if(check.error) return check;
+
+  const record = await loadStudioRecord(dataStore, key);
+  const savedQuotes = (record && Array.isArray(record.savedQuotes)) ? record.savedQuotes : [];
+  const quote = savedQuotes.find(q => q.id === quoteId);
+  if(!quote) return { error: 'not_found' };
+
+  const pagamenti = Array.isArray(quote.client && quote.client.pagamenti) ? quote.client.pagamenti : [];
+  const pending = pagamenti.filter(p => p.stato !== 'pagato');
+  const accountId = record && record.studioSettings && record.studioSettings.stripeAccountId;
+  if(!pending.length || !accountId) return { ok: true, pagamenti, updated: 0 };
+
+  let sessions;
+  try{
+    const list = await stripeRequest('GET', '/checkout/sessions', { limit: 100 }, { account: accountId });
+    sessions = Array.isArray(list.data) ? list.data : [];
+  }catch(err){
+    return { error: 'stripe_error', message: err.message };
+  }
+
+  let updated = 0;
+  for(const p of pending){
+    const paid = sessions.find(sess => sess.metadata && sess.metadata.paymentId === p.id && sess.payment_status === 'paid');
+    if(paid){
+      const r = await markPaymentPaid(dataStore, key, quoteId, p.id, licenses);
+      if(r && r.ok && !r.alreadyPaid) updated++;
+    }
+  }
+  const fresh = await loadStudioRecord(dataStore, key);
+  const q2 = ((fresh && fresh.savedQuotes) || []).find(q => q.id === quoteId);
+  return { ok: true, pagamenti: (q2 && q2.client && q2.client.pagamenti) || pagamenti, updated };
+}
+
 async function connectDisconnect(licenses, dataStore, body){
   const key = (body.key || '').trim().toUpperCase();
   if(!key) return { error: 'missing_fields' };
@@ -390,6 +432,10 @@ export default async (req) => {
     }
     if(body.mode === 'add-payment-request'){
       const result = await addPaymentRequest(licenses, dataStore, body);
+      return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
+    }
+    if(body.mode === 'refresh-payments'){
+      const result = await refreshPayments(licenses, dataStore, body);
       return new Response(JSON.stringify(result), { status: result.error ? 400 : 200 });
     }
     if(body.mode === 'remove-payment-request'){

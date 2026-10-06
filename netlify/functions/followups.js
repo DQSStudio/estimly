@@ -214,6 +214,42 @@ export default async (req) => {
     return new Response(JSON.stringify({ ok: true, followup: entry }), { status: 200 });
   }
 
+  // Email "di servizio" legata a un preventivo (es. riepilogo pagamenti con il pulsante per pagare):
+  // parte dall'account Resend dello studio ma non crea né modifica il follow-up automatico.
+  if (body.action === 'sendNotice') {
+    const { to, subject, html } = body;
+    if (!to || !subject || !html) {
+      return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+    }
+    const dataStore = getStore('studio-data');
+    const studioData = await dataStore.get(key, { type: 'json' });
+    const settings = (studioData && studioData.studioSettings) || {};
+    const resendKey = settings.resendApiKey;
+    const fromEmail = settings.resendFromEmail;
+    const fromName = settings.resendFromName || settings.nome || 'Studio';
+    if (!resendKey || !fromEmail) {
+      return new Response(JSON.stringify({ error: 'email_not_configured' }), { status: 400 });
+    }
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendKey}` },
+        body: JSON.stringify({
+          from: `${fromName} <${fromEmail}>`,
+          to, subject, html,
+          tags: [{ name: 'license_key', value: key.toLowerCase() }, { name: 'kind', value: 'notice' }]
+        })
+      });
+      if (!res.ok) {
+        const detail = await res.text();
+        return new Response(JSON.stringify({ error: 'send_failed', detail }), { status: 502 });
+      }
+    } catch (e) {
+      return new Response(JSON.stringify({ error: 'send_failed', detail: String(e) }), { status: 502 });
+    }
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  }
+
   if (body.action === 'updateStatus') {
     const { followupId, newStatus } = body;
     const entry = list.find(x => x.id === followupId);

@@ -2154,6 +2154,7 @@ header.top{
         <div class="field"><label>Importo (€)</label><input id="paymentNewAmount" type="number" min="1" step="0.01" placeholder="Es. 2000"></div>
       </div>
       <button type="button" id="paymentsAddBtn" class="btn-cancel" style="padding:8px 16px; margin-top:8px;">+ Crea richiesta di pagamento</button>
+      <button type="button" id="paymentsSendEmailBtn" class="btn-save" style="padding:8px 16px; margin-top:8px; margin-left:6px;" title="Invia al cliente il riepilogo delle tranche con il pulsante per pagare">📧 Invia email pagamenti</button>
       <div id="paymentsErrorBox" style="margin-top:10px;"></div>
     </div>
     <div class="modal-actions">
@@ -2812,6 +2813,7 @@ function openQuoteScheda(id){
   document.getElementById('quoteSchedaView').style.display = 'block';
   renderQuoteScheda();
   window.scrollTo({ top:0 });
+  if(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) refreshQuotePayments(id);
 }
 function closeQuoteScheda(){
   quoteSchedaCurrentId = null;
@@ -2885,7 +2887,12 @@ function renderQuoteScheda(){
           : '<span style="font-size:10.5px; font-weight:700; color:#946200; background:#FFF4E0; padding:3px 9px; border-radius:999px;">' + (firmato ? 'In attesa di pagamento' : 'Pagabile dopo la firma') + '</span>'}
       </div>`).join('') + (pagatoCent ? `<div style="font-size:12px; color:var(--ink-soft); margin-top:6px;">Incassato finora: <b>€ ${fmt(pagatoCent/100)}</b></div>` : '')
       : '<div style="font-size:12.5px; color:var(--ink-faint);">Nessun pagamento impostato. Crea un piano (es. acconto 30% + saldo 70%): comparirà nell\'email e nella pagina del cliente.</div>'}
-    <div style="margin-top:10px;">${btn('data-payments', pagamenti.length ? 'Gestisci pagamenti' : '+ Imposta pagamenti')}</div>`;
+    <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      ${btn('data-payments', pagamenti.length ? 'Gestisci pagamenti' : '+ Imposta pagamenti')}
+      ${pagamenti.length ? btn('data-send-payments', '📧 Invia email pagamenti') : ''}
+      ${pagamenti.length ? btn('data-refresh-payments', '↻ Aggiorna da Stripe') : ''}
+      ${q.pagamentiEmailAt ? `<span style="font-size:11px; color:var(--ink-faint);">Ultima email: ${formatEventDate(q.pagamentiEmailAt)}</span>` : ''}
+    </div>`;
   body.innerHTML = `
     ${banner}
     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:6px;">
@@ -3146,6 +3153,10 @@ function handleSavedQuotesListClick(e){
   const editId = e.target.getAttribute('data-edit-quote');
   const esitoBtn = e.target.closest ? e.target.closest('[data-set-esito]') : null;
   const live = FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled;
+  const sendPayId = e.target.getAttribute && e.target.getAttribute('data-send-payments');
+  const refreshPayId = e.target.getAttribute && e.target.getAttribute('data-refresh-payments');
+  if(sendPayId){ sendPaymentsEmail(sendPayId, e.target); return; }
+  if(refreshPayId){ (async()=>{ e.target.disabled = true; const changed = await refreshQuotePayments(refreshPayId); renderSavedQuotesList(); e.target.disabled = false; if(!changed) alert('Pagamenti già aggiornati: nessuna novità da Stripe.'); })(); return; }
   if(e.target.closest && e.target.closest('[data-pay-connect]')){ if(window.estimlyStripeConnectClick) window.estimlyStripeConnectClick(); return; }
   if(editId){ editQuoteById(editId); return; }
   if(esitoBtn && quoteSchedaCurrentId){ setQuoteEsito(quoteSchedaCurrentId, esitoBtn.getAttribute('data-set-esito')); return; }
@@ -4363,6 +4374,135 @@ function buildQuoteEmailHtml(clientLinkUrl, pagamenti){
     ${ctaHtml}
     <p style="font-size:13px; line-height:1.6; color:#555; margin-top:22px;">Resto a disposizione per qualsiasi chiarimento.<br>Cordiali saluti,<br><b>${escapeHtml(s.nome||'Studio')}</b></p>
   </div>`;
+}
+
+// ---------- Pagamenti di un preventivo: riepilogo via email e riallineamento con Stripe ----------
+// Email con l'elenco delle tranche (pagate e da pagare) e il pulsante per aprire la pagina del cliente: il
+// pulsante porta sempre allo stato aggiornato, quindi il cliente può riaprire la stessa email ogni volta che
+// deve pagare una nuova tranche.
+function buildPaymentsEmailHtml(q, linkUrl){
+  const s = studioSettings;
+  const c = q.client || {};
+  const accent = s.colorPrimary || '#4338CA';
+  const pagamenti = Array.isArray(c.pagamenti) ? c.pagamenti : [];
+  const firmato = !!(c.firma && c.firma.firmato);
+  const pagato = pagamenti.filter(p=>p.stato==='pagato').reduce((t,p)=>t+(p.importoCent||0),0);
+  const residuo = pagamenti.filter(p=>p.stato!=='pagato').reduce((t,p)=>t+(p.importoCent||0),0);
+  const studioBits = [s.indirizzo, s.piva?('P.IVA '+s.piva):'', s.telefono, s.email].filter(Boolean).map(escapeHtml).join(' &middot; ');
+  const rows = pagamenti.map(p => {
+    const ok = p.stato === 'pagato';
+    return `<tr>
+      <td style="padding:9px 0; border-bottom:1px solid #EEE;">${escapeHtml(p.label)}</td>
+      <td style="padding:9px 0; border-bottom:1px solid #EEE; text-align:right; white-space:nowrap;"><b>&euro; ${fmt((p.importoCent||0)/100)}</b></td>
+      <td style="padding:9px 0 9px 14px; border-bottom:1px solid #EEE; text-align:right; white-space:nowrap; font-size:12px; font-weight:700; color:${ok?'#0F8A5F':'#946200'};">${ok ? '&#10003; Pagato' : 'Da pagare'}</td>
+    </tr>`;
+  }).join('');
+  const ctaLabel = !firmato ? 'Visualizza e firma il preventivo &rarr;' : (residuo > 0 ? 'Vai ai pagamenti &rarr;' : 'Vedi lo stato dei pagamenti &rarr;');
+  return `
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; max-width:640px; margin:0 auto; color:#222;">
+    <div style="height:5px; background:${accent}; border-radius:3px; margin-bottom:16px;"></div>
+    <table role="presentation" width="100%" style="border-collapse:collapse; margin-bottom:14px;"><tr>
+      <td style="vertical-align:top;">
+        ${s.logo ? `<img src="${s.logo}" alt="" style="max-height:44px; max-width:170px; display:block; margin-bottom:6px;">` : ''}
+        <div style="font-weight:700; font-size:16px; color:#111;">${escapeHtml(s.nome||'Studio')}</div>
+        ${studioBits ? `<div style="font-size:11px; color:#666; margin-top:2px; max-width:320px;">${studioBits}</div>` : ''}
+      </td>
+      <td style="vertical-align:top; text-align:right;">
+        <div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:${accent}; margin-bottom:5px;">Pagamenti</div>
+        <div style="font-size:12px; color:#888;">Preventivo N. <b style="color:#111;">${escapeHtml(c.numero||'—')}</b></div>
+      </td>
+    </tr></table>
+    <p style="font-size:14px; line-height:1.6;">Gentile ${escapeHtml(c.cliente||'cliente')},</p>
+    <p style="font-size:14px; line-height:1.6;">ecco il riepilogo dei pagamenti${c.progetto?` per "${escapeHtml(c.progetto)}"`:''}. Dal pulsante qui sotto può vedere in ogni momento le tranche già saldate e quelle ancora da pagare, e pagare online con carta in modo sicuro.</p>
+    <table role="presentation" width="100%" style="border-collapse:collapse; font-size:13px; margin:14px 0 6px;">${rows}</table>
+    <div style="font-size:12.5px; color:#555; margin-top:8px; line-height:1.6;">
+      ${pagato ? `Già pagato: <b>&euro; ${fmt(pagato/100)}</b><br>` : ''}${residuo ? `Ancora da pagare: <b>&euro; ${fmt(residuo/100)}</b>` : '<b style="color:#0F8A5F;">Tutte le tranche risultano saldate. Grazie!</b>'}
+    </div>
+    <div style="text-align:center; margin:26px 0;">
+      <a href="${linkUrl}" style="display:inline-block; background:${accent}; color:#fff; text-decoration:none; padding:12px 28px; border-radius:6px; font-weight:600; font-size:14px;">${ctaLabel}</a>
+    </div>
+    <p style="font-size:12px; line-height:1.6; color:#777;">Può riaprire questa email in qualsiasi momento: il pulsante mostra sempre lo stato aggiornato dei pagamenti.</p>
+    <p style="font-size:13px; line-height:1.6; color:#555; margin-top:18px;">Cordiali saluti,<br><b>${escapeHtml(s.nome||'Studio')}</b></p>
+  </div>`;
+}
+
+async function sendPaymentsEmail(quoteId, btn){
+  const q = savedQuotes.find(x=>x.id===quoteId);
+  const key = getLicenseKey();
+  if(!q || !key) return;
+  const c = q.client || {};
+  if(!c.clienteEmail){ alert('Questo preventivo non ha l\'email del cliente: aggiungila con "Modifica" e riprova.'); return; }
+  if(!Array.isArray(c.pagamenti) || !c.pagamenti.length){ alert('Imposta prima almeno una richiesta di pagamento.'); return; }
+  if(!studioSettings.resendApiKey || !studioSettings.resendFromEmail){
+    alert('Prima collega un account Resend in Impostazioni Studio → Follow-up automatico.');
+    return;
+  }
+  if(!confirm(`Inviare a ${c.clienteEmail} l'email con il riepilogo dei pagamenti del preventivo ${c.numero||''}?`)) return;
+  const original = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Invio…'; }
+  try{
+    // Allinea prima lo stato dei pagamenti con Stripe, così l'email non mostra "da pagare" una tranche già incassata.
+    await refreshQuotePayments(quoteId, { silent:true });
+    const fresh = savedQuotes.find(x=>x.id===quoteId) || q;
+    const linkRes = await fetch('/.netlify/functions/public-quote', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mode:'create-link', key, quoteId })
+    });
+    const linkData = await linkRes.json();
+    if(!linkData || !linkData.token){ alert('Non sono riuscito a generare il link del cliente. Riprova tra poco.'); return; }
+    const linkUrl = `${window.location.origin}/preventivo.html?t=${linkData.token}`;
+    const res = await fetch('/.netlify/functions/followups', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, action:'sendNotice', to: c.clienteEmail,
+        subject: `Pagamenti — Preventivo n. ${c.numero||''}${c.progetto ? ' — ' + c.progetto : ''}`,
+        html: buildPaymentsEmailHtml(fresh, linkUrl) })
+    });
+    const data = await res.json();
+    if(data && data.ok){
+      const at = new Date().toISOString();
+      fresh.pagamentiEmailAt = at;
+      persistSavedQuotesLocal();
+      try{
+        await fetch('/.netlify/functions/sync-data', { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ key, action:'updateQuote', id: quoteId, patch:{ pagamentiEmailAt: at } }) });
+      }catch(e){}
+      renderSavedQuotesList();
+      alert(`Email pagamenti inviata a ${c.clienteEmail}.`);
+    } else if(data && data.error === 'email_not_configured'){
+      alert('Prima collega un account Resend in Impostazioni Studio → Follow-up automatico.');
+    } else {
+      alert('Impossibile inviare l\'email. Riprova tra poco.' + ((data && data.detail) ? '\n\nDettaglio: ' + data.detail : ''));
+    }
+  }catch(err){
+    console.error('Errore invio email pagamenti', err);
+    alert('Errore di connessione durante l\'invio.');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = original; }
+  }
+}
+
+// Riallinea i pagamenti del preventivo con Stripe (incassi arrivati mentre Estimly era chiuso, webhook non attivo...)
+// e aggiorna la copia locale: senza questo la scheda mostrerebbe lo stato rimasto all'ultimo caricamento.
+async function refreshQuotePayments(quoteId, opts){
+  const key = getLicenseKey();
+  const q = savedQuotes.find(x=>x.id===quoteId);
+  if(!key || !q) return false;
+  try{
+    const res = await fetch('/.netlify/functions/stripe-connect', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mode:'refresh-payments', key, quoteId })
+    });
+    const data = await res.json();
+    if(!data || !Array.isArray(data.pagamenti)) return false;
+    const before = JSON.stringify((q.client && q.client.pagamenti) || []);
+    if(before !== JSON.stringify(data.pagamenti)){
+      q.client = { ...(q.client||{}), pagamenti: data.pagamenti };
+      persistSavedQuotesLocal();
+      if(!opts || !opts.silent){ renderSavedQuotesList(); if(document.getElementById('e2StatTotal')) renderDashboard(); }
+      return true;
+    }
+  }catch(err){ console.error('Impossibile aggiornare i pagamenti', err); }
+  return false;
 }
 
 // Nota: in passato qui c'erano extractPrintDocCss(), findPdfSafeBreakRow(), PDF_MARGIN_MM e
@@ -7259,6 +7399,8 @@ document.getElementById('e2SalvatiList').addEventListener('click', handleSavedQu
 document.getElementById('e2SalvatiFirmatiList').addEventListener('click', handleSavedQuotesListClick);
 document.getElementById('quoteSchedaBody').addEventListener('click', handleSavedQuotesListClick);
 document.getElementById('quoteSchedaBackBtn').addEventListener('click', closeQuoteScheda);
+// Tornando su Estimly con la scheda aperta (es. dopo aver provato un pagamento in un'altra scheda) i pagamenti si riallineano da soli.
+window.addEventListener('focus', ()=>{ if(quoteSchedaCurrentId && FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) refreshQuotePayments(quoteSchedaCurrentId); });
 document.getElementById('editingQuoteBackBtn').addEventListener('click', ()=>{
   const id = editingQuoteId;
   editingQuoteId = null; updateEditingQuoteBar();
@@ -8247,6 +8389,8 @@ if('serviceWorker' in navigator){
     document.getElementById('paymentNewAmount').value = '';
     document.getElementById('paymentsErrorBox').innerHTML = '';
     estimlyRenderPaymentsList();
+    // Allinea con Stripe: eventuali incassi arrivati nel frattempo compaiono subito.
+    refreshQuotePayments(quoteId, { silent:true }).then(ch=>{ if(ch && estimlyPaymentsQuoteId === quoteId){ estimlyRenderPaymentsList(); renderSavedQuotesList(); } });
 
     const warnBox = document.getElementById('paymentsStripeWarning');
     const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
@@ -8454,6 +8598,8 @@ if('serviceWorker' in navigator){
     if(paymentsCancel) paymentsCancel.addEventListener('click', estimlyClosePaymentsModal);
     const paymentsModalEl = document.getElementById('paymentsModal');
     if(paymentsModalEl) paymentsModalEl.addEventListener('click', (e)=>{ if(e.target.id==='paymentsModal') estimlyClosePaymentsModal(); });
+    const paymentsSendBtn = document.getElementById('paymentsSendEmailBtn');
+    if(paymentsSendBtn) paymentsSendBtn.addEventListener('click', ()=>{ if(estimlyPaymentsQuoteId) sendPaymentsEmail(estimlyPaymentsQuoteId, paymentsSendBtn); });
     if(paymentsModalEl) paymentsModalEl.addEventListener('click', (e)=>{
       const t = e.target;
       const preset = t.closest ? t.closest('[data-pay-preset]') : null;
