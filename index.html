@@ -2646,19 +2646,24 @@ body.estimly2-theme .e2d-row .lead-pill, body.estimly2-theme #e2PageDashboard sp
       <button id="unlockEstimly2Close" class="modal-close">&times;</button>
     </div>
     <div class="modal-body">
-      <div style="font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:14px;">
-        Estimly 2.0 aggiunge alla tua licenza: una dashboard con lo storico delle attività, la Rubrica clienti, i follow-up automatici sui preventivi inviati, più spazio per i preventivi salvati e il nuovo Calcolatore lavorazione a ore come pagina dedicata.
+      <div style="font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:12px;">
+        Estimly 2.0 trasforma il preventivatore in un vero gestionale di studio. Oltre a tutto ciò che hai già, aggiunge:
       </div>
-      <div id="unlockEstimly2RequestText" style="font-size:12.5px; color:var(--ink-soft); line-height:1.6;">
-        Per attivarlo sulla tua licenza scrivici indicando il nome del tuo studio: ti risponderemo con i dettagli per l'attivazione.
-      </div>
-      <div id="unlockEstimly2TestNotice" style="font-size:12.5px; color:var(--ink-soft); line-height:1.6; padding:10px 12px; background:var(--surface-alt); border-radius:var(--radius-sm); display:none;">
-        Estimly 2.0 è al momento in fase di test: non è ancora possibile richiederne l'attivazione. Ti faremo sapere non appena sarà disponibile.
+      <ul style="margin:0 0 14px; padding-left:18px; font-size:12.5px; color:var(--ink-soft); line-height:1.7;">
+        <li><b>Dashboard</b> con lo storico delle attività e il progetto su cui stai lavorando di più</li>
+        <li><b>Follow-up automatici</b> sui preventivi inviati: sai se il cliente ha aperto l'email e letto il preventivo</li>
+        <li><b>Richieste e Marketing</b>: i lead che arrivano, da dove e quanti diventano clienti</li>
+        <li><b>Rubrica clienti</b> e <b>Preventivi salvati</b> senza limiti ristretti, con scheda completa del progetto e pagamenti</li>
+        <li><b>Team con ruoli</b> (amministratore, socio, segreteria, marketing, sola lettura), ognuno con il proprio accesso via email e password</li>
+        <li><b>Calcolatore del costo orario</b> e lavorazioni a ore come pagina dedicata</li>
+      </ul>
+      <div style="font-size:12.5px; color:var(--ink-soft); line-height:1.6;">
+        Vuoi saperne di più? Premi il pulsante: si apre un'email già pronta per Desearq Lab con i dati del tuo studio, ti risponderemo con tutti i dettagli.
       </div>
       <div id="unlockEstimly2Error" style="font-size:12px; color:var(--danger); margin-top:10px; display:none;"></div>
     </div>
     <div class="modal-actions">
-      <a id="unlockEstimly2MailBtn" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;" href="#" target="_blank" rel="noopener">Richiedi attivazione via email</a>
+      <a id="unlockEstimly2MailBtn" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;" href="#" target="_blank" rel="noopener">Richiedi maggiori informazioni</a>
       <button id="unlockEstimly2Cancel" class="btn-cancel">Chiudi</button>
     </div>
   </div>
@@ -4386,28 +4391,14 @@ document.querySelectorAll('.ai-improve-btn').forEach(btn=>{
 // dello studio e della licenza, da inviare per attivare manualmente il flag
 // followupEnabled da /admin.html. Sostituisci l'indirizzo sotto con la tua email reale.
 const UNLOCK_ESTIMLY2_EMAIL = 'desearqlab@gmail.com';
-// Estimly 2.0 è ancora in fase di test: metti a true quando vorrai riaprire le
-// richieste di attivazione via email (il pulsante mailto tornerà visibile).
-const ESTIMLY2_UNLOCK_REQUESTABLE = false;
 
 function openUnlockEstimly2Modal(){
   const mailBtn = document.getElementById('unlockEstimly2MailBtn');
-  const requestText = document.getElementById('unlockEstimly2RequestText');
-  const testNotice = document.getElementById('unlockEstimly2TestNotice');
-  if(ESTIMLY2_UNLOCK_REQUESTABLE){
-    const studioNome = (studioSettings && studioSettings.nome) ? studioSettings.nome : 'Studio';
-    const key = getLicenseKey();
-    const subject = `Attivazione Estimly 2.0 — ${studioNome}`;
-    const body = `Ciao,\n\nvorrei attivare Estimly 2.0 sulla mia licenza.\n\nStudio: ${studioNome}\nChiave di licenza: ${key || '(non disponibile)'}\n\nGrazie!`;
-    mailBtn.href = `mailto:${UNLOCK_ESTIMLY2_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    mailBtn.style.display = 'inline-flex';
-    requestText.style.display = 'block';
-    testNotice.style.display = 'none';
-  } else {
-    mailBtn.style.display = 'none';
-    requestText.style.display = 'none';
-    testNotice.style.display = 'block';
-  }
+  const studioNome = (studioSettings && studioSettings.nome) ? studioSettings.nome : 'Studio';
+  const key = getLicenseKey();
+  const subject = `Richiesta informazioni Estimly 2.0 — ${studioNome}`;
+  const body = `Ciao,\n\nvorrei ricevere maggiori informazioni su Estimly 2.0.\n\nStudio: ${studioNome}\nChiave di licenza: ${(key && key.indexOf('SES-') !== 0) ? key : '(non disponibile)'}\n\nGrazie!`;
+  mailBtn.href = `mailto:${UNLOCK_ESTIMLY2_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   document.getElementById('unlockEstimly2Error').style.display = 'none';
   document.getElementById('unlockEstimly2Modal').style.display = 'flex';
 }
