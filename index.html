@@ -1529,6 +1529,8 @@ body.estimly2-theme .e2d-row .lead-pill, body.estimly2-theme #e2PageDashboard sp
 .e2fu-pill.won{ background:color-mix(in srgb, var(--accent,#862D2D) 12%, #fff); color:var(--accent,#862D2D); }
 
 #e2PageStatistiche{padding:36px 40px 48px}
+body.estimly2-theme .ai-improve-btn{ border:none !important; border-radius:999px !important; background:color-mix(in srgb, var(--accent,#862D2D) 10%, #fff) !important; color:var(--accent,#862D2D) !important; font-family:var(--e2-font); font-size:12px !important; font-weight:600 !important; padding:5px 12px !important; }
+body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-font); }
 </style>
 </head>
 <body>
@@ -4072,10 +4074,10 @@ function closeSavedQuotesModal(){
 }
 
 /* ===================== EstimlyAI ===================== */
-/* Interruttore generale: finché non è configurata la chiave API su Netlify, il livello EstimlyAI
-   resta nascosto ovunque, anche per le licenze con aiEnabled=true. Il codice è pronto: basta
-   portare questo a 'true' quando si vuole lanciare davvero la feature. */
-const ESTIMLYAI_FEATURE_LIVE = false;
+/* Interruttore generale: acceso. EstimlyAI è in prova e compare solo per le licenze con
+   aiEnabled attivo da /admin.html (da attivare quando il cliente paga l'extra). Serve la
+   variabile ANTHROPIC_API_KEY su Netlify; il tetto è di 50 utilizzi/mese per licenza. */
+const ESTIMLYAI_FEATURE_LIVE = true;
 
 let estimlyAiEnabled = false;
 let aiUsageInfo = null; // {used, limit}
