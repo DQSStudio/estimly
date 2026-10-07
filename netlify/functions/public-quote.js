@@ -1,3 +1,4 @@
+import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
 import { syncQuoteToDesearqManager } from './desearq-sync.js';
 import { normalizeCanvaUrl } from './canva-url.js';
@@ -453,6 +454,16 @@ export default async (req) => {
     body = await req.json();
   } catch (err) {
     return new Response(JSON.stringify({ error: 'invalid body' }), { status: 400 });
+  }
+
+  // Le modalità usate dall'app dello studio passano dal login (sessione o chiave); le altre arrivano
+  // dal link pubblico del cliente e si autenticano con quel token.
+  const studioMode = body.mode === 'create-link' || body.mode === 'create-presentation-link'
+    || (body.mode === 'download-signed-document' && body.key);
+  if (studioMode) {
+    const auth = await authorize(body, 'public-quote');
+    if (auth.error) return auth.error;
+    body.key = auth.key;
   }
 
   const licenses = getStore('licenses');

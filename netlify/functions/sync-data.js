@@ -1,8 +1,16 @@
 import { getStore } from '@netlify/blobs';
 import { syncQuoteToDesearqManager } from './desearq-sync.js';
+import { authorize, can, brandingOnly, settingsForRole, validPhoto } from './lib/auth.js';
 
 const MAX_SAVED_QUOTES_BASE = 10;
 const MAX_SAVED_QUOTES_ESTIMLY2 = 100;
+
+// Nelle risposte i preventivi non portano mai la foto in linea: solo l'indicazione che esiste.
+function stripPhoto(q) {
+  if (!q || typeof q !== 'object' || !('foto' in q)) return q;
+  const { foto, ...rest } = q;
+  return rest;
+}
 
 export default async (req) => {
   if (req.method !== 'POST') {
@@ -16,16 +24,10 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: 'invalid body' }), { status: 400 });
   }
 
-  const key = (body.key || '').trim().toUpperCase();
-  if (!key) {
-    return new Response(JSON.stringify({ error: 'missing key' }), { status: 400 });
-  }
-
-  const licenses = getStore('licenses');
-  const license = await licenses.get(key, { type: 'json' });
-  if (!license || license.status !== 'active') {
-    return new Response(JSON.stringify({ error: 'invalid license' }), { status: 401 });
-  }
+  // Accesso: sessione (email + password) o, finché lo studio non attiva i login, chiave di licenza.
+  const auth = await authorize(body, 'sync-data');
+  if (auth.error) return auth.error;
+  const { key, license, role } = auth;
 
   const dataStore = getStore('studio-data');
   const maxSavedQuotes = license.followupEnabled ? MAX_SAVED_QUOTES_ESTIMLY2 : MAX_SAVED_QUOTES_BASE;
@@ -35,14 +37,31 @@ export default async (req) => {
     if (!record) {
       return new Response(JSON.stringify({ found: false, savedQuotes: [] }), { status: 200 });
     }
+    // Chi non può vedere i preventivi (es. Marketing) riceve solo l'aspetto dello studio.
+    if (!can(role, 'quotes.read')) {
+      return new Response(JSON.stringify({ found: true, studioSettings: brandingOnly(record.studioSettings), savedQuotes: [], clients: [], catalog: [], categoryOrder: [] }), { status: 200 });
+    }
+    const quotes = Array.isArray(record.savedQuotes) ? record.savedQuotes : [];
     return new Response(JSON.stringify({
       found: true,
       catalog: record.catalog,
-      studioSettings: record.studioSettings,
+      studioSettings: settingsForRole(record.studioSettings, role),
       categoryOrder: record.categoryOrder,
-      savedQuotes: Array.isArray(record.savedQuotes) ? record.savedQuotes : [],
+      savedQuotes: quotes.map(stripPhoto),
       clients: Array.isArray(record.clients) ? record.clients : []
     }), { status: 200 });
+  }
+
+  // Le foto dei progetti stanno in un archivio a parte: si scaricano solo quando servono.
+  if (body.action === 'loadPhotos') {
+    const record = await dataStore.get(key, { type: 'json' });
+    const ids = (record && Array.isArray(record.savedQuotes) ? record.savedQuotes : []).filter((q) => q.fotoRef).map((q) => q.id);
+    const photos = {};
+    await Promise.all(ids.map(async (id) => {
+      const d = await getStore('quote-photos').get(`${key}:${id}`, { type: 'text' });
+      if (d) photos[id] = d;
+    }));
+    return new Response(JSON.stringify({ ok: true, photos }), { status: 200 });
   }
 
   if (body.action === 'save') {
@@ -93,7 +112,7 @@ export default async (req) => {
       updatedAt: new Date().toISOString()
     };
     await dataStore.setJSON(key, record);
-    return new Response(JSON.stringify({ ok: true, savedQuotes: updated }), { status: 200 });
+    return new Response(JSON.stringify({ ok: true, savedQuotes: updated.map(stripPhoto) }), { status: 200 });
   }
 
   if (body.action === 'updateQuote') {
@@ -106,7 +125,29 @@ export default async (req) => {
     if (idx === -1) {
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
     }
-    const patch = (body.patch && typeof body.patch === 'object') ? body.patch : {};
+    let patch = (body.patch && typeof body.patch === 'object') ? { ...body.patch } : {};
+    // Chi può solo intervenire su esito e pagamenti (Segreteria) non modifica il contenuto del preventivo.
+    if (!can(role, 'quotes.update')) {
+      const allowed = ['vinto', 'valido', 'concluso', 'esito', 'esitoAt'];
+      const limited = {};
+      allowed.forEach((k) => { if (k in patch) limited[k] = patch[k]; });
+      if (patch.client && typeof patch.client === 'object' && Array.isArray(patch.client.pagamenti)) {
+        limited.client = { ...(savedQuotes[idx].client || {}), pagamenti: patch.client.pagamenti };
+      }
+      patch = limited;
+    } else if ('foto' in patch) {
+      // foto del progetto: archivio separato, nel preventivo resta solo l'indicazione
+      const photos = getStore('quote-photos');
+      if (patch.foto) {
+        if (!validPhoto(patch.foto)) return new Response(JSON.stringify({ error: 'invalid_photo' }), { status: 400 });
+        await photos.set(`${key}:${body.id}`, patch.foto);
+        patch.fotoRef = true;
+      } else {
+        await photos.delete(`${key}:${body.id}`).catch(() => {});
+        patch.fotoRef = false;
+      }
+      delete patch.foto;
+    }
     // "Vinto" spuntato manualmente dallo studio (casi non passati dalla firma online: accettazione
     // a voce, via email, ecc.) deve comunque far comparire il progetto in Desearq Studio Manager,
     // esattamente come già avviene alla firma del cliente (vedi signPublicQuote in public-quote.js).
@@ -130,6 +171,7 @@ export default async (req) => {
       patch.client = merged;
     }
     savedQuotes[idx] = { ...savedQuotes[idx], ...patch };
+    delete savedQuotes[idx].foto;
     const becameVinto = !wasVinto && savedQuotes[idx].vinto === true;
     const record = {
       catalog: existing.catalog || [],
@@ -143,7 +185,7 @@ export default async (req) => {
     if (becameVinto && license.suiteEnabled) {
       await syncQuoteToDesearqManager(savedQuotes[idx], { markNuovo: true });
     }
-    return new Response(JSON.stringify({ ok: true, savedQuotes }), { status: 200 });
+    return new Response(JSON.stringify({ ok: true, savedQuotes: savedQuotes.map(stripPhoto) }), { status: 200 });
   }
 
   // Invio (o reinvio) a Desearq Studio Manager dei preventivi firmati o accettati: serve per
@@ -183,7 +225,7 @@ export default async (req) => {
       updatedAt: new Date().toISOString()
     };
     await dataStore.setJSON(key, record);
-    return new Response(JSON.stringify({ ok: true, savedQuotes: updated }), { status: 200 });
+    return new Response(JSON.stringify({ ok: true, savedQuotes: updated.map(stripPhoto) }), { status: 200 });
   }
 
   if (body.action === 'saveClient') {

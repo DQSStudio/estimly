@@ -27,7 +27,7 @@
      alla palette DSM condivisa nell'ecosistema Desearq (DSM, Gestionale Edile, Portale Clienti, ecc.) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="vendor/xlsx.full.min.js"></script>
 <script src="vendor/jspdf.umd.min.js"></script>
 <script src="vendor/html2canvas.min.js"></script>
@@ -78,7 +78,7 @@ body.estimly2-theme{
   --e2-ink-soft:#54503F;
   --e2-muted:#8C8776;
   --e2-line:#E9E3D5;
-  --e2-accent:#862D2D;
+  --e2-accent:var(--accent,#862D2D);
   --e2-accent-contrast:#FFFFFF;
   --e2-accent-track:#DDDAD7;
   --e2-radius-sm:8px;
@@ -906,6 +906,629 @@ header.top{
 }
 /* ===================== fine schermata di accesso ===================== */
 </style>
+<style id="e2-restyle">/* ===================== Estimly 2.0 — nuova grafica  ===================== */
+body.estimly2-theme{
+  --e2-font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; --e2-bg:#FAF9F6; --bg:#FAF9F6; --surface:#FFFFFF; --surface-alt:#F1EEE8; --border:#E9E3D5; --border-soft:#F0ECE3;
+  --ink:#16160F; --ink-soft:#54503F; --ink-faint:#8C8776;
+  --radius:18px; --radius-sm:12px; --shadow-sm:none;
+  background:#FAF9F6; font-family:var(--e2-font); color:var(--e2-ink);
+  padding-left:220px;
+}
+body.estimly2-theme:not([data-e2-page="preventivo"]) header.top{ display:none; }
+.e2-side-exit{ margin-left:auto; background:none; border:none; cursor:pointer; font-family:inherit; font-size:11px; font-weight:300; color:#8C8776; padding:4px 6px; border-radius:6px; }
+.e2-side-exit:hover{ background:#EEEAE4; color:#16160F; }
+/* --- Menu laterale (grafica della bacheca "Progetto") --- */
+body.estimly2-theme #e2Sidebar{ width:220px; padding:25px 14px 20px; background:#F8F6F2; border-right:1px solid #E4DFD7; gap:5px; }
+body.estimly2-theme .e2-sidebar-brand{ display:block; margin:0 6px 26px; font-size:12px; font-weight:400; letter-spacing:-0.2px; line-height:1.35; }
+body.estimly2-theme .e2-sidebar-brand img{ display:block; width:54px; height:64px; object-fit:cover; max-width:100%; }
+body.estimly2-theme .e2-sidebar-brand-badge{ width:34px; height:34px; font-size:14px; }
+body.estimly2-theme .e2-sidebar-brand small{ display:block; font-size:9.5px; font-weight:400; letter-spacing:2px; color:#8C8776; text-transform:uppercase; margin-top:1px; line-height:2; }
+body.estimly2-theme .e2-nav-item{ font-family:'Inter',-apple-system,'Segoe UI',Arial,sans-serif; font-weight:300; font-size:15px; color:#66615B; padding:11px 12px; border-radius:9px; gap:11px; }
+body.estimly2-theme .e2-nav-item svg{ width:17px; height:17px; stroke-width:1.7; opacity:1; color:#8A8478; }
+body.estimly2-theme .e2-nav-item:hover{ background:#EEEAE4; }
+body.estimly2-theme .e2-nav-item.active{ background:#1D1C1A; color:#fff; }
+body.estimly2-theme .e2-nav-item.active svg{ color:#fff; }
+body.estimly2-theme .e2-nav-badge{ background:#641F2D; color:#fff; width:18px; height:18px; padding:0; display:flex; align-items:center; justify-content:center; font-family:'Inter',sans-serif; font-weight:400; font-size:10px; border-radius:50%; }
+body.estimly2-theme .e2-nav-item.active .e2-nav-badge{ background:#641F2D; color:#fff; }
+body.estimly2-theme .e2-sidebar-sep{ background:transparent; margin:4px 0; height:4px; }
+.e2-side-spacer{ flex:1; min-height:24px; }
+.e2-side-foot{ display:flex; align-items:center; gap:10px; padding:18px 10px 14px; border-top:1px solid #E4DFD7; margin-bottom:4px; }
+.e2-side-foot .ico{ width:32px; height:32px; border-radius:9px; background:#F1EEE8; display:flex; align-items:center; justify-content:center; color:#54503F; }
+.e2-side-user{ display:flex; align-items:center; gap:10px; padding:4px 6px; }
+.e2-side-user .av{ width:34px; height:34px; border-radius:50%; background:#E9E3D5; color:#54503F; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+.e2-side-t{ font-size:12.5px; font-weight:700; color:#16160F; } .e2-side-s{ font-size:11px; color:#8C8776; }
+/* --- Fascia in alto e titoli --- */
+body.estimly2-theme header.top{ background:transparent; border-bottom:1px solid #E9E3D5; padding:20px 40px; }
+body.estimly2-theme .brand-name{ font-family:var(--e2-font); font-weight:600; }
+body.estimly2-theme .top-actions button, body.estimly2-theme .top-actions label{ border-radius:12px; border-color:#E9E3D5; font-family:var(--e2-font); font-weight:400; color:#16160F; }
+body.estimly2-theme .top-actions button:hover{ background:#F1EEE8; border-color:#E9E3D5; }
+body.estimly2-theme .top-actions .btn-pill-primary{ background:#16160F; border-color:#16160F; color:#fff; }
+body.estimly2-theme .top-actions .btn-pill-primary:hover{ background:#000; border-color:#000; }
+body.estimly2-theme .tier-btns{ background:#F1EEE8; }
+body.estimly2-theme .e2-dash-wrap{ padding:36px 40px 48px; background:transparent; }
+body.estimly2-theme .e2-hero-eyebrow{ font-size:11px; font-weight:900; letter-spacing:1.6px; margin-bottom:8px; color:#54503F; }
+body.estimly2-theme .e2-hero-title{ font-size:42px; font-weight:500; letter-spacing:-0.6px; line-height:1.08; margin-bottom:10px; }
+body.estimly2-theme .e2-hero-sub{ font-size:13px; font-weight:300; }
+body.estimly2-theme .e2-hero-card{ margin-bottom:28px; }
+/* --- Card, righe, pillole --- */
+body.estimly2-theme .e2-stat-card, body.estimly2-theme .e2-activity-card{ border-radius:18px; border-color:#E9E3D5; box-shadow:none; background:#fff; }
+body.estimly2-theme .e2-stat-value{ font-weight:800; letter-spacing:-0.5px; font-size:28px; }
+body.estimly2-theme .e2-stat-label{ font-weight:300; font-size:12px; }
+body.estimly2-theme .e2-activity-head{ font-size:18px; font-weight:600; letter-spacing:-0.2px; }
+body.estimly2-theme .e2-lead-card, body.estimly2-theme .e2-scheda-card{ background:#fff; border-color:#E9E3D5; border-radius:16px; }
+body.estimly2-theme .e2-lead-card:hover{ border-color:var(--accent,#862D2D); }
+body.estimly2-theme .e2-lead-filter{ background:#fff; border-color:#E9E3D5; border-radius:10px; }
+body.estimly2-theme .e2-lead-filter.active{ background:#16160F; border-color:#16160F; color:#fff; }
+body.estimly2-theme .e2-lead-badge{ border-radius:8px; letter-spacing:0; text-transform:none; font-size:12px; font-weight:600; }
+body.estimly2-theme .e2-lead-edit-input:focus{ border-color:var(--accent,#862D2D); }
+body.estimly2-theme .modal-card{ border-radius:20px; }
+body.estimly2-theme .field input, body.estimly2-theme .field select, body.estimly2-theme .field textarea{ border-radius:12px; border-color:#E9E3D5; }
+body.estimly2-theme .btn-save{ border-radius:12px; background:#16160F; font-family:var(--e2-font); font-weight:600; }
+body.estimly2-theme .btn-save:hover{ background:#000; }
+body.estimly2-theme .btn-cancel{ border-radius:12px; border-color:#E9E3D5; background:#fff; font-family:var(--e2-font); font-weight:400; }
+body.estimly2-theme .quote-panel, body.estimly2-theme .catalog{ font-family:var(--e2-font); }
+body.estimly2-theme .e2-h-item-card{ border-radius:14px; }
+/* --- Nuova Dashboard --- */
+.e2d-head{ display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:28px; }
+.e2d-search{ display:flex; align-items:center; gap:10px; width:300px; max-width:100%; box-sizing:border-box; height:48px; padding:0 16px; border-radius:14px; background:#fff; border:1px solid #E9E3D5; }
+.e2d-search input{ flex:1; min-width:0; border:none; outline:none; background:transparent; font-family:inherit; font-size:13.5px; color:#16160F; }
+.e2d-ghost{ width:48px; height:48px; border-radius:14px; border:1px solid #E9E3D5; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.e2d-ghost:hover{ background:#F1EEE8; }
+.e2d-primary{ height:48px; padding:0 24px; border-radius:14px; border:none; background:#16160F; color:#fff; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:10px; }
+.e2d-primary:hover{ background:#000; }
+.e2d-hero{ display:flex; flex-wrap:wrap; border-radius:20px; overflow:hidden; background:linear-gradient(120deg,#4A1D1D 0%,#6B2A2A 45%,#8A4A3C 100%); color:#fff; margin-bottom:34px; min-height:200px; }
+.e2d-hero{ font-family:var(--e2-font); }
+.e2d-hero-l{ flex:3 1 380px; box-sizing:border-box; padding:34px 38px; display:flex; flex-direction:column; justify-content:space-between; gap:22px; }
+.e2d-hero-r{ flex:1 1 260px; box-sizing:border-box; padding:34px 36px; background:rgba(0,0,0,.18); display:flex; flex-direction:column; justify-content:space-between; gap:18px; }
+.e2d-hero-link{ display:inline-flex; align-items:center; gap:10px; padding:11px 20px; border:1px solid rgba(255,255,255,.55); border-radius:10px; color:#fff; font-size:13px; font-weight:600; background:transparent; cursor:pointer; font-family:inherit; }
+.e2d-hero-link:hover{ background:rgba(255,255,255,.12); }
+.e2d-cols{ display:flex; flex-wrap:wrap; gap:28px; align-items:flex-start; margin-bottom:28px; }
+.e2d-h2{ margin:0; font-size:28px; font-weight:600; letter-spacing:-0.3px; line-height:1.2; }
+.e2d-more{ font-size:11px; font-weight:600; color:var(--accent,#862D2D); background:none; border:none; cursor:pointer; font-family:inherit; padding:0; }
+.e2d-pipe{ position:relative; display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin-bottom:38px; background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:22px 12px 20px; }
+.e2d-line{ position:absolute; left:7%; right:7%; top:31px; height:2px; background:#E9E3D5; }
+.e2d-line-fill{ position:absolute; left:7%; top:31px; height:2px; background:var(--accent,#862D2D); }
+.e2d-pipe-step{ z-index:1; position:relative; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
+.e2d-dot{ width:18px; height:18px; box-sizing:border-box; border-radius:50%; border:2px solid var(--accent,#862D2D); margin-top:1px; background:#fff; }
+.e2d-panel{ background:#fff; border:1px solid #E9E3D5; border-radius:18px; overflow:hidden; }
+.e2d-row{ display:flex; align-items:center; gap:16px; padding:14px 20px; border-bottom:1px solid #F0ECE3; cursor:pointer; text-decoration:none; color:inherit; background:#fff; width:100%; box-sizing:border-box; border-left:none; border-right:none; border-top:none; text-align:left; font-family:inherit; }
+.e2d-row:last-child{ border-bottom:none; }
+.e2d-row:hover{ background:#FBFAF7; }
+.e2d-av{ width:48px; height:48px; border-radius:12px; color:var(--accent,#862D2D); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex-shrink:0; }
+.e2d-pill{ display:inline-block; padding:4px 11px; border-radius:8px; font-size:10px; font-weight:600; }
+.e2d-side{ background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:22px 22px 10px; }
+.e2d-fu{ display:flex; align-items:center; gap:14px; padding:13px 0; border-top:1px solid #F0ECE3; cursor:pointer; }
+.e2d-fu-ico{ width:40px; height:40px; border-radius:50%; background:#F6F4EF; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.e2d-bar{ height:6px; border-radius:999px; background:#E9E3D5; overflow:hidden; margin-top:6px; }
+.e2d-bar > i{ display:block; height:100%; background:var(--accent,#862D2D); border-radius:999px; }
+@media (max-width:900px){ body.estimly2-theme{ padding-left:0; } body.estimly2-theme #e2Sidebar{ position:static; width:auto; flex-direction:row; flex-wrap:wrap; } .e2d-pipe{ grid-template-columns:repeat(4,1fr); } }
+
+/* ===================== Sistema pagine: minimal, leggibile, uniforme ===================== */
+/* Scala tipografica: niente testo sotto i 12px; testo di servizio 13px, corpo 14px. */
+body.estimly2-theme{ font-size:14px; line-height:1.55; }
+body.estimly2-theme .e2-page [style*="font-size:9px"], body.estimly2-theme .e2-page [style*="font-size:10px"],
+body.estimly2-theme .e2-page [style*="font-size:10.5px"], body.estimly2-theme .e2-page [style*="font-size:11px"],
+body.estimly2-theme .e2-page [style*="font-size:11.5px"],
+body.estimly2-theme .modal-card [style*="font-size:10px"], body.estimly2-theme .modal-card [style*="font-size:10.5px"],
+body.estimly2-theme .modal-card [style*="font-size:11px"], body.estimly2-theme .modal-card [style*="font-size:11.5px"]{ font-size:12.5px !important; }
+body.estimly2-theme .e2-page [style*="font-size:12px"], body.estimly2-theme .e2-page [style*="font-size:12.5px"],
+body.estimly2-theme .modal-card [style*="font-size:12px"], body.estimly2-theme .modal-card [style*="font-size:12.5px"]{ font-size:13.5px !important; }
+body.estimly2-theme .e2-page [style*="font-size:13px"], body.estimly2-theme .e2-page [style*="font-size:13.5px"]{ font-size:14px !important; }
+body.estimly2-theme .e2-page code{ font-size:12.5px !important; }
+body.estimly2-theme .e2-page .e2d-pill, body.estimly2-theme .e2d-more{ font-size:12px !important; }
+
+/* Titolo di pagina uniforme (sempre grande, minuscolo, senza filetto) */
+body.estimly2-theme .e2-dash-wrap > .field-section-label:first-child,
+body.estimly2-theme #rubricaListView > .field-section-label:first-child,
+body.estimly2-theme #contractManagerBox > .field-section-label:first-child,
+body.estimly2-theme #e2SalvatiListView > .field-section-label:first-child,
+body.estimly2-theme #e2PageStatistiche .display{
+  font-family:var(--e2-font); font-size:34px !important; font-weight:500 !important; text-transform:none; letter-spacing:-0.6px;
+  color:#16160F; border:none; padding:0; margin:0 0 10px !important; line-height:1.15;
+}
+body.estimly2-theme .e2-hero-title{ font-size:34px; font-weight:500; letter-spacing:-0.6px; }
+body.estimly2-theme #e2dGreeting{ font-size:42px; }
+body.estimly2-theme .e2-hero-eyebrow{ font-size:12px; }
+body.estimly2-theme .e2-hero-sub, body.estimly2-theme .saved-quotes-limit-text, body.estimly2-theme .wz-intro{ font-size:14px !important; font-weight:300; color:#54503F; line-height:1.6; max-width:760px; }
+/* Etichette di sezione e di campo: frase normale, leggibile */
+body.estimly2-theme .field-section-label{ font-family:var(--e2-font); font-size:15px; font-weight:600; text-transform:none; letter-spacing:0; color:#16160F; border-bottom:1px solid #EFEAE0; padding-bottom:10px; margin:0 0 14px; }
+body.estimly2-theme .field label{ font-size:13px; text-transform:none; letter-spacing:0; color:#54503F; font-weight:500; margin-bottom:6px; }
+body.estimly2-theme .field input, body.estimly2-theme .field select, body.estimly2-theme .field textarea{ padding:11px 14px; font-size:14px; font-family:var(--e2-font); border-color:#E3DDCE; border-radius:12px; background:#fff; }
+body.estimly2-theme .field input:focus, body.estimly2-theme .field select:focus{ border-color:#16160F; outline:none; }
+body.estimly2-theme .field-grid{ gap:16px; }
+/* Pulsanti e chip: stessa altezza, stessa forma */
+body.estimly2-theme .btn-save, body.estimly2-theme .btn-cancel, body.estimly2-theme .new-item-btn{ font-size:14px; padding:11px 18px; border-radius:12px; font-family:var(--e2-font); }
+body.estimly2-theme .new-item-btn{ border-color:#E3DDCE; color:#16160F; background:#fff; font-weight:500; }
+body.estimly2-theme .new-item-btn:hover{ background:#16160F; color:#fff; }
+body.estimly2-theme .chip{ font-size:13.5px; padding:9px 16px; border-color:#E3DDCE; color:#54503F; font-weight:400; }
+body.estimly2-theme .chip.active{ background:#16160F; border-color:#16160F; color:#fff; }
+body.estimly2-theme .modal-body .btn-save, body.estimly2-theme .modal-actions button{ font-size:14px; }
+/* Schede, righe e pannelli */
+body.estimly2-theme .e2-lead-card{ padding:20px 22px; }
+body.estimly2-theme .e2-lead-card-name{ font-size:16px; font-weight:600; }
+body.estimly2-theme .e2-lead-card-meta, body.estimly2-theme .e2-lead-card-preview{ font-size:13.5px; }
+body.estimly2-theme .e2-lead-filter{ font-size:13.5px; padding:9px 16px; font-weight:500; }
+body.estimly2-theme .e2-lead-badge, body.estimly2-theme .e2-canale-tag{ font-size:12px; padding:4px 11px; }
+body.estimly2-theme .e2-scheda-label{ font-size:12.5px; letter-spacing:0; text-transform:none; font-weight:600; color:#54503F; }
+body.estimly2-theme .e2-scheda-title{ font-size:26px; font-weight:500; letter-spacing:-0.4px; }
+body.estimly2-theme .e2-scheda-card, body.estimly2-theme .e2-activity-card, body.estimly2-theme .category-block, body.estimly2-theme .hour-calc{ border-color:#E9E3D5; border-radius:18px; background:#fff; box-shadow:none; }
+body.estimly2-theme .e2-activity-main{ font-size:14px; } body.estimly2-theme .e2-activity-date{ font-size:12.5px; }
+body.estimly2-theme .e2-stat-label{ font-size:13.5px; }
+body.estimly2-theme .e2-page .estimly3-panel{ border-radius:18px; border-color:#E9E3D5; background:#fff; }
+body.estimly2-theme .estimly3-panel-title{ font-size:16px; font-weight:600; }
+body.estimly2-theme .hour-calc-title{ font-size:18px; font-weight:600; }
+body.estimly2-theme .wz-step-desc{ font-size:14px; }
+/* Pagina Preventivo: intestazione leggera, form in un'unica scheda */
+body.estimly2-theme[data-e2-page="preventivo"] .brand-block, body.estimly2-theme[data-e2-page="preventivo"] .tier-row-label{ display:none; }
+body.estimly2-theme[data-e2-page="preventivo"] header.top{ padding:24px 40px 8px; border-bottom:none; }
+body.estimly2-theme[data-e2-page="preventivo"] .brand-row{ justify-content:flex-end; }
+body.estimly2-theme[data-e2-page="preventivo"] .tier-row{ display:flex; justify-content:space-between; align-items:center; margin-top:14px; }
+body.estimly2-theme[data-e2-page="preventivo"] .tier-row::before{ content:"Nuovo preventivo"; font-size:34px; font-weight:500; letter-spacing:-0.6px; color:#16160F; }
+body.estimly2-theme .tier-btn{ font-size:13px; padding:9px 18px; font-weight:500; }
+body.estimly2-theme .layout.e2-single-col{ padding:0 40px 48px; box-sizing:border-box; }
+body.estimly2-theme .layout.e2-single-col .quote-panel{ border:1px solid #E9E3D5; border-radius:20px; min-height:0; position:static; }
+body.estimly2-theme .layout.e2-single-col .quote-scroll{ padding:28px 32px; }
+body.estimly2-theme .layout.e2-single-col .catalog{ padding:36px 0 80px; }
+body.estimly2-theme .quote-header{ display:none; }
+body.estimly2-theme .top-actions button, body.estimly2-theme .top-actions label{ font-size:13.5px; padding:10px 16px; }
+body.estimly2-theme .field-grid label:has(input[type=checkbox]), body.estimly2-theme label.check, body.estimly2-theme .checks label{ display:flex; align-items:center; gap:10px; font-size:14px; color:#16160F; }
+body.estimly2-theme input[type=checkbox]{ width:18px; height:18px; accent-color:#16160F; margin:0; flex:none; }
+body.estimly2-theme .tier-btn{ text-transform:none; letter-spacing:0; }
+
+/* Preventivo: via la barra in alto; azioni in una barra fissa in fondo alla scheda */
+body.estimly2-theme[data-e2-page="preventivo"] .brand-row{ display:none; }
+body.estimly2-theme[data-e2-page="preventivo"] header.top{ padding:32px 40px 4px; }
+body.estimly2-theme[data-e2-page="preventivo"] .tier-row{ margin-top:0; }
+body.estimly2-theme .e2-pv-actions{ position:sticky; bottom:16px; z-index:20; display:none; align-items:center; justify-content:space-between; gap:12px;
+  margin:20px 32px 20px; padding:12px 14px 12px 20px; background:rgba(255,255,255,.94); backdrop-filter:blur(10px); border:1px solid #E3DDCE; border-radius:16px; box-shadow:0 8px 28px rgba(22,22,15,.10); }
+body.estimly2-theme[data-e2-page="preventivo"] .e2-pv-actions{ display:flex; }
+body.estimly2-theme .e2-pv-actions .e2-pv-hint{ font-size:13.5px; color:#8C8776; }
+body.estimly2-theme .e2-pv-actions .e2-pv-btns{ display:flex; gap:10px; }
+body.estimly2-theme .e2-pv-actions button{ display:inline-flex; align-items:center; gap:8px; font-family:var(--e2-font); font-size:14px; font-weight:500; padding:11px 18px; border-radius:12px; cursor:pointer; border:1px solid #E3DDCE; background:#fff; color:#16160F; }
+body.estimly2-theme .e2-pv-actions button#saveQuoteBtn{ background:#16160F; border-color:#16160F; color:#fff; }
+body.estimly2-theme[data-e2-page="preventivo"] header.top{ border:none !important; box-shadow:none !important; }
+body.estimly2-theme .e2-page-head{ margin:0 0 22px; }
+body.estimly2-theme .e2-page-head h1{ font-family:var(--e2-font); font-size:34px; font-weight:500; letter-spacing:-0.6px; color:#16160F; margin:0 0 10px; line-height:1.15; }
+body.estimly2-theme .e2-page-head p{ font-size:14px; font-weight:300; color:#54503F; line-height:1.6; max-width:760px; margin:0; }
+body.estimly2-theme .catalog{ padding:36px 0 80px; }
+
+/* Preventivi salvati — versione minimale */
+body.estimly2-theme .e2sv-section{ margin:0 0 36px; }
+body.estimly2-theme .e2sv-section-h{ display:flex; align-items:center; gap:10px; margin:0 0 14px; }
+body.estimly2-theme .e2sv-section-h h3{ margin:0; font-size:15px; font-weight:600; color:#16160F; }
+body.estimly2-theme .e2sv-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
+body.estimly2-theme .e2sv-count{ font-size:13px; color:#8C8776; }
+body.estimly2-theme .e2sv-hint{ font-size:13px; color:#8C8776; font-weight:300; }
+body.estimly2-theme .e2sv-group{ background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:6px 22px; margin:0 0 12px !important; }
+body.estimly2-theme .e2sv-group-h{ display:flex; justify-content:space-between; align-items:baseline; padding:14px 0 4px; }
+body.estimly2-theme .e2sv-group-name{ font-size:13px; font-weight:500; color:#8C8776; }
+body.estimly2-theme .e2sv-group-count{ font-size:12.5px; color:#B3AD9C; }
+body.estimly2-theme .e2sv-row{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0; border-top:1px solid #F0EBDF; cursor:pointer; }
+body.estimly2-theme .e2sv-group-h + .e2sv-row{ border-top:none; }
+body.estimly2-theme .e2sv-title{ font-size:15px; font-weight:500; color:#16160F; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+body.estimly2-theme .e2sv-meta{ font-size:13px; color:#8C8776; margin-top:2px; }
+body.estimly2-theme .e2sv-right{ display:flex; align-items:center; gap:14px; flex:none; }
+body.estimly2-theme .e2sv-amount{ font-size:15px; font-weight:500; color:#16160F; font-variant-numeric:tabular-nums; }
+body.estimly2-theme .e2sv-open{ border:none; background:none; color:#B3AD9C; font-size:22px; line-height:1; cursor:pointer; padding:0 2px; }
+body.estimly2-theme .e2sv-row:hover .e2sv-open{ color:#16160F; }
+body.estimly2-theme .e2sv-row:hover .e2sv-title{ color:var(--accent,#862D2D); }
+/* badge più discreti: solo testo colorato su fondo tenue */
+body.estimly2-theme .e2sv-title > span:not(.e2ic):not(.e2dotic){ font-size:12px !important; font-weight:500 !important; padding:2px 9px !important; }
+body.estimly2-theme .e2sv-group-h:has(+ .e2sv-row:last-child){ display:none; }
+body.estimly2-theme .e2sv-group{ padding:2px 22px; }
+body.estimly2-theme .e2sv-group-h + .e2sv-row{ padding-top:14px; }
+
+/* Icone: linee sottili al posto delle emoji */
+body.estimly2-theme .e2ic{ display:inline-flex; width:1.05em; height:1.05em; vertical-align:-0.18em; margin-right:.38em; flex:none; }
+body.estimly2-theme .e2ic svg{ width:100%; height:100%; }
+body.estimly2-theme .e2dotic{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:8px; vertical-align:0.08em; flex:none; }
+
+/* Contratti: lettura comoda + editor di modelli */
+body.estimly2-theme .contract-manager{ max-width:900px !important; }
+body.estimly2-theme .e2-ct-lead{ font-size:15px; font-weight:300; color:#54503F; line-height:1.65; margin:0 0 22px; max-width:680px; }
+body.estimly2-theme .e2-ph-box{ background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:18px 22px; margin:0 0 28px; }
+body.estimly2-theme .e2-ph-title{ font-size:14px; font-weight:600; color:#16160F; margin:0 0 12px; }
+body.estimly2-theme .e2-ph-title span{ font-weight:300; color:#8C8776; margin-left:8px; }
+body.estimly2-theme .e2-ph-row{ display:flex; flex-wrap:wrap; gap:8px; }
+body.estimly2-theme .e2-ph{ font-family:var(--e2-font); font-size:13px; color:#54503F; background:#F4F1EA; border:1px solid transparent; border-radius:999px; padding:6px 12px; cursor:pointer; }
+body.estimly2-theme .e2-ph:hover{ background:#16160F; color:#fff; }
+body.estimly2-theme #contractTemplatesList > div[style]{ font-size:15px !important; color:#8C8776 !important; margin-bottom:16px !important; }
+body.estimly2-theme .contract-template-card{ background:#fff; border:1px solid #E9E3D5; border-radius:22px; padding:28px 32px; margin:0 0 20px; }
+body.estimly2-theme .contract-template-head{ display:flex; align-items:center; gap:16px; margin:0 0 24px; padding-bottom:18px; border-bottom:1px solid #F0EBDF; }
+body.estimly2-theme .contract-template-name-input{ flex:1; font-family:var(--e2-font); font-size:24px !important; font-weight:500; letter-spacing:-0.3px; color:#16160F; border:1px solid transparent; background:transparent; padding:6px 10px; margin-left:-10px; border-radius:10px; }
+body.estimly2-theme .contract-template-name-input:hover, body.estimly2-theme .contract-template-name-input:focus{ background:#FAF9F6; border-color:#E3DDCE; outline:none; }
+body.estimly2-theme .contract-template-head button{ font-family:var(--e2-font); font-size:14px; font-weight:500; color:#16160F; background:#fff; border:1px solid #E3DDCE; border-radius:10px; padding:8px 14px; }
+body.estimly2-theme .contract-template-head button.danger{ color:var(--accent,#862D2D); border-color:color-mix(in srgb, var(--accent,#862D2D) 20%, #fff); }
+body.estimly2-theme .contract-sections{ counter-reset:sec; }
+body.estimly2-theme .contract-section-card{ counter-increment:sec; position:relative; border:1px solid #EFEAE0; border-radius:16px; padding:18px 20px 20px 60px; margin:0 0 14px; background:#FDFCFA; }
+body.estimly2-theme .contract-section-card::before{ content:counter(sec); position:absolute; left:18px; top:20px; width:28px; height:28px; border-radius:50%; background:#16160F; color:#fff; font-size:13px; font-weight:500; display:flex; align-items:center; justify-content:center; }
+body.estimly2-theme .contract-section-head{ position:absolute; right:16px; top:14px; margin:0; }
+body.estimly2-theme .contract-section-head span{ display:none; }
+body.estimly2-theme .contract-section-head button{ font-family:var(--e2-font); font-size:13px; color:#8C8776; }
+body.estimly2-theme .contract-section-head button:hover{ color:var(--accent,#862D2D); }
+body.estimly2-theme .contract-section-card input[type="text"]{ width:100%; box-sizing:border-box; font-family:var(--e2-font); font-size:16px !important; font-weight:600; color:#16160F; padding:8px 80px 8px 0 !important; margin:0 0 6px; border:none !important; border-bottom:1px solid #EFEAE0 !important; border-radius:0 !important; background:transparent !important; }
+body.estimly2-theme .contract-section-card textarea{ width:100%; box-sizing:border-box; font-family:var(--e2-font); font-size:15px !important; line-height:1.75; color:#2B2A22; padding:12px 0 0 !important; min-height:110px; border:none !important; background:transparent !important; resize:vertical; }
+body.estimly2-theme .contract-section-card input[type="text"]:focus{ border-bottom-color:#16160F !important; outline:none; }
+body.estimly2-theme .contract-section-card textarea:focus{ outline:none; }
+body.estimly2-theme .contract-section-card:focus-within{ border-color:#16160F; background:#fff; }
+body.estimly2-theme .contract-template-card [data-add-section]{ font-family:var(--e2-font); font-size:14px !important; padding:11px 18px !important; border-radius:12px; border:1px dashed #CFC8B6; background:transparent; color:#54503F; width:100%; margin-top:6px; }
+body.estimly2-theme .contract-template-card [data-add-section]:hover{ border-color:#16160F; color:#16160F; }
+body.estimly2-theme .contract-section-card textarea{ min-height:80px !important; }
+
+/* ===== Intestazione di pagina unica: titoletto rosso, titolo, descrizione — stessa posizione ovunque ===== */
+body.estimly2-theme .e2-old{ display:none !important; }
+body.estimly2-theme .e2-page-head{ margin:0 0 32px; padding:0; max-width:760px; }
+body.estimly2-theme .e2-page-head .e2-eyebrow{ font-family:var(--e2-font); font-size:12px; font-weight:600; letter-spacing:1.6px; text-transform:uppercase; color:var(--accent,#862D2D); margin:0 0 10px; line-height:1.2; }
+body.estimly2-theme .e2-page-head h1{ font-family:var(--e2-font); font-size:36px; font-weight:500; letter-spacing:-0.7px; color:#16160F; margin:0 0 12px; line-height:1.12; }
+body.estimly2-theme .e2-page-head p{ font-family:var(--e2-font); font-size:15px; font-weight:300; color:#54503F; line-height:1.65; margin:0; max-width:700px; }
+/* stessa quota in alto ovunque */
+body.estimly2-theme .e2-dash-wrap, body.estimly2-theme #e2PageStatistiche{ padding-top:36px !important; }
+body.estimly2-theme .catalog{ padding:36px 0 80px !important; }
+body.estimly2-theme .e2-stat-row{ align-items:flex-start !important; margin-bottom:0 !important; }
+body.estimly2-theme .e2-stat-row .e2-page-head{ margin-bottom:32px; }
+body.estimly2-theme[data-e2-page="preventivo"] header.top{ padding:36px 40px 0 !important; }
+body.estimly2-theme[data-e2-page="preventivo"] .tier-row::before{ content:none !important; }
+body.estimly2-theme[data-e2-page="preventivo"] .tier-row{ justify-content:flex-start; margin:0 0 24px; }
+body.estimly2-theme .tier-row .e2-page-head{ display:none; }
+
+/* ===== Impostazioni studio: sezione a pagina intera, non finestra ===== */
+body.estimly2-theme #settingsModal{ position:fixed; left:220px; top:0; right:0; bottom:0; background:#FAF9F6; z-index:40; overflow-y:auto; padding:0; align-items:flex-start; justify-content:flex-start; backdrop-filter:none; }
+body.estimly2-theme #settingsModal .modal-card{ width:100%; max-width:none; max-height:none; min-height:100%; margin:0; border:none; border-radius:0; box-shadow:none; background:transparent; padding:36px 40px 40px; display:block; box-sizing:border-box; }
+body.estimly2-theme #settingsModal .modal-head{ display:none; }
+body.estimly2-theme #settingsModal .modal-body{ padding:0; max-width:900px; max-height:none; overflow:visible; }
+body.estimly2-theme #settingsModal .field-section-label{ margin-top:36px; }
+body.estimly2-theme #settingsModal .modal-body > .field-section-label:first-child{ margin-top:0; }
+body.estimly2-theme #settingsModal .modal-actions{ position:sticky; bottom:16px; z-index:5; max-width:900px; display:flex; justify-content:flex-end; gap:10px; margin:28px 0 0; padding:12px 14px; background:rgba(255,255,255,.94); backdrop-filter:blur(10px); border:1px solid #E3DDCE; border-radius:16px; box-shadow:0 8px 28px rgba(22,22,15,.10); }
+body.estimly2-theme #settingsModal .btn-save{ background:#16160F; border-color:#16160F; }
+body.estimly2-theme[data-e2-page="preventivo"] .tier-row, body.estimly2-theme[data-e2-page="preventivo"] header.top *{ border-top:none; }
+body.estimly2-theme[data-e2-page="preventivo"] header.top{ border-bottom:none !important; }
+body.estimly2-theme .contract-manager{ margin-top:0 !important; }
+body.estimly2-theme #settingsModal .modal-card{ overflow:visible !important; }
+body.estimly2-theme #settingsModal .modal-actions button{ flex:none; padding:11px 22px; border-radius:12px; }
+body.estimly2-theme #settingsModal .btn-cancel{ background:#fff; border:1px solid #E3DDCE; color:#16160F; }
+body.estimly2-theme input[type="color"]{ height:46px !important; padding:5px !important; cursor:pointer; border-radius:12px; }
+
+/* ===== Hero con foto del progetto ===== */
+body.estimly2-theme .e2d-hero.e2h{ position:relative; min-height:300px; isolation:isolate; }
+body.estimly2-theme .e2h-bg{ position:absolute; inset:0; background-size:cover; background-position:center; opacity:0; transition:opacity .9s ease; z-index:0; }
+body.estimly2-theme .e2h-bg.on{ opacity:1; }
+body.estimly2-theme .e2h-shade{ position:absolute; inset:0; z-index:1; background:linear-gradient(120deg,rgba(74,29,29,.96) 0%,rgba(107,42,42,.9) 45%,rgba(138,74,60,.86) 100%); transition:background .6s; }
+body.estimly2-theme .e2d-hero.e2h.has-photo .e2h-shade{ background:linear-gradient(90deg,rgba(28,12,12,.74) 0%,rgba(28,12,12,.38) 50%,rgba(28,12,12,.12) 100%),linear-gradient(0deg,rgba(0,0,0,.3),rgba(0,0,0,0) 40%); }
+body.estimly2-theme .e2h-body{ position:relative; z-index:2; display:flex; flex-wrap:wrap; width:100%; transition:opacity .26s ease, transform .26s ease; }
+body.estimly2-theme .e2h-body.swap{ opacity:0; transform:translateY(6px); }
+body.estimly2-theme .e2h .e2d-hero-l{ padding:38px 42px; min-height:300px; }
+body.estimly2-theme .e2h .e2d-hero-r{ background:rgba(0,0,0,.26); backdrop-filter:blur(8px); padding:38px 36px; min-width:300px; }
+body.estimly2-theme .e2h-eyebrow{ font-size:12px; letter-spacing:3px; text-transform:uppercase; opacity:.85; margin-bottom:12px; font-weight:500; }
+body.estimly2-theme .e2h-eyebrow span{ letter-spacing:.4px; text-transform:none; opacity:.8; font-weight:300; font-size:13px; }
+body.estimly2-theme .e2h-title{ font-size:42px; font-weight:400; letter-spacing:-0.8px; line-height:1.12; }
+body.estimly2-theme .e2h-meta{ font-size:14px; opacity:.85; margin-top:12px; font-weight:300; }
+body.estimly2-theme .e2h-actions{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+body.estimly2-theme .e2h-ghost{ display:inline-flex; align-items:center; gap:8px; padding:11px 16px; border:none; border-radius:10px; background:rgba(255,255,255,.14); color:#fff; font-family:var(--e2-font); font-size:13.5px; cursor:pointer; backdrop-filter:blur(6px); }
+body.estimly2-theme .e2h-ghost:hover{ background:rgba(255,255,255,.24); }
+body.estimly2-theme .e2h-dots{ display:flex; gap:7px; margin-left:auto; align-items:center; }
+body.estimly2-theme .e2h-dots button{ width:8px; height:8px; padding:0; border:none; border-radius:999px; background:rgba(255,255,255,.4); cursor:pointer; transition:width .3s, background .3s; }
+body.estimly2-theme .e2h-dots button.on{ width:26px; background:#fff; }
+body.estimly2-theme .e2h-lbl{ font-size:13px; opacity:.8; font-weight:300; }
+body.estimly2-theme .e2h-pct{ font-size:46px; font-weight:800; letter-spacing:-1px; line-height:1.1; margin:6px 0 12px; }
+body.estimly2-theme .e2h-bar{ height:6px; border-radius:999px; background:rgba(255,255,255,.25); } body.estimly2-theme .e2h-bar div{ height:100%; border-radius:999px; background:#fff; }
+body.estimly2-theme .e2h-stats{ display:flex; flex-direction:column; gap:16px; }
+body.estimly2-theme .e2h-val{ font-size:22px; font-weight:700; margin-top:3px; } body.estimly2-theme .e2h-val small{ font-size:13px; font-weight:300; opacity:.85; }
+body.estimly2-theme .e2h-val2{ font-size:14px; font-weight:600; margin-top:3px; }
+body.estimly2-theme .e2h select{ background:transparent; color:#fff; border:none; border-bottom:1px dashed rgba(255,255,255,.55); font-family:var(--e2-font); font-size:13px; padding:0 2px; cursor:pointer; }
+body.estimly2-theme .e2h select option{ color:#16160F; }
+
+/* ===== Foto nella scheda del preventivo ===== */
+body.estimly2-theme .e2ph-card{ display:flex; gap:22px; align-items:stretch; background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:14px; margin:0 0 18px; }
+body.estimly2-theme .e2ph-img{ flex:0 0 260px; height:150px; border-radius:12px; background-size:cover; background-position:center; background-color:#F4F1EA; }
+body.estimly2-theme .e2ph-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; border:1px dashed #CFC8B6; color:#54503F; font-family:var(--e2-font); font-size:13.5px; cursor:pointer; }
+body.estimly2-theme .e2ph-empty:hover{ border-color:#16160F; color:#16160F; }
+body.estimly2-theme .e2ph-side{ display:flex; flex-direction:column; justify-content:center; gap:8px; }
+body.estimly2-theme .e2ph-t{ font-size:16px; font-weight:600; } body.estimly2-theme .e2ph-side p{ margin:0; font-size:14px; font-weight:300; color:#54503F; max-width:460px; line-height:1.55; }
+body.estimly2-theme .e2ph-btns{ display:flex; gap:8px; margin-top:4px; }
+body.estimly2-theme .e2ph-b{ font-family:var(--e2-font); font-size:13.5px; font-weight:500; padding:9px 15px; border-radius:10px; border:1px solid #E3DDCE; background:#fff; color:#16160F; cursor:pointer; } body.estimly2-theme .e2ph-b:hover{ border-color:#16160F; }
+body.estimly2-theme .e2ph-rm{ color:var(--accent,#862D2D); border-color:color-mix(in srgb, var(--accent,#862D2D) 20%, #fff); }
+
+/* ===== Barra laterale: foto di chi usa Estimly ===== */
+body.estimly2-theme .e2-side-user{ gap:12px; padding:6px; }
+body.estimly2-theme .e2-side-user .av.e2-side-av{ width:42px; height:42px; border-radius:50%; background-size:cover; background-position:center; position:relative; cursor:pointer; flex:none; overflow:hidden; font-size:14px; }
+body.estimly2-theme .e2-side-cam{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(22,22,15,.5); color:#fff; opacity:0; transition:opacity .15s; }
+body.estimly2-theme .e2-side-av:hover .e2-side-cam{ opacity:1; }
+body.estimly2-theme .e2-side-t{ font-size:14px; }
+
+/* ===== Team ===== */
+body.estimly2-theme .e2t-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:20px; }
+body.estimly2-theme .e2t-top .e2-page-head{ margin-bottom:30px; }
+body.estimly2-theme .e2t-add{ background:#16160F; border-color:#16160F; white-space:nowrap; }
+body.estimly2-theme .e2t-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px; }
+body.estimly2-theme .e2t-card{ display:flex; gap:18px; text-align:left; background:#fff; border:1px solid #E9E3D5; border-radius:20px; padding:22px; cursor:pointer; font-family:var(--e2-font); color:#16160F; transition:border-color .15s, box-shadow .15s; }
+body.estimly2-theme .e2t-card:hover{ border-color:#16160F; box-shadow:0 6px 24px rgba(22,22,15,.07); }
+body.estimly2-theme .e2t-av{ flex:none; width:72px; height:72px; border-radius:50%; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:600; color:#54503F; }
+body.estimly2-theme .e2t-av-xl{ width:132px; height:132px; font-size:38px; }
+body.estimly2-theme .e2t-name{ font-size:17px; font-weight:600; } body.estimly2-theme .e2t-name em{ font-style:normal; font-size:12px; font-weight:500; color:var(--accent,#862D2D); background:color-mix(in srgb, var(--accent,#862D2D) 12%, #fff); border-radius:999px; padding:2px 9px; margin-left:6px; vertical-align:2px; }
+body.estimly2-theme .e2t-role{ font-size:13px; font-weight:600; color:var(--accent,#862D2D); margin-top:2px; }
+body.estimly2-theme .e2t-mail{ font-size:13.5px; color:#8C8776; margin-top:6px; }
+body.estimly2-theme .e2t-desc{ font-size:14px; font-weight:300; color:#54503F; line-height:1.55; margin-top:8px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+body.estimly2-theme .e2t-form{ display:flex; gap:40px; align-items:flex-start; background:#fff; border:1px solid #E9E3D5; border-radius:22px; padding:34px 36px; max-width:940px; }
+body.estimly2-theme .e2t-photo{ flex:none; width:150px; text-align:center; }
+body.estimly2-theme .e2t-photo-btn{ position:relative; border:none; background:none; padding:0; cursor:pointer; border-radius:50%; }
+body.estimly2-theme .e2t-photo-over{ position:absolute; inset:0; border-radius:50%; background:rgba(22,22,15,.5); color:#fff; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .15s; }
+body.estimly2-theme .e2t-photo-btn:hover .e2t-photo-over{ opacity:1; }
+body.estimly2-theme .e2t-photo-t{ font-size:14px; font-weight:600; margin-top:12px; } body.estimly2-theme .e2t-photo-s{ font-size:12.5px; color:#8C8776; margin-top:2px; }
+body.estimly2-theme .e2t-link{ border:none; background:none; color:var(--accent,#862D2D); font-family:var(--e2-font); font-size:13.5px; cursor:pointer; padding:6px 0; }
+body.estimly2-theme .e2t-fields{ flex:1; min-width:0; }
+body.estimly2-theme .e2t-fields .field{ margin-bottom:18px; }
+body.estimly2-theme .e2t-pwd{ display:flex; gap:8px; } body.estimly2-theme .e2t-pwd input{ flex:1; min-width:0; }
+body.estimly2-theme .e2t-pwd button{ border:1px solid #E3DDCE; background:#fff; border-radius:12px; padding:0 14px; font-family:var(--e2-font); font-size:13.5px; color:#16160F; cursor:pointer; display:flex; align-items:center; } body.estimly2-theme .e2t-pwd button:hover{ border-color:#16160F; }
+body.estimly2-theme .e2t-hint{ font-size:12.5px; color:#8C8776; margin-top:6px; }
+body.estimly2-theme .e2t-role-box{ margin-top:10px; background:#FAF9F6; border:1px solid #EFEAE0; border-radius:12px; padding:12px 14px; } body.estimly2-theme .e2t-role-box p{ margin:0 0 8px; font-size:13.5px; color:#54503F; font-weight:300; line-height:1.5; }
+body.estimly2-theme .e2t-role-box div span{ display:inline-block; font-size:12.5px; background:#fff; border:1px solid #E3DDCE; border-radius:999px; padding:3px 10px; margin:0 6px 6px 0; color:#54503F; }
+body.estimly2-theme .e2t-fields textarea{ width:100%; box-sizing:border-box; resize:vertical; line-height:1.55; }
+body.estimly2-theme .e2t-err{ display:none; background:#FBEDEA; color:var(--accent,#862D2D); border-radius:10px; padding:10px 14px; font-size:13.5px; margin:0 0 14px; }
+body.estimly2-theme .e2t-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px; } body.estimly2-theme .e2t-sp{ flex:1; }
+body.estimly2-theme .e2t-actions .btn-save{ background:#16160F; border-color:#16160F; }
+body.estimly2-theme .e2t-del{ border:1px solid color-mix(in srgb, var(--accent,#862D2D) 20%, #fff); background:#fff; color:var(--accent,#862D2D); border-radius:12px; padding:11px 16px; font-family:var(--e2-font); font-size:14px; cursor:pointer; }
+
+/* ===================== MOBILE (≤ 900px): menu a cassetto, una colonna ===================== */
+#e2MobBar, #e2Scrim{ display:none; }
+@media (max-width:900px){
+  body.estimly2-theme{ padding-left:0 !important; padding-top:60px !important; overflow-x:hidden; }
+  #e2MobBar{ display:flex; position:fixed; top:0; left:0; right:0; height:60px; z-index:700; align-items:center; gap:12px; padding:0 14px; background:rgba(250,249,246,.94); backdrop-filter:blur(10px); border-bottom:1px solid #E9E3D5; font-family:var(--e2-font); }
+  #e2MobBar button{ width:42px; height:42px; border-radius:12px; border:1px solid #E3DDCE; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#16160F; flex:none; padding:0; }
+  #e2MobBar .mb-title{ font-size:16px; font-weight:600; color:#16160F; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #e2MobBar .mb-av{ width:36px; height:36px; border-radius:50%; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#54503F; flex:none; }
+  #e2Scrim{ display:block; position:fixed; inset:0; background:rgba(22,22,15,.45); z-index:850; opacity:0; pointer-events:none; transition:opacity .25s; }
+  body.e2-nav-open #e2Scrim{ opacity:1; pointer-events:auto; }
+  body.estimly2-theme #e2Sidebar{ position:fixed !important; top:0 !important; left:0 !important; bottom:0 !important; right:auto !important; width:290px !important; max-width:86vw; height:auto !important;
+    flex-direction:column !important; align-items:stretch !important; flex-wrap:nowrap !important; overflow-y:auto !important; overflow-x:hidden !important; white-space:normal !important;
+    padding:25px 14px 20px !important; border-right:1px solid #E4DFD7 !important; border-bottom:none !important; z-index:900 !important; transform:translateX(-104%); transition:transform .28s ease; box-shadow:none; }
+  body.e2-nav-open.estimly2-theme #e2Sidebar{ transform:none; box-shadow:0 0 60px rgba(22,22,15,.25); }
+  .e2-sidebar-brand{ display:block !important; } .e2-sidebar-sep{ display:block !important; }
+  .e2-nav-item{ width:100% !important; padding:13px 14px !important; font-size:15px !important; flex-shrink:0; }
+  .e2-side-spacer{ flex:1 1 auto; min-height:16px; }
+
+  /* pagine */
+  body.estimly2-theme .e2-dash-wrap, body.estimly2-theme #e2PageStatistiche{ padding:24px 16px 96px !important; }
+  body.estimly2-theme #e2PageStatistiche{ padding:24px 16px 96px !important; }
+  body.estimly2-theme .catalog{ padding:24px 16px 96px !important; }
+  body.estimly2-theme .e2-page-head{ margin-bottom:22px; }
+  body.estimly2-theme .e2-page-head h1{ font-size:29px; letter-spacing:-0.5px; }
+  body.estimly2-theme .e2-page-head p{ font-size:14px; }
+  body.estimly2-theme .e2-page-head .e2-eyebrow{ font-size:11.5px; }
+  body.estimly2-theme .e2-stat-row{ flex-direction:column; align-items:stretch !important; gap:0; }
+  body.estimly2-theme .e2-stat-row .btn-save{ align-self:flex-start; margin-bottom:22px; }
+  body.estimly2-theme .e2t-top{ flex-direction:column; gap:0; }
+  body.estimly2-theme .e2t-add{ margin-bottom:22px; }
+
+  /* dashboard */
+  body.estimly2-theme .e2d-head{ gap:14px; margin-bottom:22px; }
+  body.estimly2-theme #e2dGreeting{ font-size:32px; }
+  body.estimly2-theme .e2d-search{ width:100%; flex:1 1 100%; }
+  body.estimly2-theme .e2d-hero{ margin-bottom:26px; border-radius:18px; }
+  body.estimly2-theme .e2d-hero-l, body.estimly2-theme .e2d-hero-r, body.estimly2-theme .e2h .e2d-hero-l, body.estimly2-theme .e2h .e2d-hero-r{ flex:1 1 100% !important; min-width:0 !important; padding:24px 22px !important; min-height:0 !important; }
+  body.estimly2-theme .e2h-title{ font-size:30px; } body.estimly2-theme .e2d-hero-l [style*="font-size:40px"]{ font-size:30px !important; }
+  body.estimly2-theme .e2h-pct{ font-size:38px; }
+  body.estimly2-theme .e2h-actions{ gap:10px; } body.estimly2-theme .e2h-dots{ margin-left:0; width:100%; justify-content:center; padding-top:4px; }
+  body.estimly2-theme .e2d-hero.e2h{ min-height:0; }
+  body.estimly2-theme .e2d-cols > *{ flex:1 1 100% !important; min-width:0 !important; max-width:100% !important; }
+  body.estimly2-theme .e2d-pipe{ grid-template-columns:repeat(4,minmax(0,1fr)); row-gap:22px; padding:18px 8px; }
+  body.estimly2-theme .e2d-line, body.estimly2-theme .e2d-line-fill{ display:none; }
+  body.estimly2-theme .e2-dashboard-grid{ grid-template-columns:1fr 1fr !important; gap:10px; }
+  body.estimly2-theme .e2-stat-card{ padding:16px; }
+  body.estimly2-theme .e2d-row{ flex-wrap:wrap; padding:14px 16px; gap:12px; }
+  body.estimly2-theme .e2d-row > div[style*="flex:0 0 150px"]{ flex:1 1 100% !important; display:flex; align-items:center; justify-content:space-between; }
+  body.estimly2-theme .e2-analytics-grid, body.estimly2-theme .e2-dash-grid-2{ grid-template-columns:1fr !important; }
+
+  /* richieste, salvati, seguire */
+  body.estimly2-theme .e2-lead-filter{ padding:8px 13px; }
+  body.estimly2-theme .e2-lead-card{ padding:16px; }
+  body.estimly2-theme .e2-lead-card > div:first-child{ flex-wrap:wrap; }
+  body.estimly2-theme .e2sv-row{ gap:10px; padding:14px 0; } body.estimly2-theme .e2sv-group{ padding:2px 16px; border-radius:16px; }
+  body.estimly2-theme .e2sv-title{ font-size:14.5px; } body.estimly2-theme .e2sv-amount{ font-size:14px; }
+  body.estimly2-theme .e2sv-section-h{ flex-wrap:wrap; }
+
+  /* preventivo */
+  body.estimly2-theme[data-e2-page="preventivo"] header.top{ padding:24px 16px 0 !important; }
+  body.estimly2-theme .layout.e2-single-col{ padding:0 12px 24px !important; }
+  body.estimly2-theme .layout.e2-single-col .quote-scroll{ padding:18px 16px !important; }
+  body.estimly2-theme .e2-pv-actions{ margin:16px 12px !important; padding:10px !important; flex-direction:column; align-items:stretch; position:sticky; bottom:12px; }
+  body.estimly2-theme .e2-pv-actions .e2-pv-hint{ display:none; } body.estimly2-theme .e2-pv-actions .e2-pv-btns{ width:100%; } body.estimly2-theme .e2-pv-actions button{ flex:1; justify-content:center; }
+  body.estimly2-theme .tier-btns{ width:100%; display:flex; } body.estimly2-theme .tier-btn{ flex:1; padding:10px 6px; }
+  body.estimly2-theme .field-grid{ grid-template-columns:1fr !important; }
+  body.estimly2-theme .quote-panel{ overflow-x:auto; }
+
+  /* listino */
+  body.estimly2-theme .toolbar{ gap:8px; } body.estimly2-theme .toolbar input[type=search], body.estimly2-theme .toolbar select{ flex:1 1 100%; width:100%; box-sizing:border-box; }
+  body.estimly2-theme .toolbar .chip-group{ flex-wrap:wrap; }
+  body.estimly2-theme .toolbar .new-item-btn{ flex:1 1 auto; justify-content:center; }
+  body.estimly2-theme .hour-calc-grid{ grid-template-columns:1fr !important; }
+
+  /* contratti */
+  body.estimly2-theme .contract-manager{ max-width:100% !important; width:100%; }
+  body.estimly2-theme .e2-ph-box{ padding:16px; } body.estimly2-theme .e2-ph{ font-size:12.5px; }
+  body.estimly2-theme .contract-template-card{ padding:18px 16px; border-radius:18px; }
+  body.estimly2-theme .contract-template-head{ flex-wrap:wrap; gap:10px; }
+  body.estimly2-theme .contract-template-name-input{ font-size:20px !important; flex:1 1 100%; }
+  body.estimly2-theme .contract-section-card{ padding:56px 14px 16px 14px; } body.estimly2-theme .contract-section-card::before{ left:14px; top:14px; }
+  body.estimly2-theme .contract-section-head{ top:16px; }
+  body.estimly2-theme .contract-section-card input[type="text"]{ padding-right:0 !important; }
+
+  /* scheda preventivo / cliente */
+  body.estimly2-theme .e2ph-card{ flex-direction:column; } body.estimly2-theme .e2ph-img{ flex:none; width:100%; height:180px; }
+  body.estimly2-theme #quoteSchedaBody table, body.estimly2-theme #clientSchedaView table{ display:block; overflow-x:auto; }
+  body.estimly2-theme #quoteSchedaBody [style*="grid-template-columns"], body.estimly2-theme #clientSchedaView [style*="grid-template-columns"]{ grid-template-columns:1fr !important; }
+
+  /* team */
+  body.estimly2-theme .e2t-grid{ grid-template-columns:1fr; }
+  body.estimly2-theme .e2t-card{ padding:18px; gap:14px; } body.estimly2-theme .e2t-av{ width:60px; height:60px; font-size:19px; }
+  body.estimly2-theme .e2t-form{ flex-direction:column; gap:22px; padding:22px 18px; align-items:stretch; }
+  body.estimly2-theme .e2t-photo{ width:100%; display:flex; flex-direction:column; align-items:center; }
+  body.estimly2-theme .e2t-actions .e2t-sp{ flex:1 1 100%; height:0; }
+
+  /* impostazioni a pagina */
+  body.estimly2-theme #settingsModal{ left:0 !important; top:60px !important; z-index:600 !important; }
+  body.estimly2-theme #settingsModal .modal-card{ padding:24px 16px 24px !important; }
+  body.estimly2-theme #settingsModal .modal-actions{ margin:20px 0 0 !important; }
+
+  /* finestre normali: a tutto schermo */
+  .modal-overlay{ padding:0 !important; align-items:flex-end !important; }
+  .modal-overlay .modal-card{ width:100% !important; max-width:100% !important; max-height:92vh !important; border-radius:20px 20px 0 0 !important; margin:0; }
+}
+@media (max-width:480px){
+  body.estimly2-theme .e2d-pipe{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+  body.estimly2-theme .e2d-pipe-step div{ font-size:10.5px; }
+}
+
+/* ===================== Accesso, ruoli, Marketing ===================== */
+[data-e2lock]{ display:none !important; }
+input[data-e2lock], textarea[data-e2lock], select[data-e2lock]{ display:block !important; opacity:.75; background:#F6F3EC !important; cursor:default; }
+body.e2-nonew #saveQuoteBtn, body.e2-nonew #resetBtn, body.e2-nonew #e2dNewBtn, body.e2-nonew #e2dHeroNew, body.e2-nonew .e2-pv-actions, body.e2-nonew [data-e2-page="preventivo"].e2-nav-item{ display:none !important; }
+body.e2-nodel .btn-danger{ display:none !important; }
+body.e2-locked{ overflow:hidden !important; }
+body.e2-locked #e2MobBar{ display:none !important; }
+#e2Login{ display:none; }
+body.e2-locked #e2Login{ display:block; position:fixed; inset:0; z-index:9998; background:#F7F5EF; overflow-y:auto; font-family:var(--e2-font,'Inter',sans-serif); -webkit-font-smoothing:antialiased; }
+.e2lg{ min-height:100%; display:grid; grid-template-columns:1fr 1fr; }
+.e2lg-side{ background:#171411; color:#F4EEE5; padding:56px; display:flex; flex-direction:column; justify-content:space-between; }
+.e2lg-eyebrow{ font-size:11px; text-transform:uppercase; letter-spacing:.18em; color:#AAA39A; }
+.e2lg-eyebrow.e2lg-red{ color:var(--accent,#862D2D); letter-spacing:.16em; font-weight:600; }
+.e2lg-side h1{ font-size:46px; font-weight:400; letter-spacing:-.045em; line-height:1.04; margin:20px 0 18px; max-width:440px; }
+.e2lg-side p{ font-size:16px; line-height:1.55; color:#C9C2B8; max-width:400px; margin:0; }
+.e2lg-main{ display:flex; align-items:center; justify-content:center; padding:40px 24px; }
+.e2lg-card{ width:100%; max-width:410px; }
+.e2lg-card h2{ font-size:32px; font-weight:500; letter-spacing:-.03em; margin:14px 0 10px; color:#16160F; }
+.e2lg-card > p{ font-size:15px; line-height:1.55; color:#5D5952; margin:0 0 26px; font-weight:300; }
+.e2lg-card label{ display:block; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#8C8776; margin:18px 0 8px; }
+.e2lg-card input{ width:100%; box-sizing:border-box; border:1px solid #E3DDCE; background:#fff; border-radius:12px; padding:14px 15px; font-size:16px; font-family:inherit; color:#16160F; outline:0; }
+.e2lg-card input:focus{ border-color:#16160F; }
+.e2lg-pw{ display:flex; gap:8px; } .e2lg-pw input{ flex:1; min-width:0; }
+.e2lg-pw button{ border:1px solid #E3DDCE; background:#fff; border-radius:12px; padding:0 14px; font-size:13px; cursor:pointer; color:#54503F; font-family:inherit; }
+.e2lg-err{ display:none; margin-top:14px; font-size:13.5px; color:var(--accent,#862D2D); background:color-mix(in srgb, var(--accent,#862D2D) 6%, #fff); border:1px solid color-mix(in srgb, var(--accent,#862D2D) 20%, #fff); border-radius:10px; padding:10px 12px; }
+.e2lg-go{ width:100%; margin-top:22px; display:flex; align-items:center; justify-content:center; gap:14px; padding:16px; border:0; border-radius:12px; background:#16160F; color:#fff; font-size:15px; font-weight:500; cursor:pointer; font-family:inherit; }
+.e2lg-go span{ display:inline-grid; place-items:center; width:20px; height:20px; border:1px solid currentColor; border-radius:50%; font-size:12px; }
+.e2lg-acc{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:#fff; border:1px solid #EFEAE0; border-radius:12px; padding:9px 12px; margin-bottom:8px; cursor:pointer; font-family:inherit; }
+.e2lg-acc:hover{ border-color:#16160F; }
+.e2lg-av{ width:34px; height:34px; border-radius:50%; background:#E9E3D5 center/cover; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#54503F; flex:none; }
+.e2lg-an b{ display:block; font-size:14px; font-weight:500; color:#16160F; } .e2lg-an i{ font-style:normal; font-size:12.5px; color:#8C8776; }
+.e2lg-foot{ font-size:12.5px !important; color:#8C8776 !important; margin:18px 0 0 !important; }
+@media (max-width:900px){ .e2lg{ grid-template-columns:1fr; } .e2lg-side{ padding:28px 22px; gap:22px; } .e2lg-side h1{ font-size:32px; margin:14px 0 10px; } .e2lg-side p{ font-size:14.5px; } .e2lg-code{ padding:14px 16px; } .e2lg-code b{ font-size:19px; } .e2lg-main{ padding:28px 18px 48px; align-items:flex-start; } .e2lg-card h2{ font-size:28px; } }
+
+/* team: foto dalla scheda, ruoli, codice studio */
+.e2t-avwrap{ position:relative; display:inline-flex; flex:none; cursor:pointer; }
+.e2t-av-cam{ position:absolute; right:-3px; bottom:-3px; width:24px; height:24px; border-radius:50%; background:#16160F; color:#fff; display:flex; align-items:center; justify-content:center; border:2px solid #fff; opacity:0; transition:opacity .15s; }
+.e2t-av-cam svg{ width:12px; height:12px; }
+.e2t-card:hover .e2t-av-cam, .e2t-avwrap:focus .e2t-av-cam{ opacity:1; }
+@media (hover:none){ .e2t-av-cam{ opacity:1; } }
+body.estimly2-theme .e2t-role-box div span.e2t-no{ background:#F6F3EC; color:#A39E8E; text-decoration:line-through; border-style:dashed; }
+.e2t-code{ display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px; font-size:13px; color:#8C8776; }
+.e2t-code b{ font-family:'JetBrains Mono',ui-monospace,monospace; font-weight:500; color:#16160F; background:#fff; border:1px solid #E3DDCE; border-radius:8px; padding:3px 9px; letter-spacing:.06em; }
+
+/* marketing */
+.e2mk{ max-width:1100px; }
+.e2mk-bar{ display:flex; align-items:center; gap:12px; margin:0 0 20px; } .e2mk-bar label{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#8C8776; }
+.e2mk-bar select{ border:1px solid #E3DDCE; background:#fff; border-radius:12px; padding:10px 14px; font-size:14px; font-family:inherit; color:#16160F; }
+.e2mk-kpis{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px; }
+.e2mk-kpis > div{ background:#fff; border:1px solid #EFEAE0; border-radius:16px; padding:18px 20px; }
+.e2mk-kpis small{ display:block; font-size:12.5px; color:#8C8776; margin-bottom:8px; } .e2mk-kpis b{ display:block; font-size:34px; font-weight:500; letter-spacing:-1px; color:#16160F; line-height:1.05; } .e2mk-kpis b.won{ color:#0F766E; }
+.e2mk-kpis em{ display:block; font-style:normal; font-size:12px; color:#8C8776; margin-top:6px; }
+.e2mk-card{ background:#fff; border:1px solid #EFEAE0; border-radius:20px; padding:24px 26px; margin-bottom:20px; }
+.e2mk-h{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px; } .e2mk-h h3{ margin:0; font-size:17px; font-weight:500; color:#16160F; }
+.e2mk-leg{ display:flex; gap:16px; font-size:12.5px; color:#54503F; } .e2mk-leg span{ display:inline-flex; align-items:center; gap:6px; }
+.e2mk-leg i, .e2mk-track .w{ background:#0F766E; } .e2mk-leg i{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+.e2mk-leg i.o, .e2mk-track .o{ background:#D8CFB8; } .e2mk-leg i.l, .e2mk-track .l{ background:#9A958A; } .e2mk-leg i.o2{ background:#D8CFB8; }
+.e2mk-rows{ display:flex; flex-direction:column; gap:14px; }
+.e2mk-row{ display:grid; grid-template-columns:150px 1fr 190px; gap:16px; align-items:center; font-size:14px; }
+.e2mk-k{ color:#16160F; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.e2mk-track{ display:flex; height:14px; gap:2px; } .e2mk-track span{ display:block; height:100%; } .e2mk-track span:first-child{ border-radius:7px 0 0 7px; } .e2mk-track span:last-child{ border-radius:0 7px 7px 0; }
+.e2mk-n{ color:#54503F; font-size:13.5px; text-align:right; } .e2mk-n b{ color:#16160F; font-weight:600; }
+.e2mk-insight{ margin:20px 0 0; padding:14px 16px; background:#FAF9F6; border:1px solid #EFEAE0; border-radius:12px; font-size:14px; line-height:1.6; color:#54503F; font-weight:300; } .e2mk-insight b{ color:#16160F; font-weight:600; }
+.e2mk-cols{ display:flex; align-items:flex-end; gap:14px; height:200px; }
+.e2mk-col{ flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:8px; }
+.e2mk-bars{ flex:1; width:100%; max-width:64px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:6px; }
+.e2mk-v{ font-size:12.5px; color:#54503F; } .e2mk-b{ width:100%; background:#D8CFB8; border-radius:6px 6px 0 0; display:flex; align-items:flex-end; min-height:2px; } .e2mk-b u{ display:block; width:100%; background:#0F766E; border-radius:6px 6px 0 0; }
+.e2mk-col small{ font-size:12.5px; color:#8C8776; text-transform:capitalize; }
+.e2mk-two{ display:grid; grid-template-columns:1fr 1fr; gap:20px; } .e2mk-two .e2mk-card{ margin-bottom:0; }
+.e2mk-list{ list-style:none; margin:0; padding:0; } .e2mk-list li{ display:flex; justify-content:space-between; gap:12px; padding:11px 0; border-top:1px solid #F1ECE0; font-size:14px; color:#16160F; } .e2mk-list li:first-child{ border-top:0; padding-top:0; } .e2mk-list i{ font-style:normal; color:#8C8776; font-size:13px; text-align:right; }
+.e2mk-empty{ color:#8C8776 !important; font-size:14px; margin:0; }
+@media (max-width:900px){
+  body.estimly2-theme .e2mk-kpis{ grid-template-columns:1fr 1fr; } body.estimly2-theme .e2mk-kpis > div:last-child{ grid-column:1 / -1; } .e2mk-kpis b{ font-size:30px; }
+  body.estimly2-theme .e2mk-card{ padding:20px 18px; border-radius:18px; }
+  body.estimly2-theme .e2mk-row{ grid-template-columns:1fr; gap:6px; } .e2mk-n{ text-align:left; }
+  body.estimly2-theme .e2mk-two{ grid-template-columns:1fr; } body.estimly2-theme .e2mk-two .e2mk-card{ margin-bottom:0; }
+  body.estimly2-theme .e2mk-cols{ gap:8px; height:170px; }
+}
+
+body.e2-ro-page .e2-ph-box{ display:none !important; }
+
+/* ===================== Rifiniture: contratti, rubrica, salvati, da seguire, marketing, impostazioni ===================== */
+body.estimly2-theme .contract-manager{ max-width:none !important; width:100%; }
+body.estimly2-theme #settingsModal .modal-body, body.estimly2-theme #settingsModal .modal-actions{ max-width:none !important; }
+body.estimly2-theme #settingsModal .field-grid{ gap:20px 24px; }
+/* salvati */
+body.estimly2-theme .e2sv-section-h{ gap:12px; margin:0 0 18px; }
+body.estimly2-theme .e2sv-section-h h3{ font-size:26px; font-weight:500; letter-spacing:-.5px; }
+body.estimly2-theme .e2sv-dot{ width:13px; height:13px; }
+body.estimly2-theme .e2sv-section:nth-of-type(2) .e2sv-dot{ background:var(--accent,#862D2D) !important; }
+body.estimly2-theme .e2sv-count{ font-size:14px; font-weight:600; color:#54503F; background:#EFEAE0; border-radius:999px; padding:3px 11px; }
+body.estimly2-theme .e2sv-hint{ font-size:15px; color:#6E6959; font-weight:300; }
+/* tag */
+.e2tag{ display:inline-flex; align-items:center; font-size:12px; font-weight:600; letter-spacing:.2px; padding:4px 11px; border-radius:999px; white-space:nowrap; }
+/* rubrica */
+body.estimly2-theme #rubricaList{ display:grid !important; grid-template-columns:repeat(auto-fill,minmax(420px,1fr)); gap:14px; }
+body.estimly2-theme #rubricaList .client-card{ display:flex !important; align-items:center; gap:16px; background:#fff !important; border:1px solid #E9E3D5 !important; border-radius:20px !important; padding:18px 22px !important; margin:0 !important; cursor:pointer; transition:transform .15s, box-shadow .15s, border-color .15s; }
+body.estimly2-theme #rubricaList .client-card:hover{ transform:translateY(-2px); box-shadow:0 10px 28px rgba(60,45,20,.08); border-color:#D9D0BC !important; }
+.e2rb-av{ width:52px; height:52px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600; color:#54503F; }
+.e2rb-body{ flex:1; min-width:0; } .e2rb-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px; }
+.e2rb-name{ font-size:18px; font-weight:600; color:#16160F; letter-spacing:-.2px; } .e2rb-line{ font-size:14px; color:#6E6959; font-weight:300; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.e2rb-n{ text-align:center; flex:none; padding-left:14px; border-left:1px solid #EFEAE0; } .e2rb-n b{ display:block; font-size:22px; font-weight:500; color:#16160F; line-height:1.1; } .e2rb-n span{ font-size:12px; color:#8C8776; }
+.e2rb-go{ color:#B5AE9C; font-size:18px; flex:none; }
+/* da seguire */
+.e2fu-tiles{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:0 0 34px; }
+.e2fu-tiles > div{ background:#fff; border:1px solid #EFEAE0; border-radius:18px; padding:20px 22px; } .e2fu-tiles b{ display:block; font-size:38px; font-weight:500; letter-spacing:-1px; color:#16160F; line-height:1.05; } .e2fu-tiles span{ font-size:14px; color:#6E6959; font-weight:300; }
+.e2fu-tiles .hot{ background:var(--accent,#862D2D); border-color:var(--accent,#862D2D); } .e2fu-tiles .hot b{ color:#fff; } .e2fu-tiles .hot span{ color:#F1D9D6; }
+.e2fu-sec{ margin:0 0 34px; } .e2fu-sh{ display:flex; align-items:center; gap:12px; margin:0 0 16px; flex-wrap:wrap; } .e2fu-sh h3{ margin:0; font-size:24px; font-weight:500; letter-spacing:-.4px; color:#16160F; }
+.e2fu-ct{ font-size:14px; font-weight:600; color:#54503F; background:#EFEAE0; border-radius:999px; padding:3px 11px; } .e2fu-hint{ font-size:14.5px; color:#6E6959; font-weight:300; }
+.e2fu-card{ position:relative; background:#fff; border:1px solid #E9E3D5; border-radius:22px; padding:24px 28px 20px 32px; margin:0 0 14px; overflow:hidden; }
+.e2fu-card::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:6px; background:#C9C2B0; } .e2fu-card.hot::before{ background:var(--accent,#862D2D); } .e2fu-card.wait::before{ background:#D7B26A; }
+.e2fu-head{ display:flex; align-items:center; gap:16px; } .e2fu-av{ width:52px; height:52px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-weight:600; color:#54503F; }
+.e2fu-who{ flex:1; min-width:0; } .e2fu-name{ font-size:20px; font-weight:600; color:#16160F; letter-spacing:-.3px; } .e2fu-sub{ font-size:14px; color:#6E6959; font-weight:300; margin-top:2px; }
+.e2fu-right{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:8px; } .e2fu-amt{ font-size:22px; font-weight:500; color:#16160F; letter-spacing:-.4px; }
+.e2fu-pill{ font-size:12.5px; font-weight:600; padding:5px 13px; border-radius:999px; } .e2fu-pill.hot{ background:color-mix(in srgb, var(--accent,#862D2D) 12%, #fff); color:var(--accent,#862D2D); } .e2fu-pill.wait{ background:#FAEFD4; color:#8E6A1B; } .e2fu-pill.done{ background:#EFEAE0; color:#54503F; }
+.e2fu-flow{ display:flex; align-items:flex-start; margin:22px 0 4px; } .e2fu-st{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:92px; text-align:center; }
+.e2fu-st i{ width:14px; height:14px; border-radius:50%; border:2px solid #D3CBB8; background:#fff; } .e2fu-st.on i{ background:var(--accent,#862D2D); border-color:var(--accent,#862D2D); }
+.e2fu-st b{ font-size:13px; font-weight:500; color:#8C8776; } .e2fu-st.on b{ color:#16160F; } .e2fu-st small{ font-size:12px; color:#8C8776; font-weight:300; min-height:15px; }
+.e2fu-ln{ flex:1; height:2px; background:#E3DDCE; margin-top:6px; min-width:20px; }
+.e2fu-due{ font-size:13.5px; color:#6E6959; margin-top:14px; font-weight:300; }
+.e2fu-act{ display:flex; gap:10px; margin-top:18px; padding-top:16px; border-top:1px solid #F1ECE0; flex-wrap:wrap; }
+.e2fu-act select{ font-family:inherit; font-size:14px; padding:9px 14px; border:1px solid #E3DDCE; border-radius:12px; background:#fff; color:#16160F; }
+.e2fu-del{ font-family:inherit; font-size:14px; padding:9px 16px; border:1px solid #E3DDCE; background:#fff; border-radius:12px; color:var(--accent,#862D2D); cursor:pointer; } .e2fu-del:hover{ border-color:var(--accent,#862D2D); }
+.e2fu-empty{ text-align:center; color:#8C8776; padding:48px 0; }
+/* marketing: bordeaux al posto del verde */
+.e2mk-kpis b.won{ color:var(--accent,#862D2D); } .e2mk-leg i, .e2mk-track .w{ background:var(--accent,#862D2D); } .e2mk-b u{ background:var(--accent,#862D2D); }
+.e2mk-row .e2tag{ font-size:13px; }
+@media (max-width:900px){
+  body.estimly2-theme #rubricaList{ grid-template-columns:1fr; } body.estimly2-theme #rubricaList .client-card{ padding:14px 16px !important; gap:12px; } .e2rb-av{ width:44px; height:44px; } .e2rb-n{ display:none; }
+  .e2fu-tiles{ grid-template-columns:1fr 1fr 1fr; gap:8px; } .e2fu-tiles > div{ padding:14px 12px; } .e2fu-tiles b{ font-size:28px; } .e2fu-tiles span{ font-size:12px; }
+  .e2fu-card{ padding:18px 16px 16px 20px; border-radius:18px; } .e2fu-head{ flex-wrap:wrap; gap:12px; } .e2fu-right{ flex-direction:row; align-items:center; width:100%; justify-content:space-between; }
+  .e2fu-st{ min-width:0; } .e2fu-st small{ font-size:11px; } .e2fu-st b{ font-size:12px; } body.estimly2-theme .e2sv-section-h h3{ font-size:22px; }
+}
+
+/* foto progetto a tutta larghezza */
+body.estimly2-theme .e2ph-card{ display:block; padding:0; overflow:hidden; border-radius:22px; }
+body.estimly2-theme .e2ph-img{ display:flex; flex:none; width:100%; height:380px; border-radius:0; }
+body.estimly2-theme .e2ph-side{ flex-direction:row; align-items:center; justify-content:space-between; gap:24px; padding:18px 24px; flex-wrap:wrap; }
+body.estimly2-theme .e2ph-side p{ max-width:560px; } body.estimly2-theme .e2ph-btns{ margin:0; }
+@media (max-width:900px){ body.estimly2-theme .e2ph-img{ height:220px; } body.estimly2-theme .e2ph-side{ padding:16px; } body.estimly2-theme .e2ph-card{ flex-direction:initial; } }
+/* richieste in dashboard: pastelli desaturati */
+body.estimly2-theme .e2d-row .lead-pill, body.estimly2-theme #e2PageDashboard span[style*="border-radius:999px"]{ font-weight:500; }
+
+/* verde → bordeaux sui badge con stile in linea */
+[style*="color:#0F766E"]{ color:var(--accent,#862D2D) !important; } [style*="background:#E5F5F3"]{ background:color-mix(in srgb, var(--accent,#862D2D) 12%, #fff) !important; } [style*="background:#0F766E"]{ background:var(--accent,#862D2D) !important; }
+.e2fu-pill.done{ background:#EFEAE0; }
+
+.e2fu-pill.won{ background:color-mix(in srgb, var(--accent,#862D2D) 12%, #fff); color:var(--accent,#862D2D); }
+
+#e2PageStatistiche{padding:36px 40px 48px}
+</style>
 </head>
 <body>
 
@@ -921,29 +1544,34 @@ header.top{
     </div>
     <div class="lg-side lg-light">
       <div class="lg-card">
-        <span class="lg-eyebrow">Accesso</span>
-        <h2>Sblocca Estimly</h2>
-        <p>Inserisci la chiave di licenza del tuo studio per continuare.</p>
-        <form onsubmit="return false;">
+        <span class="lg-eyebrow" id="lgEyebrow">Accesso</span>
+        <h2 id="lgTitle">Accedi a Estimly</h2>
+        <p id="lgSub">Entra con l'email e la password del tuo account. Se non le hai, chiedile all'amministratore del tuo studio.</p>
+        <form onsubmit="return false;" id="lgLoginForm">
           <div class="lg-field">
-            <label for="licenseKeyInput">Chiave di licenza</label>
-            <input id="licenseKeyInput" placeholder="DQSS-XXXX-XXXX-XXXX">
+            <label for="lgEmail">Email</label>
+            <input id="lgEmail" type="email" placeholder="nome@studio.it" autocomplete="username">
           </div>
-          <p class="lg-legal">Proseguendo dichiari di aver preso visione dell'<a href="privacy.html" target="_blank" rel="noopener">Informativa Privacy</a>.</p>
-          <div class="lg-checks">
-            <label class="lg-check">
-              <input type="checkbox" id="acceptTos">
-              <span>Ho letto e accetto i <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
-            </label>
-            <label class="lg-check">
-              <input type="checkbox" id="acceptVessatorie">
-              <span>Approvo specificamente, ai sensi degli artt. 1341&ndash;1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a></span>
-            </label>
+          <div class="lg-field">
+            <label for="lgPwd">Password</label>
+            <input id="lgPwd" type="password" placeholder="La tua password" autocomplete="current-password">
           </div>
-          <button type="button" id="licenseSubmitBtn" class="lg-submit" disabled style="opacity:0.5; cursor:not-allowed;">Sblocca <span class="lg-arrow">&rarr;</span></button>
+          <div class="lg-checks" id="lgChecksLogin">
+            <label class="lg-check"><input type="checkbox" id="acceptTos"><span>Ho letto e accetto i <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a> e l'<a href="privacy.html" target="_blank" rel="noopener">Informativa Privacy</a></span></label>
+            <label class="lg-check"><input type="checkbox" id="acceptVessatorie"><span>Approvo specificamente, ai sensi degli artt. 1341&ndash;1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei Termini di Servizio.</span></label>
+          </div>
+          <button type="button" id="licenseSubmitBtn" class="lg-submit" disabled style="opacity:0.5; cursor:not-allowed;">Accedi <span class="lg-arrow">&rarr;</span></button>
+        </form>
+        <form onsubmit="return false;" id="lgActForm" style="display:none;">
+          <div class="lg-field"><label for="lgKey">Chiave di licenza</label><input id="lgKey" placeholder="DQSS-XXXX-XXXX-XXXX" autocomplete="off"></div>
+          <div class="lg-field"><label for="lgNome">Nome e cognome</label><input id="lgNome" type="text" placeholder="Es. Nicola Maglione" autocomplete="name"></div>
+          <div class="lg-field"><label for="lgEmail2">Email</label><input id="lgEmail2" type="email" placeholder="nome@studio.it" autocomplete="username"></div>
+          <div class="lg-field"><label for="lgPwd2">Password (minimo 8 caratteri)</label><input id="lgPwd2" type="password" autocomplete="new-password"></div>
+          <button type="button" id="lgActBtn" class="lg-submit" disabled style="opacity:0.5; cursor:not-allowed;">Attiva il mio studio <span class="lg-arrow">&rarr;</span></button>
         </form>
         <div class="lg-altline">oppure</div>
-        <p class="lg-request">Non hai ancora una chiave di licenza? <a href="mailto:info@desearq.com">Richiedi l'accesso</a></p>
+        <p class="lg-request"><a href="#" id="lgToggle">Prima volta? Attiva il tuo studio con la chiave di licenza</a></p>
+        <p class="lg-request">Non hai una chiave di licenza? <a href="mailto:info@desearq.com">Richiedi l'accesso</a></p>
         <div id="licenseError" class="lg-error" style="display:none;"></div>
         <div class="lg-foot">&copy; 2026 Desearq Lab</div>
       </div>
@@ -990,7 +1618,7 @@ header.top{
 </header>
 
 <nav id="e2Sidebar">
-  <div class="e2-sidebar-brand"><span class="e2-sidebar-brand-badge">E</span>Estimly <span>2.0</span></div>
+  <div class="e2-sidebar-brand"><img src="assets/estimly-logo.png" alt="Estimly"><small>Desearq Lab</small>Estimly <span>2.0</span></div>
   <button type="button" class="e2-nav-item active" data-e2-page="dashboard"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</button>
   <button type="button" class="e2-nav-item" id="e2NavRichieste" data-e2-page="richieste"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Richieste<span id="e2RichiesteNavBadge" class="e2-nav-badge" style="display:none;"></span></button>
   <button type="button" class="e2-nav-item" data-e2-page="preventivo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>Preventivo</button>
@@ -1003,6 +1631,9 @@ header.top{
   <button type="button" class="e2-nav-item" data-e2-page="calcolatore"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Costo orario</button>
   <button type="button" class="e2-nav-item" id="e2NavStatistiche" data-e2-page="statistiche"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Statistiche</button>
   <button type="button" class="e2-nav-item" id="e2NavImpostazioni"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Impostazioni studio</button>
+  <div class="e2-side-spacer"></div>
+  <div class="e2-side-foot"><div class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z M14 3v5h5"/></svg></div><div><div class="e2-side-t">Studio</div><div class="e2-side-s" id="e2SideStudio">Desearq Studio</div></div></div>
+  <div class="e2-side-user"><div class="av" id="e2SideAv">NM</div><div><div class="e2-side-t" id="e2SideUser">Nicola Maglione</div><div class="e2-side-s">Amministratore · <button type="button" class="e2-side-exit" onclick="document.getElementById('logoutBtn').click()">Esci</button></div></div></div>
 </nav>
 
 <div id="e2OnboardingGate">
@@ -1019,12 +1650,65 @@ header.top{
 
 <div id="e2PageDashboard" class="e2-page" style="display:none;">
   <div class="e2-dash-wrap">
-    <div class="e2-hero-card">
-      <div class="e2-hero-eyebrow">Oggi</div>
-      <div class="e2-hero-title">Bentornato.</div>
-      <div class="e2-hero-sub">Preventivi, follow-up e attività del tuo studio, in un'unica vista.</div>
+    <div class="e2d-head">
+      <div style="min-width:280px;">
+        <div class="e2-hero-eyebrow">Oggi</div>
+        <div class="e2-hero-title" id="e2dGreeting">Bentornato.</div>
+        <div class="e2-hero-sub">Preventivi, follow-up e attività del tuo studio, in un'unica vista.</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <label class="e2d-search">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8C8776" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="e2dSearch" placeholder="Cerca clienti, progetti, preventivi…" aria-label="Cerca">
+        </label>
+        <button type="button" class="e2d-ghost" id="e2dFilterBtn" aria-label="Vai alle richieste" title="Vai alle richieste">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#54503F" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h10 M18 7h2 M4 17h2 M10 17h10 M16 5v4 M8 15v4"/></svg>
+        </button>
+        <button type="button" class="e2d-primary" id="e2dNewBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 5v14 M5 12h14"/></svg>
+          Nuovo preventivo
+        </button>
+      </div>
     </div>
 
+    <section class="e2d-hero" id="e2dHero"></section>
+
+    <div class="e2d-cols">
+      <div style="flex:999 1 560px; min-width:0;">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:18px;">
+          <h2 class="e2d-h2">Pipeline commerciale</h2>
+          <button type="button" class="e2d-more" data-e2d-go="richieste">Vedi tutte le richieste →</button>
+        </div>
+        <div class="e2d-pipe" id="e2dPipeline"></div>
+
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px;">
+          <h2 class="e2d-h2">Richieste recenti</h2>
+          <button type="button" class="e2d-more" data-e2d-go="richieste">Tutte le richieste →</button>
+        </div>
+        <div class="e2d-panel" id="e2dRequests"></div>
+      </div>
+
+      <div style="flex:1 1 300px; min-width:280px; display:flex; flex-direction:column; gap:22px;">
+        <section class="e2d-side">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
+            <h2 class="e2d-h2" style="font-size:20px;">Da seguire</h2>
+            <button type="button" class="e2d-more" data-e2d-go="seguire">Vedi tutto →</button>
+          </div>
+          <div id="e2dFollowups"></div>
+        </section>
+        <section class="e2d-side" style="padding-bottom:18px;">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px;">
+            <h2 class="e2d-h2" style="font-size:17px; white-space:nowrap;">Pagamenti consulenza</h2>
+            <button type="button" class="e2d-more" data-e2d-go="salvati">Vedi →</button>
+          </div>
+          <div id="e2dPayments"></div>
+        </section>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:baseline; justify-content:space-between; margin:6px 0 18px;">
+      <h2 class="e2d-h2">Panoramica</h2>
+    </div>
     <div class="e2-dashboard-grid">
       <div class="e2-stat-card">
         <div class="e2-stat-label">Preventivi salvati</div>
@@ -1478,10 +2162,8 @@ header.top{
   <div class="e2-dash-wrap">
   <div class="contract-manager" id="contractManagerBox" style="max-width:1000px;">
     <div class="field-section-label" style="margin-top:0;">Contratti</div>
-    <div style="font-size:11px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">
-      Scrivi qui i tuoi modelli di contratto, divisi in sezioni. Alla stampa useranno automaticamente la stessa intestazione/logo del preventivo. Segnaposto disponibili tra graffe:
-      <code style="font-size:10.5px;">{cliente}</code> <code style="font-size:10.5px;">{indirizzo_cliente}</code> <code style="font-size:10.5px;">{cf_piva_cliente}</code> <code style="font-size:10.5px;">{numero_preventivo}</code> <code style="font-size:10.5px;">{data}</code> <code style="font-size:10.5px;">{oggetto}</code> <code style="font-size:10.5px;">{totale}</code> <code style="font-size:10.5px;">{validita}</code> <code style="font-size:10.5px;">{studio_nome}</code> <code style="font-size:10.5px;">{studio_indirizzo}</code> <code style="font-size:10.5px;">{studio_piva}</code>
-    </div>
+    <p class="e2-ct-lead">Scrivi i tuoi modelli di contratto, divisi in sezioni. Alla stampa useranno la stessa intestazione e logo del preventivo.</p>
+    <div class="e2-ph-box"><div class="e2-ph-title">Segnaposto <span>clicca per inserirli nel testo su cui stai scrivendo</span></div><div class="e2-ph-row"><button type="button" class="e2-ph" data-ph="{cliente}">{cliente}</button><button type="button" class="e2-ph" data-ph="{indirizzo_cliente}">{indirizzo_cliente}</button><button type="button" class="e2-ph" data-ph="{cf_piva_cliente}">{cf_piva_cliente}</button><button type="button" class="e2-ph" data-ph="{numero_preventivo}">{numero_preventivo}</button><button type="button" class="e2-ph" data-ph="{data}">{data}</button><button type="button" class="e2-ph" data-ph="{oggetto}">{oggetto}</button><button type="button" class="e2-ph" data-ph="{totale}">{totale}</button><button type="button" class="e2-ph" data-ph="{validita}">{validita}</button><button type="button" class="e2-ph" data-ph="{studio_nome}">{studio_nome}</button><button type="button" class="e2-ph" data-ph="{studio_indirizzo}">{studio_indirizzo}</button><button type="button" class="e2-ph" data-ph="{studio_piva}">{studio_piva}</button></div></div>
     <div id="contractTemplatesList"></div>
     <button type="button" id="addContractTemplateBtn" class="new-item-btn" style="margin-top:6px;">+ Nuovo modello di contratto</button>
   </div>
@@ -2788,20 +3470,18 @@ function savedQuoteCompactRowHtml(q){
   const firmato = q.client && q.client.firma && q.client.firma.firmato;
   const isValido = q.valido !== false;
   return `
-    <div data-open-scheda="${q.id}" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 8px; border-bottom:1px solid var(--border); cursor:pointer; ${isValido || esito==='perso' ? '' : 'opacity:0.6;'}">
+    <div class="e2sv-row" data-open-scheda="${q.id}" style="${isValido || esito==='perso' ? '' : 'opacity:0.6;'}">
       <div style="min-width:0;">
-        <div style="font-weight:600; font-size:13px; display:flex; align-items:center; gap:7px; flex-wrap:wrap;">
+        <div class="e2sv-title">
           ${escapeHtml(numero)} — ${escapeHtml(cliente)}
           ${m ? `<span style="font-size:10.5px; font-weight:700; color:${m.ink}; background:${m.soft}; padding:2px 8px; border-radius:999px;">${m.emoji} ${m.label}</span>` : ''}
           ${firmato ? '<span style="font-size:10.5px; font-weight:700; color:#0F766E; background:#E5F5F3; padding:2px 8px; border-radius:999px;">✍️ Firmato</span>' : ''}
           ${isValido ? '' : '<span style="font-size:10.5px; font-weight:700; color:#6B7280; background:#F1F1F1; padding:2px 8px; border-radius:999px;">Escluso dal totale</span>'}
         </div>
-        <div style="font-size:12px; color:var(--ink-soft);">${dataLabel} · € ${fmt(totale)}</div>
+        <div class="e2sv-meta">${dataLabel}</div>
         ${savedQuoteSendStatusHtml(q)}
       </div>
-      <div style="display:flex; gap:6px; flex-shrink:0;">
-        <button data-open-scheda="${q.id}" class="btn-cancel" style="padding:6px 12px;">Apri</button>
-      </div>
+      <div class="e2sv-right"><span class="e2sv-amount">€ ${fmt(totale)}</span><button data-open-scheda="${q.id}" class="e2sv-open" aria-label="Apri">›</button></div>
     </div>`;
 }
 
@@ -3114,10 +3794,10 @@ function renderSavedQuotesListCore(){
           const vinti = g.quotes.filter(q=>q.vinto).length;
           const countLabel = `${g.quotes.length} preventiv${g.quotes.length===1?'o':'i'}${vinti ? ` · 🏆 ${vinti} vint${vinti===1?'o':'i'}` : ''}`;
           return `
-          <div style="margin-bottom:16px;">
-            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); margin-bottom:2px;">
-              <div style="font-weight:700; font-size:13.5px;">${escapeHtml(g.nome)}</div>
-              <div style="font-size:11.5px; color:var(--ink-faint);">${countLabel}</div>
+          <div class="e2sv-group">
+            <div class="e2sv-group-h">
+              <div class="e2sv-group-name">${escapeHtml(g.nome)}</div>
+              <div class="e2sv-group-count">${countLabel}</div>
             </div>
             ${g.quotes.map(savedQuoteCompactRowHtml).join('')}
           </div>`;
@@ -3127,18 +3807,19 @@ function renderSavedQuotesListCore(){
       const inviati = savedQuotes.filter(q=>quoteIsSent(q));
       function sectionHtml(title, hint, quotes, accent){
         return `
-        <div style="margin-bottom:28px;">
-          <div style="display:flex; align-items:center; gap:8px; padding-bottom:8px; border-bottom:2px solid ${accent}; margin-bottom:10px;">
-            <div style="font-weight:700; font-size:14.5px;">${title}</div>
-            <span style="font-size:11px; font-weight:700; color:${accent}; padding:2px 9px; border-radius:999px; border:1px solid ${accent};">${quotes.length}</span>
-            <div style="font-size:11.5px; color:var(--ink-faint); margin-left:4px;">${hint}</div>
+        <div class="e2sv-section">
+          <div class="e2sv-section-h">
+            <span class="e2sv-dot" style="background:${accent};"></span>
+            <h3>${title}</h3>
+            <span class="e2sv-count">${quotes.length}</span>
+            <span class="e2sv-hint">${hint}</span>
           </div>
           ${quotes.length ? groupsHtml(quotes) : '<div style="font-size:12.5px; color:var(--ink-faint); padding:6px 0 2px;">Nessun preventivo in questa sezione.</div>'}
         </div>`;
       }
       groupedTarget.list.innerHTML =
-        sectionHtml('📝 Bozze', 'salvati, non ancora inviati al cliente', bozze, '#92700C') +
-        sectionHtml('📧 Inviati', 'già mandati al cliente', inviati, '#0F766E');
+        sectionHtml('Bozze', 'salvati, non ancora inviati al cliente', bozze, '#B8892B') +
+        sectionHtml('Inviati', 'già mandati al cliente', inviati, '#2F7D6E');
       if(groupedTarget.empty) groupedTarget.empty.style.display = 'none';
     }
   }
@@ -3465,6 +4146,8 @@ function renderOnboardingProgress(){
 
 function maybeShowOnboardingGate(){
   if(!(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled)) return;
+  // la procedura iniziale spetta a chi gestisce lo studio; gli altri ruoli non devono restarne bloccati
+  if(window.E2Auth && window.E2Auth.role && ['admin','socio'].indexOf(window.E2Auth.role) < 0){ hideOnboardingGate(); return; }
   if(studioSettings.tariffaOrariaBase){ hideOnboardingGate(); return; }
   showOnboardingGate();
 }
@@ -5710,7 +6393,9 @@ document.getElementById('clientSchedaQuotes').addEventListener('click', handleSa
 /* ===================== Menu Estimly 2.0 ===================== */
 let e2CurrentPage = 'dashboard';
 function switchEstimly2Page(pageId){
+  try{ closeSettingsModal(); }catch(e){}
   e2CurrentPage = pageId;
+  document.body.setAttribute('data-e2-page', pageId);
   // Uscendo da "Preventivi salvati" la scheda si chiude: tornandoci dal menu si vede l'elenco.
   if(pageId !== 'salvati' && typeof quoteSchedaCurrentId !== 'undefined' && quoteSchedaCurrentId) closeQuoteScheda();
   document.querySelectorAll('.e2-nav-item[data-e2-page]').forEach(btn=>{
@@ -5748,7 +6433,7 @@ function switchEstimly2Page(pageId){
   } else {
     preventivoPage.style.display = 'none';
   }
-  if(pageId === 'dashboard'){ renderDashboard(); loadLeadsCloud().then(renderDashboard); loadFollowupsCloud().then(renderDashboard); }
+  if(pageId === 'dashboard'){ renderDashboard(); loadSavedQuotesCloud().then(renderDashboard); loadLeadsCloud().then(renderDashboard); loadFollowupsCloud().then(renderDashboard); }
   if(pageId === 'richieste'){ closeLeadDetail(); loadLeadsCloud(); }
   if(pageId === 'rubrica'){
     closeClientScheda();
@@ -5762,7 +6447,182 @@ function switchEstimly2Page(pageId){
   if(pageId === 'calcolatore') resetWizardCalc();
 }
 
+
+/* ===================== Dashboard (nuova grafica) ===================== */
+const E2D_ICONS = {
+  cal: 'M5 6h14v14H5z M5 10h14 M9 3v4 M15 3v4', check: 'M12 21a9 9 0 100-18 9 9 0 000 18z M8 12l3 3 5-6',
+  phone: 'M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z', mail: 'M4 6h16v12H4z M4 7l8 6 8-6'
+};
+let estimlyCustomerName = '';
+function e2dTotal(q){
+  const c = q.client || {};
+  const imp = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
+  const netto = imp - imp * (c.sconto||0) / 100;
+  const base = netto + netto * (c.contributoPct||0) / 100;
+  const reg = (typeof REGIMI_FISCALI !== 'undefined' && REGIMI_FISCALI[c.regime]) || { rate:0.22 };
+  const rate = c.regime === 'custom' ? (c.aliquotaCustom||0)/100 : (reg.rate||0);
+  return base * (1 + rate);
+}
+function e2dEur(n){ return '€ ' + new Intl.NumberFormat('it-IT', { maximumFractionDigits:0 }).format(Math.round(n)); }
+function e2dDate(iso){ return new Date(iso).toLocaleDateString('it-IT', { day:'numeric', month:'short', year:'numeric' }); }
+function e2dInitials(n){ return (n||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function e2dQuoteStage(q){
+  const c = q.client || {};
+  const pag = Array.isArray(c.pagamenti) ? c.pagamenti : [];
+  if(pag.length && pag.every(p=>p.stato==='pagato')) return 5;
+  if(c.firma && c.firma.firmato) return 4;
+  const f = followupsList.find(x=>x.quoteRef===q.id);
+  const evs = f ? (f.events||[]).map(e=>e.type) : [];
+  if(evs.includes('aperto') || evs.includes('cliccato')) return 3;
+  if(evs.includes('inviato_preventivo')) return 2;
+  return 1;
+}
+function e2dGo(page, after){ switchEstimly2Page(page); if(after) setTimeout(after, 30); }
+
+function renderDashboardV2(){
+  const box = document.getElementById('e2dHero');
+  if(!box) return;
+  const _s = document.getElementById('e2SideStudio'); if(_s) _s.textContent = studioSettings.nome || 'Studio';
+  const _u = document.getElementById('e2SideUser'); if(_u && estimlyCustomerName) _u.textContent = estimlyCustomerName;
+  const _a = document.getElementById('e2SideAv'); if(_a && estimlyCustomerName) _a.textContent = e2dInitials(estimlyCustomerName);
+  const nome = (estimlyCustomerName||'').trim().split(/\s+/)[0];
+  document.getElementById('e2dGreeting').textContent = nome ? 'Bentornato, ' + nome + '.' : 'Bentornato.';
+
+  // Hero: ultimo preventivo ancora aperto (non perso)
+  const open = savedQuotes.filter(q=>q.valido!==false && q.esito!=='perso');
+  const hq = open.find(q=>!q.vinto) || open[0];
+  if(hq){
+    const c = hq.client || {};
+    const stage = e2dQuoteStage(hq);
+    const pct = [0,20,45,70,85,100][stage];
+    const labels = ['','Salvato','Inviato','Letto dal cliente','Firmato','Saldato'];
+    box.innerHTML = `
+      <div class="e2d-hero-l">
+        <div>
+          <div style="font-size:10px; opacity:.8; margin-bottom:8px; letter-spacing:3px; text-transform:uppercase;">Preventivo in evidenza</div>
+          <div style="font-size:40px; font-weight:400; letter-spacing:-0.6px; line-height:1.2;">${escapeHtml(c.progetto||'Preventivo senza titolo')}</div>
+          <div style="font-size:13px; opacity:.8; margin-top:10px; font-weight:300;">${escapeHtml(c.cliente||'—')} · n. ${escapeHtml(c.numero||'—')} · ${e2dEur(e2dTotal(hq))}</div>
+        </div>
+        <div><button type="button" class="e2d-hero-link" data-e2d-quote="${hq.id}">Apri preventivo
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14 M13 6l6 6-6 6"/></svg></button></div>
+      </div>
+      <div class="e2d-hero-r">
+        <div>
+          <div style="font-size:13px; opacity:.8;">Avanzamento preventivo</div>
+          <div style="font-size:44px; font-weight:900; letter-spacing:-1px; line-height:1.1; margin:6px 0 12px;">${pct}%</div>
+          <div style="height:6px; border-radius:999px; background:rgba(255,255,255,.25);"><div style="width:${pct}%; height:100%; border-radius:999px; background:#fff;"></div></div>
+        </div>
+        <div>
+          <div style="font-size:12.5px; opacity:.8; font-weight:300;">Ultima modifica</div>
+          <div style="font-size:13.5px; font-weight:700; margin-top:3px;">${new Date(hq.modificatoAt || hq.savedAt).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})} · ${new Date(hq.modificatoAt || hq.savedAt).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+      </div>`;
+  } else {
+    box.innerHTML = `<div class="e2d-hero-l"><div><div style="font-size:13px; opacity:.8; margin-bottom:8px;">Preventivo in evidenza</div><div style="font-size:28px; font-weight:800;">Nessun preventivo ancora</div><div style="font-size:13px; opacity:.8; margin-top:8px;">Crea il primo preventivo per vederlo qui.</div></div><div><button type="button" class="e2d-hero-link" id="e2dHeroNew">Nuovo preventivo →</button></div></div>`;
+  }
+
+  // Badge "Da seguire" nel menu, icone del menu come nella bacheca
+  const _nav = document.getElementById('e2NavSeguire');
+  if(_nav){ let _b = document.getElementById('e2SeguireNavBadge'); const n = followupsList.filter(f=>f.active).length;
+    if(!_b){ _b = document.createElement('span'); _b.id='e2SeguireNavBadge'; _b.className='e2-nav-badge'; _nav.appendChild(_b); }
+    _b.textContent = n; _b.style.display = n ? '' : 'none'; }
+  if(!window.__e2NavIcons){ window.__e2NavIcons = true;
+    const P = { dashboard:'M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z', richieste:'M4 13l2-8h12l2 8v6H4z M4 13h5l1 2h4l1-2h5', preventivo:'M6 3h9l4 4v14H6z M14 3v5h5 M9 13h7 M9 17h7', listino:'M8 6h12 M8 12h12 M8 18h12 M4 6h.01 M4 12h.01 M4 18h.01', contratti:'M5 19l1-4L16 5l3 3L9 18z M14 7l3 3', rubrica:'M9 11a3 3 0 100-6 3 3 0 000 6z M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6 M16 5a3 3 0 010 6 M18 14c2 .6 3 2.7 3 6', salvati:'M6 3h12v18l-6-4-6 4z', seguire:'M13 3L5 14h6l-1 7 8-11h-6z', calcolatore:'M12 21a9 9 0 100-18 9 9 0 000 18z M12 7v5l3 2', statistiche:'M5 20V10 M12 20V4 M19 20v-7' };
+    document.querySelectorAll('.e2-nav-item[data-e2-page]').forEach(b=>{ const d = P[b.getAttribute('data-e2-page')]; const s = b.querySelector('svg'); if(d && s){ s.setAttribute('viewBox','0 0 24 24'); s.innerHTML = '<path d="'+d+'"/>'; } });
+    const g = document.querySelector('#e2NavImpostazioni svg'); if(g) g.innerHTML = '<path d="M12 15a3 3 0 100-6 3 3 0 000 6z M19 12l2 1-2 3-2-.5a7 7 0 01-1.5 1L15 19h-4l-.5-2.5a7 7 0 01-1.5-1L6.5 16 4.5 13l2-1a7 7 0 010-2L4.5 9l2-3 2 .5a7 7 0 011.5-1L11 3h4l.5 2.5a7 7 0 011.5 1L19 6l2 3-2 1a7 7 0 010 2z"/>';
+  }
+  // Pipeline commerciale: richieste → preventivo → inviato → letto → follow-up → firmato → pagato
+  const val = qs => qs.reduce((s,q)=>s+e2dTotal(q),0);
+  const live = savedQuotes.filter(q=>q.valido!==false && q.esito!=='perso');
+  const st = live.map(q=>({ q, s:e2dQuoteStage(q), fu: followupsList.some(f=>f.quoteRef===q.id && f.active) }));
+  const atLeast = n => st.filter(x=>x.s>=n).map(x=>x.q);
+  const steps = [
+    ['Richiesta', leadsList.length, 0],
+    ['Preventivo', live.length, val(live)],
+    ['Inviato', atLeast(2).length, val(atLeast(2))],
+    ['Aperto', atLeast(3).length, val(atLeast(3))],
+    ['Follow-up', st.filter(x=>x.fu).length, val(st.filter(x=>x.fu).map(x=>x.q))],
+    ['Firmato', atLeast(4).length, val(atLeast(4))],
+    ['Pagato', atLeast(5).length, val(atLeast(5))]
+  ];
+  const reached = steps.reduce((r,x,i)=> x[1]>0 ? i+1 : r, 0);
+  document.getElementById('e2dPipeline').innerHTML = `<div class="e2d-line"></div><div class="e2d-line-fill" style="width:${Math.max(0,(reached-1))/6*86}%"></div>` + steps.map(([l,n,v],i)=>`
+    <div class="e2d-pipe-step">
+      <div class="e2d-dot" style="background:${n>0?'var(--accent,#862D2D)':'#fff'};"></div>
+      <div style="font-size:11px; color:#54503F; margin-top:2px; font-weight:300;">${l}</div>
+      <div style="font-size:20px; font-weight:800; letter-spacing:-0.5px; line-height:1;">${n}</div>
+      <div style="font-size:11px; color:#8C8776; font-weight:500;">${i===0 ? 'in ingresso' : e2dEur(v)}</div>
+    </div>`).join('');
+
+  // Richieste recenti (con ricerca)
+  const term = ((document.getElementById('e2dSearch')||{}).value||'').trim().toLowerCase();
+  let leads = leadsList.slice().sort((a,b)=>new Date(b.ricevutoAt)-new Date(a.ricevutoAt));
+  if(term) leads = leads.filter(l=>[leadDisplayName(l), l.email, l.tipoProgetto, l.fonte].join(' ').toLowerCase().includes(term));
+  const tints = ['#F5E6E4','#F1EBDD','#E9E3D5','#EFE3E1','#F3E9E0'];
+  document.getElementById('e2dRequests').innerHTML = leads.length ? leads.slice(0,5).map((l,i)=>{
+    const meta = LEAD_FASE_META[l.fase] || LEAD_FASE_META.nuova;
+    return `<button type="button" class="e2d-row" data-e2d-lead="${l.id}">
+      <div class="e2d-av" style="background:${tints[i%5]};">${escapeHtml(e2dInitials(leadDisplayName(l)))}</div>
+      <div style="flex:1 1 180px; min-width:0;">
+        <div style="font-size:14.5px; font-weight:800;">${escapeHtml(leadDisplayName(l))}</div>
+        <div style="font-size:12.5px; font-weight:300; color:#54503F; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:380px;">${escapeHtml((l.tipoProgetto||l.note||'').slice(0,90))}</div>
+        <div style="font-size:12px; font-weight:300; color:#8C8776;">${escapeHtml(l.fonte||l.email||'')}</div>
+      </div>
+      <div style="flex:0 0 150px;"><span class="e2d-pill" style="color:${meta.color}; background:${meta.bg};">${meta.label}</span>
+        <div style="font-size:9px; font-weight:300; color:#8C8776; margin-top:6px;">${e2dDate(l.ricevutoAt)}</div></div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C8776" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M9 6l6 6-6 6"/></svg>
+    </button>`;
+  }).join('') : '<div class="e2-activity-empty" style="padding:22px;">Nessuna richiesta trovata.</div>';
+
+  // Da seguire
+  const fus = followupsList.filter(f=>f.active).sort((a,b)=>new Date(a.nextDueAt||0)-new Date(b.nextDueAt||0)).slice(0,5);
+  const dayLabel = iso => {
+    if(!iso) return ['—','']; const d = new Date(iso); const t = new Date(); t.setHours(0,0,0,0);
+    const diff = Math.round((new Date(d).setHours(0,0,0,0) - t)/86400000);
+    const hh = d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    return [diff<=0?'Oggi':diff===1?'Domani':d.toLocaleDateString('it-IT',{day:'numeric',month:'short'}), hh, diff<=0];
+  };
+  const icons = [E2D_ICONS.cal, E2D_ICONS.mail, E2D_ICONS.phone, E2D_ICONS.check];
+  document.getElementById('e2dFollowups').innerHTML = fus.length ? fus.map((f,i)=>{
+    const [d,h,today] = dayLabel(f.nextDueAt);
+    return `<div class="e2d-fu" data-e2d-go="seguire">
+      <div class="e2d-fu-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="stroke:var(--accent,#862D2D)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${icons[i%4]}"/></svg></div>
+      <div style="flex:1; min-width:0;"><div style="font-size:12px; font-weight:700;">${escapeHtml(f.clienteNome||'—')}</div><div style="font-size:11px; font-weight:300; color:#54503F;">Follow-up preventivo n. ${escapeHtml(f.numero||'—')}</div></div>
+      <div style="text-align:right;"><div style="font-size:12px; font-weight:700; color:${today?'var(--accent,#862D2D)':'#54503F'};">${d}</div><div style="font-size:10px; font-weight:300; color:#8C8776;">${h}</div></div>
+    </div>`;
+  }).join('') : '<div class="e2-activity-empty">Nessun follow-up attivo.</div>';
+
+  // Pagamenti consulenza (rate richieste ai clienti, non il computo metrico)
+  const rows = [];
+  savedQuotes.forEach(q=>{ ((q.client||{}).pagamenti||[]).forEach(p=>rows.push({ q, p })); });
+  rows.sort((a,b)=> (a.p.stato==='pagato') - (b.p.stato==='pagato') || new Date(b.p.createdAt) - new Date(a.p.createdAt));
+  const totale = rows.reduce((s,r)=>s+(r.p.importoCent||0),0), pagato = rows.filter(r=>r.p.stato==='pagato').reduce((s,r)=>s+(r.p.importoCent||0),0);
+  document.getElementById('e2dPayments').innerHTML = rows.length ? `
+    <div style="font-size:12.5px; color:#54503F; margin-bottom:2px;">Incassato <b style="color:#16160F;">${e2dEur(pagato/100)}</b> su ${e2dEur(totale/100)}</div>
+    <div class="e2d-bar"><i style="width:${totale?Math.round(pagato/totale*100):0}%"></i></div>
+    <div style="margin-top:8px;">${rows.slice(0,5).map(r=>`
+      <div class="e2d-fu" data-e2d-quote="${r.q.id}" style="padding:11px 0;">
+        <div style="flex:1; min-width:0;"><div style="font-size:13px; font-weight:700;">${escapeHtml(r.p.label)}</div><div style="font-size:12px; color:#54503F;">${escapeHtml((r.q.client||{}).cliente||'—')}</div></div>
+        <div style="text-align:right;"><div style="font-size:13px; font-weight:700;">${e2dEur((r.p.importoCent||0)/100)}</div>
+          <span class="e2d-pill" style="font-size:11px; padding:2px 8px; ${r.p.stato==='pagato'?'color:#0F766E; background:#E5F5F3;':'color:#946200; background:#FDF3E0;'}">${r.p.stato==='pagato'?'Pagato':'Da pagare'}</span></div>
+      </div>`).join('')}</div>`
+    : '<div class="e2-activity-empty">Nessuna richiesta di pagamento. Impostale dalla scheda di un preventivo.</div>';
+}
+
+document.addEventListener('click', e=>{
+  const t = e.target.closest && e.target.closest('[data-e2d-go],[data-e2d-quote],[data-e2d-lead],#e2dNewBtn,#e2dFilterBtn,#e2dHeroNew');
+  if(!t) return;
+  if(t.id === 'e2dNewBtn' || t.id === 'e2dHeroNew'){ switchEstimly2Page('preventivo'); return; }
+  if(t.id === 'e2dFilterBtn'){ switchEstimly2Page('richieste'); return; }
+  if(t.hasAttribute('data-e2d-quote')){ const id = t.getAttribute('data-e2d-quote'); e2dGo('salvati', ()=>openQuoteScheda(id)); return; }
+  if(t.hasAttribute('data-e2d-lead')){ const id = t.getAttribute('data-e2d-lead'); e2dGo('richieste', ()=>openLeadDetail(id)); return; }
+  if(t.hasAttribute('data-e2d-go')){ switchEstimly2Page(t.getAttribute('data-e2d-go')); }
+});
+document.addEventListener('input', e=>{ if(e.target && e.target.id === 'e2dSearch') renderDashboardV2(); });
+/* ===================== fine Dashboard (nuova grafica) ===================== */
+
 function renderDashboard(){
+  try{ renderDashboardV2(); }catch(err){ console.error(err); }
   const count = savedQuotes.length;
   // Il valore totale conta solo i preventivi marcati come "validi": un cliente può avere più
   // versioni salvate dello stesso preventivo, ma solo quelle correnti devono pesare sul totale.
@@ -7617,115 +8477,183 @@ if('serviceWorker' in navigator){
 (function(){
   const KEY_STORAGE = 'desearq-license-key';
   const VALIDATED_AT_STORAGE = 'desearq-license-validated-at';
+  const AUTH_CACHE = 'desearq-auth-cache';
   const GRACE_DAYS = 30;
   const TERMS_VERSION = 'v1';
   const TERMS_ACCEPTED_STORAGE = 'desearq-terms-accepted-version';
+  const $ = (id) => document.getElementById(id);
+  let mode = 'login';
 
-  function hideGate(){
-    const gate = document.getElementById('licenseGate');
-    if(gate) gate.style.display = 'none';
-  }
+  window.E2Auth = { mode: '', role: '', caps: [], user: null, studioCode: '', photo: '', logout: logout };
 
-  function showError(msg){
-    const el = document.getElementById('licenseError');
-    el.textContent = msg;
-    el.style.display = 'block';
-  }
+  function hideGate(){ const g = $('licenseGate'); if(g) g.style.display = 'none'; }
+  function showGate(){ const g = $('licenseGate'); if(g) g.style.display = ''; }
+  function showError(msg){ const el = $('licenseError'); el.textContent = msg; el.style.display = 'block'; }
+  function clearError(){ $('licenseError').style.display = 'none'; }
+  function termsAccepted(){ try{ return localStorage.getItem(TERMS_ACCEPTED_STORAGE) === TERMS_VERSION; }catch(e){ return false; } }
+  const ERR = {
+    invalid_credentials: 'Email o password non corretti.', too_many_attempts: 'Troppi tentativi: riprova tra qualche minuto.',
+    invalid_license: 'Chiave di licenza non valida o revocata.', already_activated: 'Questo studio ha già gli accessi attivi: accedi con email e password.',
+    email_in_use: 'Questa email è già usata da un altro account.', weak_password: 'La password deve avere almeno 8 caratteri.',
+    invalid_email: 'Inserisci un\'email valida.', missing_name: 'Inserisci nome e cognome.'
+  };
 
-  function termsAccepted(){
-    return localStorage.getItem(TERMS_ACCEPTED_STORAGE) === TERMS_VERSION;
+  function setMode(m){
+    mode = m;
+    const act = m === 'activate';
+    $('lgLoginForm').style.display = act ? 'none' : '';
+    $('lgActForm').style.display = act ? '' : 'none';
+    $('lgTitle').textContent = act ? 'Attiva il tuo studio' : 'Accedi a Estimly';
+    $('lgEyebrow').textContent = act ? 'Prima attivazione' : 'Accesso';
+    $('lgSub').textContent = act ? 'Inserisci la chiave di licenza e crea il tuo account da amministratore: poi potrai aggiungere il tuo team dalla sezione Team.' : 'Entra con l\'email e la password del tuo account. Se non le hai, chiedile all\'amministratore del tuo studio.';
+    $('lgToggle').textContent = act ? '← Torna all\'accesso con email e password' : 'Prima volta? Attiva il tuo studio con la chiave di licenza';
+    // le caselle dei termini stanno sotto il form di accesso: nell'attivazione si accettano comunque prima
+    const checks = $('lgChecksLogin'); if(act){ $('lgActForm').insertBefore(checks, $('lgActBtn')); } else { $('lgLoginForm').insertBefore(checks, $('licenseSubmitBtn')); }
+    clearError(); updateSubmitState();
   }
 
   function updateSubmitState(){
-    const tos = document.getElementById('acceptTos');
-    const vex = document.getElementById('acceptVessatorie');
-    const btn = document.getElementById('licenseSubmitBtn');
-    const ok = tos && vex && tos.checked && vex.checked;
-    btn.disabled = !ok;
-    btn.style.opacity = ok ? '1' : '0.5';
-    btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+    const ok = (termsAccepted() || ($('acceptTos').checked && $('acceptVessatorie').checked));
+    [$('licenseSubmitBtn'), $('lgActBtn')].forEach((b) => { b.disabled = !ok; b.style.opacity = ok ? '1' : '0.5'; b.style.cursor = ok ? 'pointer' : 'not-allowed'; });
+    $('lgChecksLogin').style.display = termsAccepted() ? 'none' : '';
   }
 
+  function publish(data, photo){
+    const A = window.E2Auth;
+    A.mode = data.auth || 'legacy'; A.role = data.role || 'admin'; A.caps = data.caps || ['*'];
+    A.user = data.user || null; A.studioCode = data.studioCode || ''; A.photo = photo != null ? photo : (A.photo || '');
+    try{ localStorage.setItem(AUTH_CACHE, JSON.stringify({ auth: A.mode, role: A.role, caps: A.caps, user: A.user, studioCode: A.studioCode })); }catch(e){}
+  }
+
+  async function fetchMyPhoto(){
+    try{
+      const r = await fetch('/.netlify/functions/team-auth', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ key: localStorage.getItem(KEY_STORAGE) || '', action: 'me' }) });
+      const j = await r.json();
+      if(j && j.ok){ window.E2Auth.photo = j.foto || ''; document.dispatchEvent(new CustomEvent('e2:auth')); }
+    }catch(e){}
+  }
+
+  // result: 'ok' | 'denied' (chiave/sessione non valida) | 'network'
   async function validateKey(key, opts){
     opts = opts || {};
+    let data;
     try{
-      const res = await fetch('/.netlify/functions/validate-key', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ key: key })
-      });
-      const data = await res.json();
-      if(data.valid){
-        localStorage.setItem(KEY_STORAGE, key);
-        localStorage.setItem(VALIDATED_AT_STORAGE, Date.now().toString());
-        if(!opts.silent) localStorage.setItem(TERMS_ACCEPTED_STORAGE, TERMS_VERSION);
-        estimlyAiEnabled = !!data.aiEnabled;
-        applyAiVisibility();
-        followupFeatureEnabled = !!data.followupEnabled;
-        costCalcFeatureEnabled = !!data.costCalcEnabled;
-        suiteFeatureEnabled = !!data.suiteEnabled;
-        applyFollowupVisibility();
-        hideGate();
-        loadCloudData();
-        loadSavedQuotesCloud();
-        loadFollowupsCloud();
-        loadClientsCloud();
-        return true;
+      const res = await fetch('/.netlify/functions/validate-key', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ key: key }) });
+      if(res.status >= 500) return 'network';
+      data = await res.json();
+    }catch(err){ return 'network'; }
+    if(!data.valid){
+      if(!opts.silent){
+        if(data.error === 'login_required') showError('Il tuo studio usa ora email e password: accedi con il tuo account.');
+        else showError('Chiave non valida o revocata.');
       }
-      if(!opts.silent) showError('Chiave non valida o revocata.');
-      return false;
-    }catch(err){
-      if(!opts.silent) showError('Impossibile verificare la chiave: controlla la connessione.');
-      return false;
+      return data.error || 'denied';
     }
+    localStorage.setItem(KEY_STORAGE, key);
+    localStorage.setItem(VALIDATED_AT_STORAGE, Date.now().toString());
+    if(!opts.silent || !termsAccepted()) localStorage.setItem(TERMS_ACCEPTED_STORAGE, TERMS_VERSION);
+    estimlyAiEnabled = !!data.aiEnabled;
+    applyAiVisibility();
+    followupFeatureEnabled = !!data.followupEnabled;
+    costCalcFeatureEnabled = !!data.costCalcEnabled;
+    suiteFeatureEnabled = !!data.suiteEnabled;
+    publish(data);
+    applyFollowupVisibility();
+    hideGate();
+    document.dispatchEvent(new CustomEvent('e2:auth'));
+    if(data.user) fetchMyPhoto();
+    if(!data.role || data.role !== 'marketing'){
+      loadCloudData(); loadSavedQuotesCloud(); loadFollowupsCloud(); loadClientsCloud();
+    } else { loadCloudData(); }
+    if(typeof loadLeadsCloud === 'function' && (data.caps||[]).some((c) => c === '*' || c === 'leads.read')) loadLeadsCloud();
+    return 'ok';
+  }
+
+  async function teamCall(payload){
+    try{
+      const r = await fetch('/.netlify/functions/team-auth', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      return await r.json();
+    }catch(e){ return { error: 'network' }; }
+  }
+
+  async function doLogin(){
+    clearError();
+    const email = $('lgEmail').value.trim(), password = $('lgPwd').value;
+    if(!email || !password){ showError('Inserisci email e password.'); return; }
+    const btn = $('licenseSubmitBtn'); btn.disabled = true;
+    const j = await teamCall({ action: 'login', email, password });
+    btn.disabled = false;
+    if(!(j && j.ok && j.session)){ showError(j && j.error === 'network' ? 'Impossibile contattare il server: controlla la connessione.' : (ERR[j && j.error] || 'Accesso non riuscito.')); return; }
+    $('lgPwd').value = '';
+    const r = await validateKey(j.session);
+    if(r !== 'ok') showError('Accesso non riuscito. Riprova.');
+  }
+
+  async function doActivate(){
+    clearError();
+    const key = $('lgKey').value.trim().toUpperCase(), nome = $('lgNome').value.trim(), email = $('lgEmail2').value.trim(), password = $('lgPwd2').value;
+    if(!key){ showError('Inserisci la chiave di licenza.'); return; }
+    if(!nome){ showError(ERR.missing_name); return; }
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ showError(ERR.invalid_email); return; }
+    if(password.length < 8){ showError(ERR.weak_password); return; }
+    const btn = $('lgActBtn'); btn.disabled = true;
+    const j = await teamCall({ action: 'bootstrap', key, nome, email, password });
+    btn.disabled = false;
+    if(!(j && j.ok && j.session)){ showError(j && j.error === 'network' ? 'Impossibile contattare il server: controlla la connessione.' : (ERR[j && j.error] || 'Attivazione non riuscita.')); return; }
+    $('lgPwd2').value = '';
+    const r = await validateKey(j.session);
+    if(r !== 'ok') showError('Accesso non riuscito. Riprova.');
   }
 
   async function initLicenseGate(){
     const storedKey = localStorage.getItem(KEY_STORAGE);
     const validatedAt = parseInt(localStorage.getItem(VALIDATED_AT_STORAGE) || '0', 10);
     const withinGrace = storedKey && (Date.now() - validatedAt) < GRACE_DAYS*24*60*60*1000;
-
-    if(storedKey){
-      document.getElementById('licenseKeyInput').value = storedKey;
-      if(termsAccepted()){
-        const ok = await validateKey(storedKey, { silent: true });
-        if(!ok && withinGrace) hideGate();
+    $('acceptTos').addEventListener('change', updateSubmitState);
+    $('acceptVessatorie').addEventListener('change', updateSubmitState);
+    updateSubmitState();
+    if(storedKey && termsAccepted()){
+      const r = await validateKey(storedKey, { silent: true });
+      if(r === 'network' && withinGrace){
+        // senza connessione si lavora con l'ultimo accesso verificato
+        try{ const c = JSON.parse(localStorage.getItem(AUTH_CACHE) || 'null'); if(c){ publish({ auth: c.auth, role: c.role, caps: c.caps, user: c.user, studioCode: c.studioCode }); } else { publish({ auth: 'legacy', role: 'admin', caps: ['*'] }); } }catch(e){ publish({ auth: 'legacy', role: 'admin', caps: ['*'] }); }
+        hideGate(); document.dispatchEvent(new CustomEvent('e2:auth'));
+      } else if(r !== 'ok' && r !== 'network'){
+        if(/^SES-/.test(storedKey)){ try{ localStorage.removeItem(KEY_STORAGE); }catch(e){} }
+        showGate();
       }
-    }
-
-    const tos = document.getElementById('acceptTos');
-    const vex = document.getElementById('acceptVessatorie');
-    if(tos && vex){
-      tos.addEventListener('change', updateSubmitState);
-      vex.addEventListener('change', updateSubmitState);
-      updateSubmitState();
     }
   }
 
-  document.getElementById('licenseSubmitBtn').addEventListener('click', () => {
-    const tos = document.getElementById('acceptTos');
-    const vex = document.getElementById('acceptVessatorie');
-    if(!tos.checked || !vex.checked){
-      showError('Devi accettare i Termini di Servizio per continuare.');
-      return;
-    }
-    const key = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
-    if(!key) return;
-    validateKey(key);
-  });
-  document.getElementById('licenseKeyInput').addEventListener('keydown', (e) => {
-    if(e.key === 'Enter') document.getElementById('licenseSubmitBtn').click();
-  });
-
-  function logout(){
-    const ok = confirm('Vuoi uscire? Dovrai reinserire la chiave di licenza per accedere di nuovo. Le modifiche non salvate nel preventivo corrente andranno perse.');
+  async function logout(){
+    const ok = confirm('Vuoi uscire? Dovrai accedere di nuovo con email e password. Le modifiche non salvate nel preventivo corrente andranno perse.');
     if(!ok) return;
-    localStorage.removeItem(KEY_STORAGE);
-    localStorage.removeItem(VALIDATED_AT_STORAGE);
+    const k = localStorage.getItem(KEY_STORAGE);
+    if(k && /^SES-/.test(k)){ try{ await Promise.race([teamCall({ action: 'logout', key: k }), new Promise((r) => setTimeout(r, 2500))]); }catch(e){} }
+    [KEY_STORAGE, VALIDATED_AT_STORAGE, AUTH_CACHE].forEach((x) => { try{ localStorage.removeItem(x); }catch(e){} });
     location.reload();
   }
 
-  document.getElementById('logoutBtn').addEventListener('click', logout);
+  $('licenseSubmitBtn').addEventListener('click', doLogin);
+  $('lgActBtn').addEventListener('click', doActivate);
+  $('lgToggle').addEventListener('click', (e) => { e.preventDefault(); setMode(mode === 'login' ? 'activate' : 'login'); });
+  ['lgEmail','lgPwd'].forEach((id) => $(id).addEventListener('keydown', (e) => { if(e.key === 'Enter') doLogin(); }));
+  ['lgKey','lgNome','lgEmail2','lgPwd2'].forEach((id) => $(id).addEventListener('keydown', (e) => { if(e.key === 'Enter') doActivate(); }));
+  $('logoutBtn').addEventListener('click', logout);
+
+  // sessione scaduta o chiusa da un amministratore: si torna alla schermata di accesso
+  const _fetch = window.fetch.bind(window);
+  window.fetch = function(input, init){
+    return _fetch(input, init).then((res) => {
+      try{
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        if(res.status === 401 && url.indexOf('/.netlify/functions/') >= 0 && url.indexOf('team-auth') < 0 && url.indexOf('validate-key') < 0 && /^SES-/.test(localStorage.getItem(KEY_STORAGE) || '')){
+          res.clone().json().then((j) => { if(j && (j.error === 'session_expired' || j.error === 'login_required')){ localStorage.removeItem(KEY_STORAGE); localStorage.removeItem(AUTH_CACHE); showGate(); setMode('login'); showError('Sessione scaduta: accedi di nuovo.'); } }).catch(() => {});
+        }
+      }catch(e){}
+      return res;
+    });
+  };
 
   initLicenseGate();
 })();
@@ -8669,5 +9597,676 @@ if('serviceWorker' in navigator){
 })();
 </script>
 
-</body>
+<script>(function(){
+  function mk(){
+    var panel=document.querySelector('.layout .quote-panel'); var save=document.getElementById('saveQuoteBtn'), nu=document.getElementById('resetBtn');
+    if(!panel||!save||!nu||document.getElementById('e2PvActions')) return;
+    var bar=document.createElement('div'); bar.id='e2PvActions'; bar.className='e2-pv-actions';
+    bar.innerHTML='<span class="e2-pv-hint">Le modifiche non sono ancora salvate</span><div class="e2-pv-btns"></div>';
+    bar.querySelector('.e2-pv-btns').appendChild(nu); bar.querySelector('.e2-pv-btns').appendChild(save);
+    nu.classList.remove('btn-pill-primary'); panel.appendChild(bar);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mk); else mk();
+})();
+</script><script>(function(){
+  var P={
+    mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+    eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    trophy:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/>',
+    pen:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    alert:'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+    chat:'<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.6-.8L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z"/>',
+    spark:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>',
+    card:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+    check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    flame:'<path d="M12 22c4 0 7-2.8 7-6.8 0-3-1.8-5-3.5-6.7C14.5 7.4 14 5.5 14 3c-3 1.8-6 5.3-6 9.2 0 .9.2 1.6.5 2.3-.9-.3-1.5-1.1-1.5-2.5C5.4 13 5 14.2 5 15.2 5 19.2 8 22 12 22z"/>',
+    link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+    unlock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/>',
+    x:'<path d="M6 6l12 12M18 6L6 18"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
+  };
+  var M={'📧':'mail','👁':'eye','🏆':'trophy','✍':'pen','✏':'pen','⚠':'alert','💬':'chat','✨':'spark','💳':'card','✓':'check','✔':'check','✅':'check','🔥':'flame','🔗':'link','🗑':'trash','🔓':'unlock','✖':'x','🕐':'clock'};
+  var D={'🟢':'#2F7D6E','🟡':'#B8892B','🟠':'#C46A2B','⚫':'#54503F','⚪':'#C9C3B3','🔴':'#B23A3A'};
+  var DROP='📝🤝';
+  var keys=Object.keys(M).concat(Object.keys(D)).concat(DROP.match(/./gu));
+  var re=new RegExp('('+keys.join('|')+')\\uFE0F?','gu');
+  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1,TITLE:1,NOSCRIPT:1};
+  function svg(n){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+P[n]+'</svg>';}
+  function handle(t){
+    var p=t.parentNode; if(!p||SKIP[p.nodeName]) return;
+    var v=t.nodeValue; re.lastIndex=0; if(!re.test(v)) return;
+    re.lastIndex=0;
+    if(p.nodeName==='OPTION'){ t.nodeValue=v.replace(re,'').replace(/^\s+/,''); return; }
+    var frag=document.createDocumentFragment(), last=0, m;
+    while((m=re.exec(v))){
+      if(m.index>last) frag.appendChild(document.createTextNode(v.slice(last,m.index)));
+      var ch=m[1]; var s;
+      if(M[ch]){ s=document.createElement('span'); s.className='e2ic'; s.innerHTML=svg(M[ch]); frag.appendChild(s); }
+      else if(D[ch]){ s=document.createElement('span'); s.className='e2dotic'; s.style.background=D[ch]; frag.appendChild(s); }
+      last=re.lastIndex;
+      if(v.charAt(last)===' ' && !M[ch] && !D[ch]) last++;
+    }
+    if(last<v.length) frag.appendChild(document.createTextNode(v.slice(last)));
+    p.replaceChild(frag,t);
+  }
+  function walk(root){
+    var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null), a=[], n;
+    while((n=w.nextNode())) a.push(n);
+    a.forEach(handle);
+  }
+  var busy=false, timer=null;
+  function run(){ if(busy) return; busy=true; try{ walk(document.body); }catch(e){} busy=false; }
+  function schedule(){ clearTimeout(timer); timer=setTimeout(run,60); }
+  function init(){ run(); new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,characterData:true}); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script><script>(function(){
+  var last=null;
+  document.addEventListener('focusin',function(e){ if(e.target.matches&&e.target.matches('.contract-section-card textarea, .contract-section-card input[type=text]')) last=e.target; });
+  document.addEventListener('mousedown',function(e){ if(e.target.closest&&e.target.closest('.e2-ph')) e.preventDefault(); });
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('.e2-ph'); if(!b) return;
+    var ta=last&&document.contains(last)?last:document.querySelector('.contract-section-card textarea'); if(!ta) return;
+    var v=ta.value, s=ta.selectionStart==null?v.length:ta.selectionStart, en=ta.selectionEnd==null?s:ta.selectionEnd, ph=b.getAttribute('data-ph');
+    ta.value=v.slice(0,s)+ph+v.slice(en); ta.selectionStart=ta.selectionEnd=s+ph.length; ta.focus();
+    ta.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+})();
+</script><script>(function(){function g(){document.querySelectorAll('.contract-section-card textarea').forEach(function(t){t.style.overflow='hidden';t.style.height='auto';t.style.height=Math.max(80,t.scrollHeight)+'px';});}document.addEventListener('input',function(e){if(e.target.matches&&e.target.matches('.contract-section-card textarea'))g();});setInterval(g,600);})();</script><script>(function(){
+  var HEADS={
+    richieste:{eb:'Richieste',t:'Tutte le richieste ricevute',d:'Qui arrivano sia i contatti inoltrati via email sia quelli del modulo collegato al foglio Google. Apri la scheda, assegna uno stato e trasformala in preventivo: solo allora il cliente entra in Rubrica.'},
+    preventivo:{eb:'Preventivo',t:'Nuovo preventivo',d:'Compila i dati del cliente e le voci del preventivo, poi salvalo in bozza o invialo al cliente.'},
+    listino:{eb:'Listino',t:'Il tuo listino',d:'Le tue lavorazioni e prestazioni, divise per categoria e pacchetto. Cerca, modifica i prezzi o aggiungi nuove voci: da qui le scegli quando costruisci un preventivo.'},
+    contratti:{eb:'Contratti',t:'Modelli di contratto',d:'Scrivi i tuoi modelli di contratto, divisi in sezioni. Alla stampa useranno la stessa intestazione e logo del preventivo.'},
+    rubrica:{eb:'Rubrica',t:'Clienti',d:'I clienti a cui hai fatto un preventivo: si aggiungono da soli quando salvi un preventivo. Clicca un cliente per aprire la sua scheda.'},
+    salvati:{eb:'Archivio',t:'Preventivi salvati',d:'Puoi tenere in archivio fino a 100 preventivi recenti. Salvandone uno oltre il limite, il più vecchio viene rimosso automaticamente.'},
+    seguire:{eb:'Follow-up',t:'Clienti da seguire',d:'I preventivi inviati che aspettano una risposta, ordinati per priorità: contatta chi è più caldo per primo.'},
+    calcolatore:{eb:'Costo orario',t:'Calcola il tuo costo orario',d:'Quanto dovresti farti pagare all\'ora per coprire lo stipendio che vuoi, le spese dello studio e un margine per gli imprevisti? Rispondi una domanda alla volta: alla fine avrai la tua tariffa minima da riusare in tutto il listino.'},
+    statistiche:{eb:'Statistiche',t:'Le tue statistiche',d:'Le tue statistiche private e il confronto anonimo con la rete di studi che usano Estimly.'},
+    impostazioni:{eb:'Impostazioni',t:'Impostazioni studio',d:'Dati dello studio, logo e colori, intestazione dei documenti, pagamenti e invio email: tutto quello che compare nei tuoi preventivi.'}
+  };
+  function mk(k){ var h=HEADS[k], d=document.createElement('div'); d.className='e2-page-head'; d.setAttribute('data-e2-head',k);
+    d.innerHTML='<div class="e2-eyebrow"></div><h1></h1><p></p>'; d.children[0].textContent=h.eb; d.children[1].textContent=h.t; d.children[2].textContent=h.d; return d; }
+  function old(el){ if(el) el.classList.add('e2-old'); }
+  function first(sel,root){ return (root||document).querySelector(sel); }
+  function put(k,parent,before){ if(!parent||parent.querySelector(':scope > .e2-page-head')) return null; var n=mk(k); parent.insertBefore(n,before===undefined?parent.firstChild:before); return n; }
+  function build(){
+    if(document.body.getAttribute('data-e2-heads')) return;
+    var p;
+    // Richieste
+    p=document.querySelector('#e2PageRichieste .e2-dash-wrap'); if(p){ old(p.querySelector('.e2-hero-card')); put('richieste',p); }
+    // Preventivo (nella barra superiore, visibile solo qui)
+    p=document.querySelector('header.top'); if(p){ put('preventivo',p); }
+    // Listino
+    p=document.querySelector('.catalog'); if(p){ var oh=p.querySelector(':scope > .e2-page-head'); if(oh) oh.remove(); put('listino',p); }
+    // Contratti
+    p=document.getElementById('contractManagerBox'); if(p){ old(p.querySelector(':scope > .field-section-label')); old(p.querySelector(':scope > .e2-ct-lead')); put('contratti',p); }
+    // Rubrica
+    p=document.getElementById('rubricaListView'); if(p){ var l=p.children; old(l[0]); old(l[1]); put('rubrica',p); }
+    // Preventivi salvati
+    p=document.getElementById('e2SalvatiListView'); if(p){ old(p.querySelector(':scope > .field-section-label')); old(p.querySelector(':scope > .saved-quotes-limit-text')); put('salvati',p); }
+    // Da seguire
+    p=document.querySelector('#e2PageSeguire .e2-dash-wrap'); if(p){ old(p.querySelector(':scope > .field-section-label')); put('seguire',p); }
+    // Costo orario
+    p=document.querySelector('#e2PageCalcolatore .e2-dash-wrap'); if(p){ old(p.querySelector(':scope > .field-section-label')); old(p.querySelector(':scope > .wz-intro')); put('calcolatore',p); }
+    // Statistiche: titolo a sinistra, azione a destra
+    p=document.getElementById('e2PageStatistiche'); if(p){ var row=p.firstElementChild; if(row&&!row.querySelector('.e2-page-head')){ var left=row.firstElementChild; if(left){ left.innerHTML=''; left.appendChild(mk('statistiche')); } row.classList.add('e2-stat-row'); } }
+    // Impostazioni (ex finestra): intestazione in cima alla pagina
+    p=document.querySelector('#settingsModal .modal-card'); if(p){ put('impostazioni',p, p.querySelector('.modal-body')); }
+    document.body.setAttribute('data-e2-heads','1');
+  }
+  /* Impostazioni come sezione: evidenzia la voce nel menu mentre è aperta */
+  function watchSettings(){
+    var m=document.getElementById('settingsModal'); if(!m) return; var prev=null;
+    new MutationObserver(function(){
+      var open=m.style.display&&m.style.display!=='none';
+      var nav=document.getElementById('e2NavImpostazioni'); if(!nav) return;
+      if(open){ prev=document.querySelector('.e2-nav-item.active'); if(prev&&prev!==nav) prev.classList.remove('active'); nav.classList.add('active'); document.body.setAttribute('data-e2-settings','1'); m.scrollTop=0; }
+      else{ nav.classList.remove('active'); if(prev) prev.classList.add('active'); document.body.removeAttribute('data-e2-settings'); }
+    }).observe(m,{attributes:true,attributeFilter:['style']});
+  }
+  function init(){ build(); watchSettings(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script><script>/* ===== Estimly 2.0 — foto progetto, hero a rotazione, Team ===== */
+(function(){
+  var $=function(s,r){return (r||document).querySelector(s);}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+  var esc=function(s){ return (typeof escapeHtml==='function')?escapeHtml(String(s==null?'':s)):String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };
+  function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){} return null; }
+  var ICON={ cam:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+    users:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-3.6 3.2-5.5 6.5-5.5s6 1.9 6.5 5.5"/><path d="M16 4.7a3.5 3.5 0 010 6.6M18 14.8c2 .6 3.2 2.3 3.5 5.2"/></svg>',
+    arrow:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14 M13 6l6 6-6 6"/></svg>',
+    eye:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>' };
+
+  /* ---------- immagini: ridimensiona e comprimi prima di salvare ---------- */
+  function readImage(file,max,square,q){ return new Promise(function(res,rej){
+    var fr=new FileReader(); fr.onerror=rej; fr.onload=function(){ var im=new Image(); im.onerror=rej; im.onload=function(){
+      var sx=0,sy=0,sw=im.width,sh=im.height,w,h;
+      if(square){ var m=Math.min(sw,sh); sx=(sw-m)/2; sy=(sh-m)/2; sw=sh=m; w=h=Math.min(max,m); }
+      else { var k=Math.min(1,max/sw); w=Math.round(sw*k); h=Math.round(sh*k); }
+      var c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(im,sx,sy,sw,sh,0,0,w,h);
+      res(c.toDataURL('image/jpeg',q)); }; im.src=fr.result; }; fr.readAsDataURL(file); }); }
+  function pickFile(cb){ var i=document.createElement('input'); i.type='file'; i.accept='image/*'; i.style.display='none'; i.onchange=function(){ if(i.files&&i.files[0]) cb(i.files[0]); i.remove(); }; document.body.appendChild(i); i.click(); }
+
+  /* ---------- foto del progetto ---------- */
+  function quoteById(id){ return savedQuotes.filter(function(q){return q.id===id;})[0]; }
+  function setQuotePhoto(id,data){
+    var q=quoteById(id); if(!q) return;
+    if(data) q.foto=data; else delete q.foto;
+    try{ persistSavedQuotesLocal(); }catch(e){}
+    try{ var key=getLicenseKey(); if(key) fetch('/.netlify/functions/sync-data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,action:'updateQuote',id:id,patch:{foto:data||''}})}).catch(function(){}); }catch(e){}
+    renderHero(true); if(quoteSchedaCurrentId===id) injectSchedaPhoto();
+  }
+  function uploadPhotoFor(id){ pickFile(function(f){ readImage(f,1500,false,.74).then(function(d){ setQuotePhoto(id,d); }); }); }
+
+  /* ---------- attività: quanto si lavora su un progetto in una finestra di tempo ---------- */
+  function activity(q,days){
+    var since=Date.now()-days*864e5, n=0, acts=0, last=0;
+    function inw(t){ if(!t) return false; var x=new Date(t).getTime(); if(x>=since){ if(x>last) last=x; return true; } return false; }
+    if(inw(q.modificatoAt)||inw(q.savedAt)){ n+=3; acts++; }
+    var f=(typeof followupsList!=='undefined'?followupsList:[]).filter(function(x){return x.quoteRef===q.id;})[0];
+    if(f) (f.events||[]).forEach(function(e){ if(!inw(e.at)) return; var t=e.type||''; n+=/accettato/.test(t)?5:(/cliccato|inviato/.test(t)?2:1); acts++; });
+    var c=q.client||{}; if(c.firma&&inw(c.firma.firmatoAt)){ n+=5; acts++; }
+    (c.pagamenti||[]).forEach(function(p){ if(inw(p.paidAt)){ n+=4; acts++; } else if(inw(p.createdAt)){ n+=2; acts++; } });
+    return {score:n,acts:acts,last:last};
+  }
+  /* ---------- hero ---------- */
+  var heroIdx=0, heroList=[], heroTimer=null, heroHover=false;
+  function heroDays(){ var d=parseInt(store('e2-hero-days'),10); return [7,14,30].indexOf(d)>=0?d:14; }
+  function candidates(){
+    var days=heroDays();
+    var live=savedQuotes.filter(function(q){ return q.valido!==false && q.esito!=='perso'; });
+    var ranked=live.map(function(q){ var a=activity(q,days); return {q:q,score:a.score,acts:a.acts}; }).filter(function(x){return x.score>0;}).sort(function(a,b){return b.score-a.score;}).slice(0,3);
+    if(!ranked.length && live.length){ var q=live.filter(function(x){return !x.vinto;})[0]||live[0]; ranked=[{q:q,score:0,acts:0}]; }
+    return ranked;
+  }
+  function slideHtml(x){
+    var q=x.q, c=q.client||{}, stage=e2dQuoteStage(q), pct=[0,20,45,70,85,100][stage], days=heroDays();
+    var d=new Date(q.modificatoAt||q.savedAt);
+    var opts=[7,14,30].map(function(n){return '<option value="'+n+'"'+(n===days?' selected':'')+'>'+n+' giorni</option>';}).join('');
+    var dots=heroList.length>1?'<div class="e2h-dots">'+heroList.map(function(_,i){return '<button type="button" data-e2h-dot="'+i+'" class="'+(i===heroIdx?'on':'')+'" aria-label="Progetto '+(i+1)+'"></button>';}).join('')+'</div>':'';
+    return '<div class="e2d-hero-l"><div>'+
+      '<div class="e2h-eyebrow">Progetto in evidenza'+(x.score?' <span>· il più attivo di recente</span>':'')+'</div>'+
+      '<div class="e2h-title">'+esc(c.progetto||'Preventivo senza titolo')+'</div>'+
+      '<div class="e2h-meta">'+esc(c.cliente||'—')+' · n. '+esc(c.numero||'—')+' · '+e2dEur(e2dTotal(q))+'</div></div>'+
+      '<div class="e2h-actions"><button type="button" class="e2d-hero-link" data-e2d-quote="'+q.id+'">Apri preventivo '+ICON.arrow+'</button>'+
+      '<button type="button" class="e2h-ghost" data-e2h-photo="'+q.id+'" title="'+(q.foto?'Cambia foto del progetto':'Aggiungi una foto del progetto')+'">'+ICON.cam+'<span>'+(q.foto?'Cambia foto':'Aggiungi foto')+'</span></button>'+dots+'</div></div>'+
+      '<div class="e2d-hero-r"><div><div class="e2h-lbl">Avanzamento preventivo</div><div class="e2h-pct">'+pct+'%</div><div class="e2h-bar"><div style="width:'+pct+'%"></div></div></div>'+
+      '<div class="e2h-stats"><div><div class="e2h-lbl">Attività recente</div><div class="e2h-val">'+x.acts+' <small>negli ultimi <select id="e2hDays" aria-label="Periodo">'+opts+'</select></small></div></div>'+
+      '<div><div class="e2h-lbl">Ultima modifica</div><div class="e2h-val2">'+d.toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})+'</div></div></div></div>';
+  }
+  function applyBg(box,q,instant){
+    var a=$('.e2h-bg-a',box), b=$('.e2h-bg-b',box); if(!a||!b) return;
+    var cur=box.getAttribute('data-bg')==='b'?b:a, nxt=cur===a?b:a;
+    nxt.style.backgroundImage=q.foto?'url("'+q.foto+'")':'none'; nxt.classList.add('on'); cur.classList.remove('on');
+    box.setAttribute('data-bg',nxt===b?'b':'a'); box.classList.toggle('has-photo',!!q.foto);
+  }
+  function renderHero(keep){
+    var box=$('#e2dHero'); if(!box) return;
+    heroList=candidates();
+    if(!heroList.length) return;
+    if(!keep||heroIdx>=heroList.length) heroIdx=0;
+    box.classList.add('e2h');
+    box.innerHTML='<div class="e2h-bg e2h-bg-a"></div><div class="e2h-bg e2h-bg-b"></div><div class="e2h-shade"></div><div class="e2h-body">'+slideHtml(heroList[heroIdx])+'</div>';
+    box.removeAttribute('data-bg'); applyBg(box,heroList[heroIdx].q);
+    startTimer();
+  }
+  function showSlide(i){
+    var box=$('#e2dHero'); if(!box||!heroList.length) return; heroIdx=(i+heroList.length)%heroList.length;
+    var body=$('.e2h-body',box); body.classList.add('swap');
+    setTimeout(function(){ body.innerHTML=slideHtml(heroList[heroIdx]); body.classList.remove('swap'); },260);
+    applyBg(box,heroList[heroIdx].q);
+  }
+  function startTimer(){
+    clearInterval(heroTimer); heroTimer=null;
+    if(heroList.length<2) return;
+    if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    heroTimer=setInterval(function(){ var p=$('#e2PageDashboard'); if(heroHover||document.hidden||!p||p.style.display==='none') return; showSlide(heroIdx+1); },9000);
+  }
+  document.addEventListener('mouseover',function(e){ if(e.target.closest&&e.target.closest('#e2dHero')) heroHover=true; });
+  document.addEventListener('mouseout',function(e){ if(e.target.closest&&e.target.closest('#e2dHero')&&!(e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('#e2dHero'))) heroHover=false; });
+  document.addEventListener('change',function(e){ if(e.target&&e.target.id==='e2hDays'){ store('e2-hero-days',e.target.value); heroIdx=0; renderHero(); } });
+  document.addEventListener('click',function(e){
+    var t=e.target.closest&&e.target.closest('[data-e2h-dot]'); if(t){ e.stopPropagation(); showSlide(parseInt(t.getAttribute('data-e2h-dot'),10)); startTimer(); return; }
+    t=e.target.closest&&e.target.closest('[data-e2h-photo]'); if(t){ e.stopPropagation(); uploadPhotoFor(t.getAttribute('data-e2h-photo')); return; }
+    t=e.target.closest&&e.target.closest('[data-e2ph-up]'); if(t){ uploadPhotoFor(t.getAttribute('data-e2ph-up')); return; }
+    t=e.target.closest&&e.target.closest('[data-e2ph-rm]'); if(t){ setQuotePhoto(t.getAttribute('data-e2ph-rm'),null); return; }
+  },true);
+
+  /* ---------- scheda preventivo: foto del progetto ---------- */
+  function injectSchedaPhoto(){
+    var body=$('#quoteSchedaBody'); if(!body||typeof quoteSchedaCurrentId==='undefined'||!quoteSchedaCurrentId) return;
+    var q=quoteById(quoteSchedaCurrentId); if(!q) return; var old=$('.e2ph-card',body); if(old) old.remove();
+    var el=document.createElement('div'); el.className='e2ph-card';
+    el.innerHTML=(q.foto?'<div class="e2ph-img" style="background-image:url(&quot;'+q.foto+'&quot;)"></div>':'<button type="button" class="e2ph-img e2ph-empty" data-e2ph-up="'+q.id+'">'+ICON.cam+'<span>Aggiungi una foto del progetto</span></button>')+
+      '<div class="e2ph-side"><div class="e2ph-t">Foto del progetto</div><p>Compare nella Dashboard quando questo progetto è in evidenza, cioè quando è quello su cui si lavora di più.</p>'+
+      '<div class="e2ph-btns"><button type="button" class="e2ph-b" data-e2ph-up="'+q.id+'">'+(q.foto?'Cambia foto':'Carica foto')+'</button>'+(q.foto?'<button type="button" class="e2ph-b e2ph-rm" data-e2ph-rm="'+q.id+'">Rimuovi</button>':'')+'</div></div>';
+    body.insertBefore(el,body.firstChild);
+  }
+  var _rqs=window.renderQuoteScheda; if(typeof _rqs==='function') window.renderQuoteScheda=function(){ var r=_rqs.apply(this,arguments); try{ injectSchedaPhoto(); }catch(e){} return r; };
+
+  /* ===================== TEAM (collegato al server) ===================== */
+  var ROLES={
+    admin:{label:'Amministratore',desc:'Legge e scrive tutto: preventivi, clienti, lead, pagamenti, impostazioni e gestione del team.',perm:['Preventivi','Lead','Totali e costi','Pagamenti','Statistiche','Team','Impostazioni'],no:[]},
+    socio:{label:'Socio',desc:'Stessi permessi dell\'amministratore: legge e scrive tutto, compresi team e impostazioni.',perm:['Preventivi','Lead','Totali e costi','Pagamenti','Statistiche','Team','Impostazioni'],no:[]},
+    segreteria:{label:'Segreteria',desc:'Visiona tutto e vede i totali, ma non crea preventivi nuovi. Controlla se il cliente ha aperto e letto l\'email, gestisce follow-up e pagamenti. Non vede i lead.',perm:['Vede i totali','Preventivi (solo lettura)','Email aperta / letta','Follow-up','Pagamenti'],no:['Nuovi preventivi','Lead','Team e impostazioni']},
+    marketing:{label:'Marketing',desc:'Analizza i lead: vinti, persi e provenienza, per capire dove intervenire con comunicazione e marketing. Niente preventivi, totali o costi.',perm:['Lead vinti e persi','Provenienza','Andamento lead'],no:['Preventivi','Totali e costi','Team e impostazioni']},
+    lettura:{label:'Sola lettura',desc:'Può consultare tutto (preventivi, lead, totali, statistiche) senza modificare nulla.',perm:['Consultazione di tutto'],no:['Modifiche','Team e impostazioni']}
+  };
+  var ERR={
+    invalid_credentials:'Email o password non corretti.', email_in_use:'Questa email è già usata da un\'altra persona.', weak_password:'La password deve avere almeno 8 caratteri.',
+    invalid_email:'Inserisci un\'email valida.', missing_name:'Inserisci nome e cognome.', last_admin:'Deve restare almeno un amministratore o un socio.',
+    cannot_delete_self:'Non puoi eliminare il tuo stesso accesso.', forbidden:'Non hai il permesso per questa operazione.', invalid_photo:'Immagine non valida o troppo grande.',
+    session_expired:'Sessione scaduta: accedi di nuovo.', login_required:'Accedi di nuovo per continuare.', too_many_attempts:'Troppi tentativi. Riprova tra qualche minuto.', server_error:'Errore del server. Riprova tra poco.'
+  };
+  var team=[], teamLoaded=false, teamCode='', editing=null, draft=null, busy=false;
+  function authInfo(){ return window.E2Auth||{}; }
+  function me(){ return (authInfo().user&&authInfo().user.id)||''; }
+  function isLegacy(){ return authInfo().mode==='legacy'; }
+  function api(action,payload){
+    var body=Object.assign({key:(typeof getLicenseKey==='function'?getLicenseKey():''),action:action},payload||{});
+    return fetch('/.netlify/functions/team-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){ return r.json().catch(function(){return {error:'server_error'};}).then(function(j){ j._status=r.status; return j; }); }).catch(function(){ return {error:'network',_status:0}; });
+  }
+  function errText(j){ return (j&&ERR[j.error])||(j&&j.error==='network'?'Connessione assente: riprova.':'Operazione non riuscita.'); }
+  function initials(n){ return (n||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase(); }
+  var TINTS=['#F5E6E4','#F1EBDD','#E9E3D5','#EFE3E1','#E6ECE4','#E5E9F0'];
+  function tint(id){ var h=0; id=String(id||''); for(var i=0;i<id.length;i++) h=(h*31+id.charCodeAt(i))>>>0; return TINTS[h%TINTS.length]; }
+  function avatar(m,cls){ return '<span class="'+(cls||'e2t-av')+'" style="'+(m.foto?'background-image:url(&quot;'+m.foto+'&quot;)':'background:'+tint(m.id))+'">'+(m.foto?'':esc(initials(m.nome)))+'</span>'; }
+  function member(id){ return team.filter(function(m){return m.id===id;})[0]; }
+  function genPwd(){ var a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789', s=''; var r=crypto.getRandomValues(new Uint32Array(14)); for(var i=0;i<14;i++) s+=a[r[i]%a.length]; return s; }
+
+  function ensureTeamPage(){
+    if($('#e2PageTeam')) return;
+    var after=$('#e2PageStatistiche'); if(!after) return;
+    var pg=document.createElement('div'); pg.id='e2PageTeam'; pg.className='e2-page'; pg.style.display='none';
+    pg.innerHTML='<div class="e2-dash-wrap"><div id="e2TeamList"></div><div id="e2TeamEdit" style="display:none"></div></div>';
+    after.parentNode.insertBefore(pg,after.nextSibling);
+    if(!$('#e2NavTeam')){ var nav=document.createElement('button'); nav.type='button'; nav.className='e2-nav-item'; nav.id='e2NavTeam'; nav.setAttribute('data-e2-page','team'); nav.innerHTML=ICON.users+'Team';
+      var imp=$('#e2NavImpostazioni'); imp.parentNode.insertBefore(nav,imp); nav.addEventListener('click',function(){ switchEstimly2Page('team'); }); }
+  }
+  function headHtml(){ return '<div class="e2-page-head"><div class="e2-eyebrow">Team</div><h1>Il tuo team</h1><p>Le persone che usano Estimly nel tuo studio: ognuna ha il proprio accesso con email e password, un ruolo che decide cosa può fare e una foto che compare nel menu.</p></div>'; }
+  function loadTeam(){
+    if(isLegacy()||busy) return Promise.resolve();
+    busy=true;
+    return api('list').then(function(j){ busy=false; if(j&&j.ok){ team=j.users||[]; teamCode=j.code||''; teamLoaded=true; } else { teamLoaded=true; team=team||[]; window.__e2TeamErr=errText(j); } renderTeam(); });
+  }
+  function renderLegacy(L){
+    L.innerHTML='<div class="e2t-top">'+headHtml()+'</div><div class="e2t-act"><h3>Attiva gli accessi con email e password</h3><p>Oggi il tuo studio entra con la chiave di licenza. Attivando gli accessi crei il tuo account di amministratore (email e password) e potrai aggiungere le altre persone con il loro ruolo. Dopo l\'attivazione la chiave di licenza non serve più per entrare.</p>'+
+      '<div class="field-grid"><div class="field"><label>Nome e cognome</label><input type="text" id="e2aNome" placeholder="Es. Nicola Maglione" autocomplete="name"></div><div class="field"><label>Email</label><input type="email" id="e2aEmail" placeholder="nome@studio.it" autocomplete="username"></div></div>'+
+      '<div class="field"><label>Password</label><div class="e2t-pwd"><input type="password" id="e2aPwd" placeholder="Minimo 8 caratteri" autocomplete="new-password"><button type="button" id="e2aEye">'+ICON.eye+'</button><button type="button" id="e2aGen">Genera</button></div></div>'+
+      '<div class="e2t-err" id="e2aErr"></div><div class="e2t-actions"><button type="button" class="btn-save" id="e2aGo">Attiva gli accessi</button></div></div>';
+  }
+  function renderTeam(){
+    ensureTeamPage(); var L=$('#e2TeamList'), E=$('#e2TeamEdit'); if(!L) return;
+    if(isLegacy()){ E.style.display='none'; L.style.display='block'; renderLegacy(L); return; }
+    if(!teamLoaded){ L.style.display='block'; E.style.display='none'; L.innerHTML='<div class="e2t-top">'+headHtml()+'</div><p class="e2t-load">Carico il team…</p>'; return; }
+    if(editing){ L.style.display='none'; E.style.display='block'; renderEdit(); return; }
+    E.style.display='none'; L.style.display='block';
+    L.innerHTML='<div class="e2t-top">'+headHtml()+'<button type="button" class="btn-save e2t-add" id="e2TeamAdd">+ Aggiungi persona</button></div>'+(window.__e2TeamErr?'<div class="e2t-err" style="display:block">'+esc(window.__e2TeamErr)+'</div>':'')+
+      '<div class="e2t-grid">'+team.map(function(m){ var r=ROLES[m.ruolo]||ROLES.lettura;
+        return '<button type="button" class="e2t-card" data-e2t-open="'+m.id+'"><span class="e2t-avwrap" data-e2t-photo="'+m.id+'" title="Carica la foto">'+avatar(m)+'<i class="e2t-av-cam">'+ICON.cam+'</i></span><div class="e2t-body"><div class="e2t-name">'+esc(m.nome)+(m.id===me()?' <em>tu</em>':'')+'</div><div class="e2t-role">'+r.label+'</div><div class="e2t-mail">'+esc(m.email)+'</div><div class="e2t-desc">'+esc(m.desc||'')+'</div></div></button>'; }).join('')+'</div>';
+    renderSideUser();
+  }
+  function renderEdit(){
+    var E=$('#e2TeamEdit'), isNew=editing==='new';
+    if(!draft){ draft=isNew?{id:'',nome:'',email:'',ruolo:'segreteria',desc:'',foto:'',hasPass:false}:Object.assign({hasPass:true},member(editing)); }
+    var m=draft; if(!m||(!isNew&&!m.id)){ editing=null; draft=null; renderTeam(); return; }
+    E.innerHTML='<button type="button" class="e2-scheda-back" id="e2TeamBack">← Tutto il team</button>'+
+      '<div class="e2-page-head"><div class="e2-eyebrow">Team</div><h1>'+(isNew?'Nuova persona':esc(m.nome))+'</h1><p>'+(isNew?'Inserisci i dati di accesso e scegli il ruolo.':'Modifica i dati, il ruolo e la foto di questa persona.')+'</p></div>'+
+      '<div class="e2t-form"><div class="e2t-photo"><button type="button" class="e2t-photo-btn" id="e2tPhoto" title="Carica foto">'+avatar(m,'e2t-av e2t-av-xl')+'<span class="e2t-photo-over">'+ICON.cam+'</span></button><div class="e2t-photo-t">Foto</div><div class="e2t-photo-s">Quadrata, almeno 400 px</div>'+(m.foto?'<button type="button" class="e2t-link" id="e2tPhotoRm">Rimuovi</button>':'')+'</div>'+
+      '<div class="e2t-fields">'+
+      '<div class="field"><label>Nome e cognome</label><input type="text" id="e2tNome" value="'+esc(m.nome)+'" placeholder="Es. Giulia Marchetti"></div>'+
+      '<div class="field-grid"><div class="field"><label>Email (per il login)</label><input type="email" id="e2tEmail" value="'+esc(m.email)+'" placeholder="nome@studio.it" autocomplete="off"></div>'+
+      '<div class="field"><label>Password di accesso</label><div class="e2t-pwd"><input type="password" id="e2tPwd" placeholder="'+(isNew?'Minimo 8 caratteri':'Lascia vuoto = invariata')+'" autocomplete="new-password"><button type="button" id="e2tEye" title="Mostra / nascondi">'+ICON.eye+'</button><button type="button" id="e2tGen">Genera</button></div>'+(isNew?'<div class="e2t-hint">Comunicala alla persona: viene salvata cifrata e non sarà più visibile.</div>':'<div class="e2t-hint">Per sicurezza la password non viene mai mostrata. Scrivine una nuova per reimpostarla.</div>')+'</div></div>'+
+      '<div class="field"><label>Ruolo</label><select id="e2tRuolo">'+Object.keys(ROLES).map(function(k){return '<option value="'+k+'"'+(k===m.ruolo?' selected':'')+'>'+ROLES[k].label+'</option>';}).join('')+'</select><div class="e2t-role-box" id="e2tRoleBox"></div></div>'+
+      '<div class="field"><label>Descrizione</label><textarea id="e2tDesc" rows="3" maxlength="240" placeholder="Di cosa si occupa nello studio">'+esc(m.desc)+'</textarea></div>'+
+      '<div class="e2t-err" id="e2tErr"></div>'+
+      '<div class="e2t-actions"><button type="button" class="btn-save" id="e2tSave">'+(isNew?'Aggiungi al team':'Salva modifiche')+'</button><button type="button" class="btn-cancel" id="e2tCancel">Annulla</button>'+
+      (!isNew&&m.id!==me()?'<span class="e2t-sp"></span><button type="button" class="e2t-del" id="e2tDel">Elimina</button>':'')+'</div></div></div>';
+    paintRole();
+  }
+  function paintRole(){ var sel=$('#e2tRuolo'), box=$('#e2tRoleBox'); if(!sel||!box) return; var r=ROLES[sel.value]; box.innerHTML='<p>'+r.desc+'</p><div>'+r.perm.map(function(p){return '<span>'+p+'</span>';}).join('')+r.no.map(function(p){return '<span class="e2t-no">'+p+'</span>';}).join('')+'</div>'; }
+  function keepDraft(){ if(!draft||!$('#e2tNome')) return; draft.nome=$('#e2tNome').value; draft.email=$('#e2tEmail').value; draft.ruolo=$('#e2tRuolo').value; draft.desc=$('#e2tDesc').value; draft._pwd=$('#e2tPwd').value; }
+  function saveEdit(){
+    var d=draft, isNew=editing==='new', err=$('#e2tErr'), btn=$('#e2tSave');
+    var nome=$('#e2tNome').value.trim(), email=$('#e2tEmail').value.trim(), pwd=$('#e2tPwd').value;
+    function bad(t){ err.textContent=t; err.style.display='block'; }
+    if(!nome) return bad('Inserisci nome e cognome.');
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return bad('Inserisci un\'email valida.');
+    if(isNew&&pwd.length<8) return bad('La password deve avere almeno 8 caratteri.');
+    if(pwd&&pwd.length<8) return bad('La nuova password deve avere almeno 8 caratteri.');
+    btn.disabled=true; err.style.display='none';
+    api('save',{member:{id:isNew?'':d.id,nome:nome,email:email,ruolo:$('#e2tRuolo').value,desc:$('#e2tDesc').value.trim(),password:pwd}}).then(function(j){
+      if(!(j&&j.ok)){ btn.disabled=false; return bad(errText(j)); }
+      var uid=j.user.id, after=function(){ editing=null; draft=null; window.__e2TeamErr=''; return loadTeam().then(function(){ if(uid===me()&&window.E2Access) E2Access.refresh(); }); };
+      // la foto scelta prima del salvataggio (persona nuova, o cambiata nel modulo) parte ora
+      if(d.fotoNew!==undefined){ return api('setPhoto',{id:uid,foto:d.fotoNew}).then(after); }
+      return after();
+    });
+  }
+  function setPhotoFor(id,dataUrl){
+    return api('setPhoto',{id:id,foto:dataUrl}).then(function(j){
+      if(!(j&&j.ok)){ alert(errText(j)); return false; }
+      var m=member(id); if(m) m.foto=dataUrl||''; m=null;
+      if(id===me()){ authInfo().photo=dataUrl||''; renderSideUser(); }
+      return true;
+    });
+  }
+  document.addEventListener('click',function(e){
+    var t=e.target.closest&&e.target.closest('#e2PageTeam, .e2-side-user'); if(!t) return; var el=e.target; var b;
+    if(el.closest('#e2aEye')){ var q=$('#e2aPwd'); q.type=q.type==='password'?'text':'password'; return; }
+    if(el.closest('#e2aGen')){ var q2=$('#e2aPwd'); q2.value=genPwd(); q2.type='text'; return; }
+    if(el.closest('#e2aGo')){ activateAccess(); return; }
+    if((b=el.closest('[data-e2t-photo]'))){ e.stopPropagation(); var pid=b.getAttribute('data-e2t-photo'); pickFile(function(f){ readImage(f,420,true,.85).then(function(dd){ setPhotoFor(pid,dd).then(function(ok){ if(ok) renderTeam(); }); }); }); return; }
+    if((b=el.closest('[data-e2t-open]'))){ editing=b.getAttribute('data-e2t-open'); draft=null; renderTeam(); window.scrollTo({top:0}); return; }
+    if(el.closest('#e2TeamAdd')){ editing='new'; draft=null; renderTeam(); window.scrollTo({top:0}); return; }
+    if(el.closest('#e2TeamBack')||el.closest('#e2tCancel')){ editing=null; draft=null; renderTeam(); return; }
+    if(el.closest('#e2tSave')){ saveEdit(); return; }
+    if(el.closest('#e2tGen')){ var p=$('#e2tPwd'); p.value=genPwd(); p.type='text'; return; }
+    if(el.closest('#e2tEye')){ var p2=$('#e2tPwd'); p2.type=p2.type==='password'?'text':'password'; return; }
+    if(el.closest('#e2tPhoto')){ pickFile(function(f){ readImage(f,420,true,.85).then(function(dd){ keepDraft(); if(editing==='new'){ draft.foto=dd; draft.fotoNew=dd; renderEdit(); if(draft._pwd) $('#e2tPwd').value=draft._pwd; } else { var id=draft.id; setPhotoFor(id,dd).then(function(ok){ if(ok){ draft.foto=dd; renderEdit(); } }); } }); }); return; }
+    if(el.closest('#e2tPhotoRm')){ keepDraft(); if(editing==='new'){ draft.foto=''; draft.fotoNew=undefined; renderEdit(); } else { var id2=draft.id; setPhotoFor(id2,'').then(function(ok){ if(ok){ draft.foto=''; renderEdit(); } }); } return; }
+    if(el.closest('#e2tDel')){ var d2=draft; if(confirm('Eliminare '+d2.nome+' dal team? Perderà subito l\'accesso a Estimly.')){ api('delete',{id:d2.id}).then(function(j){ if(!(j&&j.ok)){ alert(errText(j)); return; } editing=null; draft=null; loadTeam(); }); } return; }
+  });
+  document.addEventListener('change',function(e){ if(e.target&&e.target.id==='e2tRuolo') paintRole(); });
+  function activateAccess(){
+    var err=$('#e2aErr'), nome=$('#e2aNome').value.trim(), email=$('#e2aEmail').value.trim(), pwd=$('#e2aPwd').value, btn=$('#e2aGo');
+    function bad(t){ err.textContent=t; err.style.display='block'; }
+    if(!nome) return bad('Inserisci nome e cognome.'); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return bad('Inserisci un\'email valida.'); if(pwd.length<8) return bad('La password deve avere almeno 8 caratteri.');
+    btn.disabled=true; err.style.display='none';
+    api('bootstrap',{nome:nome,email:email,password:pwd}).then(function(j){
+      if(!(j&&j.ok)){ btn.disabled=false; return bad(errText(j)); }
+      try{ localStorage.setItem('desearq-license-key',j.session); localStorage.setItem('desearq-license-validated-at',Date.now().toString()); }catch(x){}
+      location.reload();
+    });
+  }
+
+  /* ---------- barra laterale: chi sta usando Estimly ---------- */
+  function renderSideUser(){
+    var A=authInfo(), m=A.user; var wrap=$('.e2-side-user'); if(!wrap) return;
+    var name=m?m.nome:'Studio', foto=A.photo||'';
+    var av=$('#e2SideAv'); if(av){ av.className='av e2-side-av'; av.style.background=foto?'':(m?tint(m.id):''); av.style.backgroundImage=foto?'url("'+foto+'")':''; av.innerHTML=foto?'':esc(initials(name)); if(m) av.innerHTML+='<span class="e2-side-cam">'+ICON.cam+'</span>'; av.title=m?'Cambia la tua foto':''; }
+    var n=$('#e2SideUser'); if(n){ n.textContent=name; n.style.cursor=m?'pointer':''; n.title=m?'Apri il tuo profilo':''; }
+    var s=$('.e2-side-s',wrap); if(s){ s.innerHTML=(m?(ROLES[A.role]||ROLES.lettura).label:'Amministratore')+' · <button type="button" class="e2-side-exit" onclick="E2Access.logout()">Esci</button>'; }
+  }
+  document.addEventListener('click',function(e){
+    var av=e.target.closest&&e.target.closest('#e2SideAv'); var nm=e.target.closest&&e.target.closest('#e2SideUser'); var m=authInfo().user;
+    if(!m) return;
+    if(av){ pickFile(function(f){ readImage(f,420,true,.85).then(function(d){ setPhotoFor(m.id,d).then(function(ok){ if(ok&&$('#e2PageTeam')&&$('#e2PageTeam').style.display!=='none') loadTeam(); }); }); }); }
+    else if(nm&&window.E2Access&&E2Access.can('team')){ editing=m.id; draft=null; switchEstimly2Page('team'); }
+  });
+
+  /* ---------- foto dei progetti: si scaricano a parte, dopo i preventivi ---------- */
+  function fetchPhotos(){
+    try{
+      if(!savedQuotes.some(function(q){return q.fotoRef&&!q.foto;})) return Promise.resolve();
+      var key=getLicenseKey(); if(!key) return Promise.resolve();
+      return fetch('/.netlify/functions/sync-data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,action:'loadPhotos'})}).then(function(r){ return r.json(); }).then(function(j){
+        if(!(j&&j.photos)) return; var any=false;
+        savedQuotes.forEach(function(q){ if(j.photos[q.id]&&!q.foto){ q.foto=j.photos[q.id]; any=true; } });
+        if(any){ try{ persistSavedQuotesLocal(); }catch(e){} try{ renderHero(true); if(quoteSchedaCurrentId) injectSchedaPhoto(); }catch(e){} }
+      }).catch(function(){});
+    }catch(e){ return Promise.resolve(); }
+  }
+  var _lsq=window.loadSavedQuotesCloud; if(typeof _lsq==='function') window.loadSavedQuotesCloud=function(){ var r=_lsq.apply(this,arguments); return Promise.resolve(r).then(function(v){ return fetchPhotos().then(function(){ return v; }); }); };
+
+  /* ---------- aggancio ai punti esistenti dell'app ---------- */
+  var _sw=window.switchEstimly2Page;
+  window.switchEstimly2Page=function(id){ var r=_sw.apply(this,arguments); ensureTeamPage(); var t=$('#e2PageTeam'); if(t) t.style.display=(id==='team')?'block':'none'; if(id==='team'){ renderTeam(); if(!isLegacy()) loadTeam(); } else { editing=null; draft=null; } return r; };
+  var _rd=window.renderDashboardV2;
+  window.renderDashboardV2=function(){ var r=_rd.apply(this,arguments); try{ renderHero(true); renderSideUser(); }catch(e){ console.error(e); } return r; };
+  window.E2Team={ROLES:ROLES,get code(){return teamCode;},renderSideUser:renderSideUser,fetchPhotos:fetchPhotos};
+  document.addEventListener('e2:auth',function(){ ensureTeamPage(); renderSideUser(); });
+  function boot(){ ensureTeamPage(); renderSideUser(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+</script><script>/* ===== Estimly 2.0 — ruoli e Marketing (il ruolo arriva dal server) ===== */
+(function(){
+  var T=window.E2Team; if(!T) return;
+  function $(s,r){ return (r||document).querySelector(s); }
+  function $$(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  var ALL=['dashboard','richieste','preventivo','listino','contratti','rubrica','salvati','seguire','calcolatore','statistiche','marketing','team','impostazioni'];
+  var PERM={
+    admin:     {pages:ALL, ro:[], newQuote:true, money:true, home:'dashboard'},
+    socio:     {pages:ALL, ro:[], newQuote:true, money:true, home:'dashboard'},
+    segreteria:{pages:['dashboard','listino','contratti','rubrica','salvati','seguire','calcolatore','statistiche'], ro:['listino','contratti','calcolatore','rubrica'], newQuote:false, money:true, home:'dashboard', noDelete:true},
+    marketing: {pages:['richieste','marketing'], ro:['richieste','marketing'], newQuote:false, money:false, home:'marketing'},
+    lettura:   {pages:['dashboard','richieste','listino','contratti','rubrica','salvati','seguire','calcolatore','statistiche','marketing'], ro:ALL, newQuote:false, money:true, home:'dashboard', all:true}
+  };
+  function cur(){ var A=window.E2Auth; if(!A) return null; if(A.user) return {id:A.user.id,ruolo:A.role||'lettura'}; if(A.mode==='legacy') return {id:'',ruolo:'admin'}; return null; }
+  function perm(){ var m=cur(); return m?(PERM[m.ruolo]||PERM.lettura):PERM.lettura; }
+  function can(page){ return perm().pages.indexOf(page)>=0; }
+  function logout(){ if(window.E2Auth&&E2Auth.logout) E2Auth.logout(); }
+  /* ---------- applicazione del ruolo ---------- */
+  var NAVMAP={}; 
+  function navPage(b){ return b.getAttribute('data-e2-page')||(b.id==='e2NavImpostazioni'?'impostazioni':b.id==='e2NavTeam'?'team':''); }
+  function ensureMarketing(){
+    if(!$('#e2NavMarketing')){
+      var st=$('#e2NavStatistiche'); if(!st) return;
+      var b=document.createElement('button'); b.type='button'; b.className='e2-nav-item'; b.id='e2NavMarketing'; b.setAttribute('data-e2-page','marketing');
+      b.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l15-7v16L3 13z"/><path d="M7 13v5a2 2 0 0 0 4 0v-3"/></svg>Marketing';
+      st.parentNode.insertBefore(b,st.nextSibling); b.addEventListener('click',function(){ window.switchEstimly2Page('marketing'); });
+    }
+    if(!$('#e2PageMarketing')){
+      var after=$('#e2PageStatistiche')||$('#e2PageRichieste'); if(!after) return;
+      var pg=document.createElement('div'); pg.id='e2PageMarketing'; pg.className='e2-page'; pg.style.display='none';
+      pg.innerHTML='<div class="e2-dash-wrap" id="e2MkWrap"></div>'; after.parentNode.insertBefore(pg,after.nextSibling);
+    }
+  }
+  function apply(go){
+    var m=cur(); if(!m){ return; }
+    ensureMarketing();
+    var P=perm(), b=document.body;
+    document.body.classList.remove('e2-locked');
+    b.setAttribute('data-e2-role',m.ruolo);
+    b.classList.toggle('e2-nonew',!P.newQuote); b.classList.toggle('e2-nomoney',!P.money); b.classList.toggle('e2-nodel',!!P.noDelete);
+    $$('#e2Sidebar .e2-nav-item').forEach(function(n){ var p=navPage(n); if(p) n.style.display=can(p)?'':'none'; });
+    T.renderSideUser();
+    var cp=window.__e2page||'dashboard';
+    if(go||!can(cp)){ window.switchEstimly2Page(P.home); }
+    else { enforce(); }
+  }
+
+  /* ---------- guardia sulle pagine ---------- */
+  var _sw=window.switchEstimly2Page;
+  window.switchEstimly2Page=function(id){
+    if(cur()&&!can(id)) id=perm().home;
+    window.__e2page=id;
+    var r=_sw.call(this,id);
+    var mk=$('#e2PageMarketing'); if(mk) mk.style.display=(id==='marketing')?'block':'none';
+    if(id==='marketing'){ $$('.e2-page').forEach(function(p){ if(p.id!=='e2PageMarketing') p.style.display='none'; }); document.body.setAttribute('data-e2-page','marketing'); $$('#e2Sidebar .e2-nav-item').forEach(function(n){ n.classList.toggle('active',n.id==='e2NavMarketing'); }); renderMarketing(); try{ loadLeadsCloud().then(renderMarketing); }catch(e){} }
+    var ro=perm().ro.indexOf(id)>=0; document.body.classList.toggle('e2-ro-page',ro);
+    setTimeout(enforce,30); window.scrollTo(0,0);
+    return r;
+  };
+  /* impostazioni: solo amministratore e socio */
+  var _os=window.openSettingsModal; if(typeof _os==='function') window.openSettingsModal=function(){ if(cur()&&!can('impostazioni')) return; return _os.apply(this,arguments); };
+
+  /* ---------- sola lettura / niente totali: controllo dei comandi ---------- */
+  var WRITE=/^\s*(\+\s*)?(nuov[oa]|aggiung|elimin|modific|salva|conclud|rimuov|carica|import|invia|segna|duplic|archivi|reimposta|svuota|crea|rinomin|riapri|riattiva|sospendi|ripristina|applica)/i;
+  var WRITE_SEG=/^\s*(\+\s*)?(nuov[oa]\s+preventivo|elimin|modific)/i;
+  var MONEY=/(€\s?-?[\d][\d.,]*|-?[\d][\d.,]*\s?€)/g;
+  var pend=0;
+  function enforce(){
+    if(!cur()) return; var P=perm(), role=cur().ruolo, page=window.__e2page||'dashboard';
+    var ro=P.ro.indexOf(page)>=0; var full=role==='lettura';
+    var scope=$$('.e2-page, .modal-overlay, #settingsModal').filter(function(x){ return x.offsetParent!==null||x.classList.contains('modal-overlay'); });
+    scope.forEach(function(root){
+      var re=(ro||full)?WRITE:(role==='segreteria'?WRITE_SEG:null);
+      $$('button, .btn-save, a.btn, [role=button]',root).forEach(function(bt){
+        if(bt.closest('#e2MobBar,#e2Sidebar,.e2-page-head,.e2lg')) return;
+        var t=(bt.textContent||'').trim(); var hide=!!(re&&re.test(t))||(role!=='admin'&&role!=='socio'&&/^(salva|elimina|modifica)/i.test(t)&&(ro||full)&&false);
+        if(bt.matches('.e2-lead-stage-btn,[data-set-fonte]')&&(role==='marketing'||full)) hide=true;
+        if(hide) bt.setAttribute('data-e2lock','1');
+      });
+      if(ro||full){ $$('input:not([type=search]):not([type=checkbox]):not([type=radio]):not([type=file]), textarea, select',root).forEach(function(f){
+        if(f.closest('.toolbar,.e2d-search,#e2LgForm,.e2-lead-filters,#e2MkWrap')||f.id==='e2hDays'||f.type==='search') return; f.setAttribute('data-e2lock','1'); f.disabled=true; }); }
+    });
+    if(!P.money){ maskMoney(); }
+  }
+  function maskMoney(){
+    $$('.e2-page, .modal-overlay').forEach(function(root){
+      var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),n,list=[]; while((n=w.nextNode())) if(MONEY.test(n.nodeValue)){ list.push(n); } MONEY.lastIndex=0;
+      list.forEach(function(x){ x.nodeValue=x.nodeValue.replace(MONEY,'€ ••••'); });
+    });
+  }
+  var mo=new MutationObserver(function(){ if(pend) return; pend=setTimeout(function(){ pend=0; try{ enforce(); }catch(e){} if(window.__e2page==='marketing'&&document.body.getAttribute('data-e2-page')==='marketing'&&!$('#e2MkWrap .e2mk')) renderMarketing(); },90); });
+  mo.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+
+  /* ---------- Marketing: andamento dei lead ---------- */
+  var mkRange=90;
+  var FASE={vinto:'Vinti',perso:'Persi'};
+  function leadsAll(){ return (typeof leadsList!=='undefined'&&leadsList)?leadsList:[]; }
+  function when(l){ var t=new Date(l.ricevutoAt||l.createdAt||l.data||0).getTime(); return isNaN(t)?0:t; }
+  function renderMarketing(){
+    var w=$('#e2MkWrap'); if(!w) return;
+    var since=mkRange?Date.now()-mkRange*864e5:0;
+    var L=leadsAll().filter(function(l){ return when(l)>=since; });
+    var won=L.filter(function(l){return l.fase==='vinto';}), lost=L.filter(function(l){return l.fase==='perso';}), open=L.length-won.length-lost.length;
+    var conv=L.length?Math.round(won.length/L.length*100):0;
+    var closed=won.length+lost.length, winrate=closed?Math.round(won.length/closed*100):0;
+    var by={}; L.forEach(function(l){ var f=(l.fonte||'').trim()||'Non indicata'; (by[f]=by[f]||{n:0,w:0,l:0}); by[f].n++; if(l.fase==='vinto') by[f].w++; else if(l.fase==='perso') by[f].l++; });
+    var rows=Object.keys(by).map(function(k){ var o=by[k]; o.k=k; o.p=o.n?Math.round(o.w/o.n*100):0; return o; }).sort(function(a,b){ return b.n-a.n; });
+    var max=rows.length?rows[0].n:1;
+    var insight='';
+    var ranked=rows.filter(function(r){return r.n>=2;}).slice().sort(function(a,b){ return b.p-a.p||b.n-a.n; });
+    if(ranked.length>1){ var best=ranked[0], weak=rows.filter(function(r){return r.n>=3&&r.p===0;})[0];
+      insight='<b>'+esc(best.k)+'</b> è la fonte che converte meglio ('+best.p+'% delle richieste diventa un cliente).'+(weak?' <b>'+esc(weak.k)+'</b> porta '+weak.n+' richieste ma nessun cliente: è qui che vale la pena intervenire sul messaggio o sul target.':''); }
+    else if(rows.length){ insight='Servono più richieste per confrontare le fonti: l\'analisi si affina man mano che arrivano i contatti.'; }
+    /* andamento mensile: ultimi 6 mesi */
+    var now=new Date(), months=[]; for(var i=5;i>=0;i--){ var d=new Date(now.getFullYear(),now.getMonth()-i,1); months.push({y:d.getFullYear(),m:d.getMonth(),n:0,w:0}); }
+    leadsAll().forEach(function(l){ var t=new Date(when(l)); if(!when(l)) return; months.forEach(function(x){ if(x.y===t.getFullYear()&&x.m===t.getMonth()){ x.n++; if(l.fase==='vinto') x.w++; } }); });
+    var mmax=Math.max.apply(null,months.map(function(x){return x.n;}).concat([1]));
+    var MN=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+    function fmt(l){ var t=new Date(when(l)); return t.getDate()+' '+MN[t.getMonth()]; }
+    function list(arr,empty){ return arr.length?arr.slice().sort(function(a,b){return when(b)-when(a);}).slice(0,5).map(function(l){ return '<li><span>'+esc(l.nome||'Contatto')+'</span><i>'+esc((l.fonte||'Non indicata'))+' · '+fmt(l)+'</i></li>'; }).join(''):'<li class="e2mk-empty">'+empty+'</li>'; }
+    w.innerHTML='<div class="e2mk"><div class="e2-page-head"><div class="e2-eyebrow">Marketing</div><h1>Andamento lead</h1><p>Quante richieste arrivano, da dove e quante diventano clienti: per capire dove intervenire con comunicazione e marketing.</p></div>'+
+      '<div class="e2mk-bar"><label>Periodo</label><select id="e2MkRange">'+[[30,'Ultimi 30 giorni'],[90,'Ultimi 90 giorni'],[365,'Ultimi 12 mesi'],[0,'Da sempre']].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===mkRange?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></div>'+
+      '<div class="e2mk-kpis"><div><small>Richieste ricevute</small><b>'+L.length+'</b></div><div><small>Vinte</small><b class="won">'+won.length+'</b></div><div><small>Perse</small><b>'+lost.length+'</b></div><div><small>Ancora in corso</small><b>'+open+'</b></div><div><small>Diventano clienti</small><b>'+conv+'%</b><em>'+(closed?winrate+'% tra quelle concluse':'nessuna ancora conclusa')+'</em></div></div>'+
+      '<section class="e2mk-card"><div class="e2mk-h"><h3>Da dove arrivano</h3><div class="e2mk-leg"><span><i class="w"></i>Vinte</span><span><i class="o"></i>In corso</span><span><i class="l"></i>Perse</span></div></div>'+
+      (rows.length?'<div class="e2mk-rows">'+rows.map(function(r){ var op=r.n-r.w-r.l; return '<div class="e2mk-row"><div class="e2mk-k">'+(window.E2Tag?window.E2Tag(r.k):esc(r.k))+'</div><div class="e2mk-track" title="'+r.n+' richieste: '+r.w+' vinte, '+op+' in corso, '+r.l+' perse"><span class="w" style="width:'+(r.w/max*100)+'%"></span><span class="o" style="width:'+(op/max*100)+'%"></span><span class="l" style="width:'+(r.l/max*100)+'%"></span></div><div class="e2mk-n"><b>'+r.n+'</b> richieste · <b>'+r.p+'%</b> vinte</div></div>'; }).join('')+'</div>':'<p class="e2mk-empty">Nessuna richiesta nel periodo scelto.</p>')+
+      (insight?'<p class="e2mk-insight">'+insight+'</p>':'')+'</section>'+
+      '<section class="e2mk-card"><div class="e2mk-h"><h3>Richieste per mese</h3><div class="e2mk-leg"><span><i class="o2"></i>Ricevute</span><span><i class="w"></i>Di cui vinte</span></div></div><div class="e2mk-cols">'+months.map(function(x){ return '<div class="e2mk-col" title="'+MN[x.m]+' '+x.y+': '+x.n+' ricevute, '+x.w+' vinte"><div class="e2mk-bars"><span class="e2mk-v">'+(x.n||'')+'</span><div class="e2mk-b" style="height:'+(x.n/mmax*100)+'%"><u style="height:'+(x.n?x.w/x.n*100:0)+'%"></u></div></div><small>'+MN[x.m]+'</small></div>'; }).join('')+'</div></section>'+
+      '<div class="e2mk-two"><section class="e2mk-card"><div class="e2mk-h"><h3>Ultime vinte</h3></div><ul class="e2mk-list">'+list(won,'Ancora nessuna richiesta vinta.')+'</ul></section><section class="e2mk-card"><div class="e2mk-h"><h3>Ultime perse</h3></div><ul class="e2mk-list">'+list(lost,'Nessuna richiesta persa.')+'</ul></section></div></div>';
+  }
+  document.addEventListener('change',function(e){ if(e.target&&e.target.id==='e2MkRange'){ mkRange=parseInt(e.target.value,10)||0; renderMarketing(); } });
+
+  /* codice studio nella pagina Team */
+  var mo2=new MutationObserver(function(){ var p=$('#e2PageTeam .e2t-top .e2-page-head'); if(p&&!$('.e2t-code',p)){ var c=document.createElement('div'); c.className='e2t-code'; c.innerHTML='Codice studio <b>'+esc((window.E2Auth&&E2Auth.studioCode)||T.code||'')+'</b> <span>assegnato automaticamente</span>'; p.appendChild(c); } });
+  mo2.observe(document.body,{childList:true,subtree:true});
+
+  window.E2Access={logout:logout,apply:apply,refresh:function(){apply(false);},can:can,perm:perm,renderMarketing:renderMarketing,get user(){return cur();}};
+  document.addEventListener('e2:auth',function(){ apply(true); });
+  ensureMarketing(); if(cur()) apply(true);
+})();
+</script><script>/* ===== Estimly 2.0 — rifiniture: tag colorati, rubrica, da seguire ===== */
+(function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  var TAGS={google:['#E1ECFA','#2C5C9E'],'sito web':['#EBE4F6','#684A9A'],sito:['#EBE4F6','#684A9A'],instagram:['#FBE3EB','#A5456A'],facebook:['#DDEEF3','#2D6F7E'],passaparola:['#FBEAD6','#A4621C'],linkedin:['#E3E8F3','#3E588A'],telefono:['#F1ECDD','#756637'],email:['#F1ECDD','#756637']};
+  var FALL=[['#F8E4E1','#9A4339'],['#EEE9F7','#5E4A93'],['#E2EEF6','#32638A'],['#FBEFD5','#8E6A1B'],['#F3E6EE','#8A4A72']];
+  function tagCol(t){ var k=String(t||'').trim().toLowerCase(); if(TAGS[k]) return TAGS[k]; var h=0; for(var i=0;i<k.length;i++) h=(h*31+k.charCodeAt(i))>>>0; return FALL[h%FALL.length]; }
+  window.E2Tag=function(t){ var c=tagCol(t); return '<span class="e2tag" style="background:'+c[0]+';color:'+c[1]+'">'+esc(t)+'</span>'; };
+  var TINT=['#F5E6E4','#F1EBDD','#E9E3D5','#EFE3E1','#E6E9F0','#EDE6F3'];
+  function tint(s){ var h=0; for(var i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return TINT[h%TINT.length]; }
+  function ini(n){ return (n||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase(); }
+
+  /* ---- Rubrica ---- */
+  function decorateRubrica(){
+    var L=document.getElementById('rubricaList'); if(!L) return;
+    Array.prototype.forEach.call(L.querySelectorAll('.client-card'),function(card){
+      if(card.getAttribute('data-e2d')) return; card.setAttribute('data-e2d','1');
+      var nameEl=card.querySelector('.client-list-name'); if(!nameEl) return;
+      var badge=nameEl.querySelector('span'); var tag=badge?badge.textContent.trim():''; if(badge) badge.remove();
+      var name=nameEl.textContent.trim(); var metaEl=card.querySelector('.client-list-meta'); var meta=metaEl?metaEl.textContent.trim():'';
+      var cnt=(card.lastElementChild&&card.lastElementChild.textContent)||''; var n=cnt.replace(/[^\d]/g,'');
+      var bits=meta.split(' · ');
+      card.innerHTML='<span class="e2rb-av" style="background:'+tint(name)+'">'+esc(ini(name))+'</span>'+
+        '<div class="e2rb-body"><div class="e2rb-top"><span class="e2rb-name">'+esc(name)+'</span>'+(tag?window.E2Tag(tag):'')+'</div>'+
+        bits.map(function(b){ return '<div class="e2rb-line">'+esc(b)+'</div>'; }).join('')+'</div>'+
+        '<div class="e2rb-n"><b>'+(n||0)+'</b><span>prevent'+(n==='1'?'ivo':'ivi')+'</span></div><span class="e2rb-go">→</span>';
+    });
+  }
+
+  /* ---- Da seguire ---- */
+  function when(t){ try{ return formatEventDate(t); }catch(e){ return ''; } }
+  function seguire(){
+    var body=document.getElementById('e2SeguireBody'); if(!body||typeof followupsList==='undefined') return;
+    var attivi=followupsList.filter(function(f){return f.active;});
+    var caldi=attivi.filter(function(f){return f.status==='caldo'||f.status==='attivo';});
+    var attesa=attivi.filter(function(f){return !(f.status==='caldo'||f.status==='attivo');});
+    var chiusi=followupsList.filter(function(f){return !f.active;}).slice(-10).reverse();
+    function ev(f,t){ return (f.events||[]).filter(function(e){return t.indexOf(e.type)>=0;})[0]; }
+    function card(f,kind){
+      var meta=(window.FOLLOWUP_STATUS_META||FOLLOWUP_STATUS_META)[f.status]||FOLLOWUP_STATUS_META.freddo;
+      var steps=[['Inviato',ev(f,['inviato_preventivo','inviato_presentazione'])],['Letto',ev(f,['aperto'])],['Link aperto',ev(f,['cliccato'])],['Firmato',ev(f,['firmato'])]];
+      var sent=!!steps[0][1];
+      var flow=steps.map(function(s,i){ var on=!!s[1]||(i===1&&steps[3][1])||(i===2&&steps[3][1]); return '<div class="e2fu-st'+(on?' on':'')+'"><i></i><b>'+s[0]+'</b><small>'+(s[1]?when(s[1].at):(on?'':'—'))+'</small></div>'; }).join('<span class="e2fu-ln"></span>');
+      var pill=kind==='hot'?'<span class="e2fu-pill hot">Da contattare</span>':kind==='wait'?'<span class="e2fu-pill wait">In attesa</span>':'<span class="e2fu-pill '+((f.status==='convertito'||f.status==='accettato')?'won':'done')+'">'+esc((meta.label||'').split(' — ')[0])+'</span>';
+      var amount=f.kind==='presentazione'?'Presentazione':(f.totale||'');
+      var due=(kind!=='done'&&f.nextDueAt)?'<div class="e2fu-due">Prossimo promemoria: '+esc(when(f.nextDueAt))+'</div>':'';
+      return '<div class="e2fu-card '+kind+'"><div class="e2fu-head"><span class="e2fu-av" style="background:'+tint(f.clienteNome||'')+'">'+esc(ini(f.clienteNome))+'</span>'+
+        '<div class="e2fu-who"><div class="e2fu-name">'+esc(f.clienteNome)+'</div><div class="e2fu-sub">'+(f.kind==='presentazione'?'Presentazione':'Preventivo '+esc(f.numero))+(f.oggetto?' · '+esc(f.oggetto):'')+'</div></div>'+
+        '<div class="e2fu-right"><div class="e2fu-amt">'+esc(amount)+'</div>'+pill+'</div></div>'+
+        '<div class="e2fu-flow">'+flow+'</div>'+due+
+        '<div class="e2fu-act"><select data-fu-status="'+f.id+'" title="Cambia lo stato di questo follow-up"><option value="">Cambia stato…</option>'+(f.active?'':'<option value="__reopen">↩ Riporta in "da seguire"</option>')+'<option value="risposto">Il cliente ha risposto</option><option value="accettato">Accettato</option><option value="rifiutato">Rifiutato / perso</option><option value="non_interessato">Non interessato</option>'+(f.active?'<option value="disattivato">Ferma i promemoria</option>':'')+'</select>'+
+        '<button type="button" data-fu-delete="'+f.id+'" class="e2fu-del" title="Elimina questo follow-up">Elimina</button></div></div>';
+    }
+    function sec(title,sub,arr,kind){ return arr.length?'<section class="e2fu-sec"><div class="e2fu-sh"><h3>'+title+'</h3><span class="e2fu-ct">'+arr.length+'</span><span class="e2fu-hint">'+sub+'</span></div>'+arr.map(function(f){return card(f,kind);}).join('')+'</section>':''; }
+    var tiles='<div class="e2fu-tiles"><div class="hot"><b>'+caldi.length+'</b><span>Da contattare ora</span></div><div><b>'+attesa.length+'</b><span>In attesa di risposta</span></div><div><b>'+chiusi.length+'</b><span>Conclusi di recente</span></div></div>';
+    var html=sec('Da contattare','hanno mostrato interesse: scrivi o chiama oggi',caldi,'hot')+sec('In attesa di risposta','il promemoria automatico seguirà',attesa,'wait')+sec('Conclusi di recente','accettati, rifiutati o fermati',chiusi,'done');
+    body.innerHTML=(html?tiles+html:'<div class="e2fu-empty">Nessun follow-up attivo al momento.</div>');
+  }
+  var _r=window.renderFollowupsPanel; if(typeof _r==='function') window.renderFollowupsPanel=function(){ var r=_r.apply(this,arguments); try{ seguire(); }catch(e){ console.error(e); } return r; };
+  var t=0; new MutationObserver(function(){ clearTimeout(t); t=setTimeout(function(){ try{ decorateRubrica(); }catch(e){} },40); }).observe(document.body,{childList:true,subtree:true});
+  try{ seguire(); decorateRubrica(); }catch(e){}
+})();
+
+/* ===== palette pastello desaturata per le richieste ===== */
+(function(){
+  try{
+    var F={nuova:['#5F5A8C','#ECEAF4'],contattato:['#85703E','#F3EEDF'],presentazione_inviata:['#7D6290','#F0EAF3'],preventivo_inviato:['#9A6B4A','#F5ECE4'],vinto:['#8F4A4A','#F4E6E4'],perso:['#77756D','#EEECE7']};
+    Object.keys(F).forEach(function(k){ if(LEAD_FASE_META[k]){ LEAD_FASE_META[k].color=F[k][0]; LEAD_FASE_META[k].bg=F[k][1]; } });
+    var FP=['#A9B8D3','#D8B6C2','#C6B8DB','#E2C5A0','#AFC6C9','#D3C7A4'];
+    if(typeof FONTE_CHART_PALETTE!=='undefined'){ FONTE_CHART_PALETTE.splice(0,FONTE_CHART_PALETTE.length); FP.forEach(function(c){ FONTE_CHART_PALETTE.push(c); }); }
+    var CH={'Nuova':'#B3AED3','Contattato':'#DCCB9F','Presentazione inviata':'#CDB8D8','Preventivo inviato':'#E3BE9F','Vinto':'#CF9C9A','Perso':'#D2CFC6','Altro':'#D9D5CA','Non specificata':'#E6E2D8',
+      'Freddo':'#CFCBC1','Interessato':'#E6DBB4','Attivo':'#E8C79A','Caldo':'#DE9F7E','Convertito':'#9FB4C7','Risposto':'#C6B8DB','Accettato':'#CF9C9A','Rifiutato':'#D2CFC6','Non interessato':'#D9D5CA','Disattivato':'#E1DDD3'};
+    var _d=window.renderDonutChart; if(typeof _d==='function') window.renderDonutChart=function(id,rows,empty){ rows=(rows||[]).map(function(r){ return Object.assign({},r,{color:CH[r.label]||r.color}); }); return _d.call(this,id,rows,empty); };
+  }catch(e){ console.error(e); }
+})();
+
+/* ===== verde → bordeaux (badge Accettato / Firmato / Vinto / Convertito / Pagato) ===== */
+(function(){
+  try{
+    var Q=QUOTE_ESITO_META.accettato; Q.bg='var(--accent,#862D2D)'; Q.soft='color-mix(in srgb, var(--accent,var(--accent,#862D2D)) 12%, #fff)'; Q.ink='var(--accent,#862D2D)';
+    ['convertito','accettato'].forEach(function(k){ if(FOLLOWUP_STATUS_META[k]){ FOLLOWUP_STATUS_META[k].color='var(--accent,#862D2D)'; FOLLOWUP_STATUS_META[k].bg='color-mix(in srgb, var(--accent,var(--accent,#862D2D)) 12%, #fff)'; } });
+    LEAD_FASE_META.vinto.color='var(--accent,#862D2D)'; LEAD_FASE_META.vinto.bg='color-mix(in srgb, var(--accent,var(--accent,#862D2D)) 12%, #fff)';
+  }catch(e){ console.error(e); }
+})();
+</script><script>(function(){
+  function build(){
+    if(document.getElementById('e2MobBar')) return;
+    var bar=document.createElement('div'); bar.id='e2MobBar';
+    bar.innerHTML='<button type="button" id="e2MobMenu" aria-label="Apri il menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><div class="mb-title" id="e2MobTitle">Dashboard</div><span class="mb-av" id="e2MobAv"></span>';
+    var scrim=document.createElement('div'); scrim.id='e2Scrim';
+    document.body.appendChild(bar); document.body.appendChild(scrim);
+    function toggle(on){ document.body.classList.toggle('e2-nav-open',on); }
+    bar.querySelector('#e2MobMenu').addEventListener('click',function(){ toggle(!document.body.classList.contains('e2-nav-open')); });
+    scrim.addEventListener('click',function(){ toggle(false); });
+    document.addEventListener('click',function(e){ if(e.target.closest&&e.target.closest('#e2Sidebar .e2-nav-item')) setTimeout(function(){ toggle(false); },60); });
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape') toggle(false); });
+    window.addEventListener('resize',function(){ if(window.innerWidth>900) toggle(false); });
+    sync();
+  }
+  function sync(){
+    var t=document.getElementById('e2MobTitle'); if(!t) return;
+    var a=document.querySelector('#e2Sidebar .e2-nav-item.active'); t.textContent=a?a.textContent.replace(/\d+$/,'').trim():'Estimly';
+    var av=document.getElementById('e2MobAv'), src=document.getElementById('e2SideAv');
+    if(av&&src){ av.style.backgroundImage=src.style.backgroundImage; av.style.background=src.style.background||''; if(src.style.backgroundImage) av.style.backgroundImage=src.style.backgroundImage; av.textContent=src.style.backgroundImage&&src.style.backgroundImage!=='none'?'':(src.textContent||'').trim(); }
+  }
+  setInterval(sync,500);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
+})();
+</script></body>
 </html>

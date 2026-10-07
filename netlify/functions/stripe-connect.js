@@ -1,3 +1,4 @@
+import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
 import { syncQuoteToDesearqManager } from './desearq-sync.js';
 
@@ -412,6 +413,14 @@ export default async (req) => {
     body = await req.json();
   }catch(err){
     return new Response(JSON.stringify({ error: 'invalid body' }), { status: 400 });
+  }
+
+  // Le richieste dall'app dello studio passano dal login (sessione o chiave); checkout e conferma
+  // pagamento arrivano dal link pubblico del cliente e si autenticano con quello.
+  if(body.mode !== 'create-checkout-session' && body.mode !== 'confirm-payment'){
+    const auth = await authorize(body, 'stripe-connect');
+    if(auth.error) return auth.error;
+    body.key = auth.key;
   }
 
   const licenses = getStore('licenses');

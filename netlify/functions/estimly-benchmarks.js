@@ -1,3 +1,4 @@
+import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
 
 // Stesso progetto Supabase già usato da test-supabase.js per l'ecosistema Desearq.
@@ -216,6 +217,11 @@ export default async (req) => {
   } catch (err) {
     return new Response(JSON.stringify({ error: 'invalid body' }), { status: 400 });
   }
+
+  // Accesso: sessione (email + password) o, finché lo studio non attiva i login, chiave di licenza.
+  const auth = await authorize(body, 'estimly-benchmarks');
+  if (auth.error) return auth.error;
+  body.key = auth.key;
 
   const key = (body.key || '').trim().toUpperCase();
   if (!key) {

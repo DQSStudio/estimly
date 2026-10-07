@@ -20,6 +20,7 @@
 // (settimane/giorni/ore al giorno/% fatturabile, già presenti in studioSettings.costCalc) — la
 // stessa formula del calcolatore "Calcola il tuo costo orario" già esistente.
 
+import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
 
 const SUPABASE_URL = 'https://qgeiehavpnqdxqnggfzq.supabase.co';
@@ -33,6 +34,11 @@ export default async (req) => {
   let body;
   try { body = await req.json(); }
   catch (err) { return new Response(JSON.stringify({ error: 'invalid_body' }), { status: 400 }); }
+
+  // Accesso: sessione (email + password) o, finché lo studio non attiva i login, chiave di licenza.
+  const auth = await authorize(body, 'desearq-costi');
+  if (auth.error) return auth.error;
+  body.key = auth.key;
 
   const key = (body.key || '').trim().toUpperCase();
   const codiceAccesso = (body.codiceAccesso || '').trim();
