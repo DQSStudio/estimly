@@ -1,4 +1,4 @@
-const CACHE_NAME = 'desearq-preventivatore-v4';
+const CACHE_NAME = 'desearq-preventivatore-v5';
 
 const ASSETS = [
   './',
