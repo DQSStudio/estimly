@@ -2284,6 +2284,16 @@ body.estimly2-theme .e2d-row .lead-pill, body.estimly2-theme #e2PageDashboard sp
     <div class="field-section-label" style="margin-top:0;">Calcola il tuo costo orario</div>
     <div class="wz-intro">Quanto dovresti farti pagare all'ora per coprire lo stipendio che vuoi, le spese dello studio e un margine per gli imprevisti? Rispondi a queste domande una alla volta: alla fine calcoleremo insieme la tua tariffa oraria minima, che potrai salvare e riusare in tutto il listino.</div>
 
+    <div id="wzCostBox" style="margin:0 0 18px; padding:14px 16px; background:var(--accent-soft); border-radius:var(--radius-sm); max-width:640px;">
+      <div style="font-size:13px; font-weight:600; color:var(--ink); margin-bottom:4px;">Hai già i costi del tuo studio in Cost?</div>
+      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">Inserisci il codice di accesso che usi per Cost: importiamo il totale annuo dei costi e lo trasformiamo in tariffa oraria. Se hai già compilato le ore lavorative qui sotto le usiamo, altrimenti usiamo quelle standard (46 settimane, 5 giorni, 7 ore, 60% fatturabile).</div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <input id="wzCostCode" placeholder="Codice di accesso Cost" style="flex:1; min-width:160px; padding:9px 11px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--surface); color:var(--ink);">
+        <button id="wzCostBtn" class="btn-save" style="white-space:nowrap;">Importa da Cost</button>
+      </div>
+      <div id="wzCostMsg" style="font-size:12px; margin-top:8px; display:none;"></div>
+    </div>
+
     <div class="hour-calc wz-step" id="wzStep1">
       <div class="hour-calc-head">
         <span class="hour-calc-title">1. Quanto vuoi guadagnare in un anno?</span>
@@ -4485,20 +4495,23 @@ document.getElementById('costCalcModal').addEventListener('click', (e)=>{
 /* Il pulsante resta sempre visibile a chi vede il calcolatore di costo (non è nascosto in base
    al pacchetto): cliccandolo senza pacchetto completo compare un messaggio esplicativo invece
    che bloccare l'azione a monte — così chi non ce l'ha scopre comunque che la funzione esiste. */
-function showCostFromCostMsg(text, kind){
-  const box = document.getElementById('costFromCostMsg');
+function showCostFromCostMsg(text, kind, msgId){
+  const box = document.getElementById(msgId || 'costFromCostMsg');
   box.textContent = text;
   box.style.color = kind === 'error' ? '#B42318' : (kind === 'ok' ? '#15803D' : 'var(--ink-soft)');
   box.style.display = 'block';
 }
 
-async function syncTariffaFromCost(){
-  const btn = document.getElementById('costFromCostBtn');
+async function syncTariffaFromCost(wizard){
+  wizard = wizard === true;
+  const M = wizard ? 'wzCostMsg' : 'costFromCostMsg';
+  const showMsg = (t, k) => showCostFromCostMsg(t, k, M);
+  const btn = document.getElementById(wizard ? 'wzCostBtn' : 'costFromCostBtn');
   const key = getLicenseKey();
   if(!key) return;
-  const codiceAccesso = document.getElementById('costAccessCodeInput').value.trim();
+  const codiceAccesso = document.getElementById(wizard ? 'wzCostCode' : 'costAccessCodeInput').value.trim();
   if(!codiceAccesso){
-    showCostFromCostMsg('Inserisci prima il codice di accesso che usi per Cost.', 'error');
+    showMsg('Inserisci prima il codice di accesso che usi per Cost.', 'error');
     return;
   }
   // Salvato subito: una volta inserito, resta impostato per le prossime sincronizzazioni.
@@ -4506,7 +4519,7 @@ async function syncTariffaFromCost(){
   saveStudioSettings();
   scheduleCloudSave();
   btn.disabled = true;
-  showCostFromCostMsg('Verifico su Cost…', 'info');
+  showMsg('Verifico su Cost…', 'info');
   try{
     const res = await fetch('/.netlify/functions/desearq-costi', {
       method: 'POST',
@@ -4519,13 +4532,14 @@ async function syncTariffaFromCost(){
       // la trasformiamo in tariffa oraria con le stesse ore fatturabili annue del calcolatore
       // "Calcola il tuo costo orario" di Estimly (settimane/giorni/ore al giorno/% fatturabile).
       const c = studioSettings.costCalc || {};
-      const settimane = c.settimane ?? 46;
-      const giorni = c.giorni ?? 5;
-      const oreGiorno = c.oreGiorno ?? 7;
-      const fatturabile = c.fatturabile ?? 60;
+      const wzVal = (id, def) => { const el = document.getElementById(id); const n = el ? parseFloat(el.value) : NaN; return isNaN(n) ? def : n; };
+      const settimane = wizard ? wzVal('wzSettimane', c.settimane ?? 46) : (c.settimane ?? 46);
+      const giorni = wizard ? wzVal('wzGiorni', c.giorni ?? 5) : (c.giorni ?? 5);
+      const oreGiorno = wizard ? wzVal('wzOreGiorno', c.oreGiorno ?? 7) : (c.oreGiorno ?? 7);
+      const fatturabile = wizard ? wzVal('wzFatturabile', c.fatturabile ?? 60) : (c.fatturabile ?? 60);
       const oreFatturabiliAnnue = settimane * giorni * oreGiorno * (fatturabile/100);
       if(oreFatturabiliAnnue <= 0){
-        showCostFromCostMsg('Imposta prima ore/settimane fatturabili valide qui sotto, poi riprova.', 'error');
+        showMsg('Imposta prima ore/settimane fatturabili valide qui sotto, poi riprova.', 'error');
       } else {
         const totaleAnnuo = Number(data.totaleAnnuo);
         studioSettings.tariffaOrariaBase = +(totaleAnnuo / oreFatturabiliAnnue).toFixed(2);
@@ -4533,22 +4547,25 @@ async function syncTariffaFromCost(){
         scheduleCloudSave();
         const hcTariffa = document.getElementById('hcTariffa');
         if(hcTariffa) hcTariffa.value = studioSettings.tariffaOrariaBase;
-        showCostFromCostMsg(`Importata: € ${fmt(studioSettings.tariffaOrariaBase)} /h (da € ${fmt(totaleAnnuo)}/anno su Cost, in base a ${fmt(oreFatturabiliAnnue)} ore fatturabili/anno).`, 'ok');
+        if(wizard && onboardingGateActive){ hideOnboardingGate(); switchEstimly2Page('dashboard'); }
+        showMsg(`Importata: € ${fmt(studioSettings.tariffaOrariaBase)} /h (da € ${fmt(totaleAnnuo)}/anno su Cost, in base a ${fmt(oreFatturabiliAnnue)} ore fatturabili/anno).`, 'ok');
       }
     } else if(data.error === 'not_suite'){
-      showCostFromCostMsg('Questa funzione fa parte del pacchetto Desearq completo. Scrivici per attivarla sul tuo account.', 'error');
+      showMsg('Questa funzione fa parte del pacchetto Desearq completo. Scrivici per attivarla sul tuo account.', 'error');
     } else if(data.error === 'not_found'){
-      showCostFromCostMsg('Non risulta ancora una tariffa calcolata in Cost per questo studio. Calcolala prima lì, poi torna qui.', 'error');
+      showMsg('Non risulta ancora una tariffa calcolata in Cost per questo studio. Calcolala prima lì, poi torna qui.', 'error');
     } else {
-      showCostFromCostMsg('Impossibile recuperare il dato da Cost al momento. Riprova più tardi.', 'error');
+      showMsg('Impossibile recuperare il dato da Cost al momento. Riprova più tardi.', 'error');
     }
   }catch(err){
-    showCostFromCostMsg('Impossibile contattare Cost: controlla la connessione.', 'error');
+    showMsg('Impossibile contattare Cost: controlla la connessione.', 'error');
   }
   btn.disabled = false;
 }
 
-document.getElementById('costFromCostBtn').addEventListener('click', syncTariffaFromCost);
+document.getElementById('costFromCostBtn').addEventListener('click', () => syncTariffaFromCost(false));
+document.getElementById('wzCostBtn').addEventListener('click', () => syncTariffaFromCost(true));
+document.getElementById('wzCostCode').addEventListener('keydown', (e) => { if(e.key === 'Enter') syncTariffaFromCost(true); });
 /* ===================== fine Sincronizza tariffa oraria da Cost ===================== */
 
 document.getElementById('applyRateAllBtn').addEventListener('click', ()=>{
@@ -7837,6 +7854,7 @@ function updateWizardResult(){
 }
 
 function resetWizardCalc(){
+  const wzc = document.getElementById('wzCostCode'); if(wzc) wzc.value = (studioSettings && studioSettings.costAccessCode) || '';
   WZ_FIELD_IDS.forEach(id => { document.getElementById(id).value = ''; });
   updateWizardSteps();
   document.getElementById(WZ_FIELD_IDS[0]).focus();
