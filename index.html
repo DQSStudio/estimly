@@ -1529,6 +1529,7 @@ body.estimly2-theme .e2d-row .lead-pill, body.estimly2-theme #e2PageDashboard sp
 .e2fu-pill.won{ background:color-mix(in srgb, var(--accent,#862D2D) 12%, #fff); color:var(--accent,#862D2D); }
 
 #e2PageStatistiche{padding:36px 40px 48px}
+body:not(.estimly2-theme) .e2-page-head, body:not(.estimly2-theme) #e2MobBar, body:not(.estimly2-theme) .e2ph-card, body:not(.estimly2-theme) .e2-side-user{ display:none !important; }
 body.estimly2-theme .ai-improve-btn{ border:none !important; border-radius:999px !important; background:color-mix(in srgb, var(--accent,#862D2D) 10%, #fff) !important; color:var(--accent,#862D2D) !important; font-family:var(--e2-font); font-size:12px !important; font-weight:600 !important; padding:5px 12px !important; }
 body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-font); }
 </style>
@@ -10069,6 +10070,8 @@ if('serviceWorker' in navigator){
   }
   function apply(go){
     var m=cur(); if(!m){ return; }
+    // Estimly classico (licenza senza 2.0): nessun menu, nessuna pagina da mostrare
+    if(!document.body.classList.contains('estimly2-theme')) return;
     ensureMarketing();
     var P=perm(), b=document.body;
     document.body.classList.remove('e2-locked');
