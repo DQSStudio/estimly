@@ -64,7 +64,9 @@ export default async (req) => {
     if (!resp.ok) {
       const errText = await resp.text();
       console.error('Anthropic API error', resp.status, errText);
-      return new Response(JSON.stringify({ error: 'ai_error' }), {
+      let upstream = {};
+      try { const j = JSON.parse(errText); upstream = { type: j.error && j.error.type, message: j.error && j.error.message }; } catch (e) {}
+      return new Response(JSON.stringify({ error: 'ai_error', upstreamStatus: resp.status, upstream }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
