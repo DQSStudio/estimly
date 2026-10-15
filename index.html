@@ -1547,28 +1547,29 @@ body.estimly2-theme .quote-scroll > #e2HorizontalBuilder{ margin-top:0; padding:
 body.estimly2-theme .quote-scroll > #e2HorizontalBuilder .field-section-label{ border-bottom:1px solid #EFEAE0; }
 body.estimly2-theme .quote-scroll > .custom-add{ margin-top:12px; }
 /* totali: scheda riepilogo */
-body.estimly2-theme .quote-scroll > #totalsBlock{ background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:22px 24px; margin:14px 0 0; box-sizing:border-box; }
-body.estimly2-theme .quote-scroll > #totalsBlock::before{ content:"Riepilogo"; display:block; font-size:16px; font-weight:600; letter-spacing:-.1px; margin:0 0 12px; color:#16160F; }
-body.estimly2-theme .quote-scroll > #totalsBlock .total-row{ font-size:13.5px; color:#54503F; padding:5px 0; }
-body.estimly2-theme .quote-scroll > #totalsBlock .total-row.grand{ font-size:22px; font-weight:600; color:#16160F; border-top:1px solid #E9E3D5; margin-top:12px; padding-top:16px; }
-body.estimly2-theme .quote-scroll > #totalsBlock .total-row.grand .val{ color:var(--accent,#862D2D); }
-body.estimly2-theme .quote-scroll > #estimlyHoursAlert{ margin-top:12px; }
+body.estimly2-theme .e2-side-col > #totalsBlock{ background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:22px 24px; margin:14px 0 0; box-sizing:border-box; }
+body.estimly2-theme .e2-side-col > #totalsBlock::before{ content:"Riepilogo"; display:block; font-size:16px; font-weight:600; letter-spacing:-.1px; margin:0 0 12px; color:#16160F; }
+body.estimly2-theme .e2-side-col > #totalsBlock .total-row{ font-size:13.5px; color:#54503F; padding:5px 0; }
+body.estimly2-theme .e2-side-col > #totalsBlock .total-row.grand{ font-size:22px; font-weight:600; color:#16160F; border-top:1px solid #E9E3D5; margin-top:12px; padding-top:16px; }
+body.estimly2-theme .e2-side-col > #totalsBlock .total-row.grand .val{ color:var(--accent,#862D2D); }
+body.estimly2-theme .e2-side-col > #estimlyHoursAlert{ margin-top:12px; }
 /* invio email e pagine extra: schede */
-body.estimly2-theme .quote-scroll > .followup-section, body.estimly2-theme .quote-scroll > .extra-pages-section{ background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:22px 24px; margin-top:18px; box-sizing:border-box; }
-body.estimly2-theme .quote-scroll > .followup-section .field-section-label, body.estimly2-theme .quote-scroll > .extra-pages-section .field-section-label{ margin-top:0 !important; border-bottom:1px solid #EFEAE0; padding-bottom:12px; display:flex; align-items:center; gap:10px; }
-body.estimly2-theme .quote-scroll > .followup-section .field-section-label::before, body.estimly2-theme .quote-scroll > .extra-pages-section .field-section-label::before{ content:""; width:4px; height:18px; border-radius:2px; background:var(--accent,#862D2D); flex:none; }
+body.estimly2-theme .e2-side-col > .followup-section, body.estimly2-theme .quote-scroll > .extra-pages-section{ background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:22px 24px; margin-top:18px; box-sizing:border-box; }
+body.estimly2-theme .e2-side-col > .followup-section .field-section-label, body.estimly2-theme .quote-scroll > .extra-pages-section .field-section-label{ margin-top:0 !important; border-bottom:1px solid #EFEAE0; padding-bottom:12px; display:flex; align-items:center; gap:10px; }
+body.estimly2-theme .e2-side-col > .followup-section .field-section-label::before, body.estimly2-theme .quote-scroll > .extra-pages-section .field-section-label::before{ content:""; width:4px; height:18px; border-radius:2px; background:var(--accent,#862D2D); flex:none; }
 /* anteprima intestazione + azioni di stampa */
 body.estimly2-theme .layout.e2-single-col .cartiglio{ margin-top:18px; background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:22px 24px; box-sizing:border-box; }
 body.estimly2-theme .layout.e2-single-col .cartiglio .action-btns{ gap:10px; }
 @media (max-width:700px){
-  body.estimly2-theme .quote-scroll > .field-grid, body.estimly2-theme .quote-scroll > #estimly3CaratteristicheBlock, body.estimly2-theme .quote-scroll > #e2HorizontalBuilder, body.estimly2-theme .quote-scroll > #totalsBlock, body.estimly2-theme .quote-scroll > .followup-section, body.estimly2-theme .quote-scroll > .extra-pages-section, body.estimly2-theme .layout.e2-single-col .cartiglio{ padding:16px 14px; }
+  body.estimly2-theme .quote-scroll > .field-grid, body.estimly2-theme .quote-scroll > #estimly3CaratteristicheBlock, body.estimly2-theme .quote-scroll > #e2HorizontalBuilder, body.estimly2-theme .e2-side-col > #totalsBlock, body.estimly2-theme .e2-side-col > .followup-section, body.estimly2-theme .quote-scroll > .extra-pages-section, body.estimly2-theme .layout.e2-single-col .cartiglio{ padding:16px 14px; }
   body.estimly2-theme .quote-scroll{ overflow-x:hidden !important; }
   body.estimly2-theme #estimly3CaratteristicheBlock > div, body.estimly2-theme #estimly3CaratteristicheBlock .field-grid{ grid-template-columns:minmax(0,1fr) !important; }
 }
 @media (min-width:1180px){
   body.estimly2-theme .layout.e2-single-col .quote-scroll{ display:grid; grid-template-columns:minmax(0,1fr) 360px; column-gap:32px; row-gap:0; align-items:start; }
   body.estimly2-theme .layout.e2-single-col .quote-scroll > *{ grid-column:1; }
-  body.estimly2-theme .layout.e2-single-col .quote-scroll > #totalsBlock{ grid-column:2; grid-row:1 / span 30; position:sticky; top:20px; align-self:start; margin-top:0; }
+  body.estimly2-theme .layout.e2-single-col .quote-scroll > .e2-side-col{ grid-column:2; grid-row:1 / span 30; position:sticky; top:20px; align-self:start; max-height:calc(100vh - 40px); overflow-y:auto; padding-bottom:90px; scrollbar-width:thin; }
+  body.estimly2-theme .e2-side-col > #totalsBlock{ margin-top:0; }
 }
 body:not(.estimly2-theme) .e2-page-head, body:not(.estimly2-theme) #e2MobBar, body:not(.estimly2-theme) .e2ph-card, body:not(.estimly2-theme) .e2-side-user{ display:none !important; }
 body.estimly2-theme .ai-improve-btn{ border:none !important; border-radius:999px !important; background:color-mix(in srgb, var(--accent,#862D2D) 10%, #fff) !important; color:var(--accent,#862D2D) !important; font-family:var(--e2-font); font-size:12px !important; font-weight:600 !important; padding:5px 12px !important; }
@@ -2111,6 +2112,7 @@ body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-fon
         </div>
       </div>
 
+      <div class="e2-side-col">
       <div class="totals" id="totalsBlock"></div>
       <div id="estimlyHoursAlert" style="display:none;"></div>
 
@@ -2148,6 +2150,7 @@ body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-fon
           <button type="button" id="deactivateFollowupBtn" style="border:none; background:none; color:var(--danger); font-size:11px; cursor:pointer; margin-top:8px;">Disattiva follow-up</button>
         </div>
       </div>
+      </div><!-- /e2-side-col -->
 
       <div class="extra-pages-section">
         <div class="field-section-label" style="margin-top:18px;">Pagine extra allegate al preventivo</div>
