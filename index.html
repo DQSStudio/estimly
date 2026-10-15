@@ -1560,6 +1560,16 @@ body.estimly2-theme .e2-side-col > .followup-section .field-section-label::befor
 /* anteprima intestazione + azioni di stampa */
 body.estimly2-theme .layout.e2-single-col .cartiglio{ margin-top:18px; background:#fff; border:1px solid #E9E3D5; border-radius:18px; padding:22px 24px; box-sizing:border-box; }
 body.estimly2-theme .layout.e2-single-col .cartiglio .action-btns{ gap:10px; }
+/* Preventivo in sviluppo: voci su due colonne, come schede */
+body.estimly2-theme #e2HCartRow{ display:block !important; overflow:visible !important; max-height:none; }
+body.estimly2-theme #e2HCartRow .cart-group{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:0 0 18px; }
+body.estimly2-theme #e2HCartRow .cart-group-head{ grid-column:1 / -1; margin:0; padding:0 2px 8px; border-bottom:1px solid #EFEAE0; font-size:12.5px; font-weight:600; letter-spacing:.2px; text-transform:uppercase; color:#54503F; }
+body.estimly2-theme #e2HCartRow .cart-line{ background:#FBF9F4; border:1px solid #E9E3D5; border-radius:14px; padding:12px 14px; min-width:0; }
+body.estimly2-theme #e2HCartRow .cart-line-name{ font-size:13px; font-weight:600; }
+body.estimly2-theme #e2HCartRow .cart-line-total{ border-top:1px dashed #E1DACB; padding-top:8px; margin-top:6px; }
+body.estimly2-theme #e2HCartRow .cart-line-total span{ color:var(--accent,#862D2D); }
+@media (max-width:760px){ body.estimly2-theme #e2HCartRow .cart-group{ grid-template-columns:minmax(0,1fr); } }
+
 @media (max-width:700px){
   body.estimly2-theme .quote-scroll > .field-grid, body.estimly2-theme .quote-scroll > #estimly3CaratteristicheBlock, body.estimly2-theme .quote-scroll > #e2HorizontalBuilder, body.estimly2-theme .e2-side-col > #totalsBlock, body.estimly2-theme .e2-side-col > .followup-section, body.estimly2-theme .quote-scroll > .extra-pages-section, body.estimly2-theme .layout.e2-single-col .cartiglio{ padding:16px 14px; }
   body.estimly2-theme .quote-scroll{ overflow-x:hidden !important; }
