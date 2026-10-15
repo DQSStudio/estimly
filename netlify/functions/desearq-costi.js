@@ -59,10 +59,13 @@ export default async (req) => {
   }
 
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/${TABLE}?codice_accesso=eq.${encodeURIComponent(codiceAccesso)}&select=totale_annuo,updated_at&limit=1`,
-      { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
-    );
+    // Lettura tramite funzione del database (la tabella non è più leggibile pubblicamente):
+    // serve il codice di accesso Cost, non esiste un elenco.
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/estimly_get_costi`, {
+      method: 'POST',
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_email: null, p_codice: codiceAccesso || null })
+    });
     if (!res.ok) return new Response(JSON.stringify({ error: 'supabase_error' }), { status: 200 });
     const rows = await res.json();
     if (!rows.length) return new Response(JSON.stringify({ error: 'not_found' }), { status: 200 });
