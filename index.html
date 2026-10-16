@@ -957,6 +957,33 @@ body.estimly2-theme #agentBubbleWrap.is-visible{ display:block; }
 .agent-foot{ font-size:12px; color:var(--e2-muted,#8C8776); max-width:400px; }
 .agent-foot b{ color:var(--e2-ink-soft,#54503F); }
 
+/* Mascotte a tutta pagina sul "Costo orario": stessa scena della prima apertura, ma con lo sfondo sfocato */
+#agentCostOverlay{ display:none; }
+body.estimly2-theme #agentCostOverlay.is-open{ display:flex; }
+#agentCostOverlay{
+  position:fixed; inset:0; z-index:9500; overflow-y:auto;
+  flex-direction:column; align-items:center; gap:18px; padding:48px 24px 56px; text-align:center;
+  background:color-mix(in srgb, var(--e2-bg,#F7F6F4) 58%, transparent);
+  -webkit-backdrop-filter:blur(16px) saturate(1.05); backdrop-filter:blur(16px) saturate(1.05);
+  font-family:var(--e2-font, inherit);
+}
+#agentCostOverlay > *{ flex:none; }
+#agentCostOverlay .agent-mascot{ width:150px; height:150px; margin-top:auto; }
+#agentCostOverlay .acx-end{ margin-bottom:auto; }
+.acx-close{ position:absolute; top:20px; right:24px; font-size:12px; color:var(--e2-muted,#8C8776); background:none; border:0; cursor:pointer; font-family:inherit; text-decoration:underline; text-underline-offset:2px; }
+.acx-input{ display:flex; align-items:center; gap:8px; width:300px; max-width:100%; background:var(--e2-surface,#fff); border:1px solid var(--e2-line,#E9E3D5); border-radius:999px; padding:6px 6px 6px 18px; }
+.acx-input input{ flex:1; min-width:0; border:0; outline:0; background:transparent; font-family:inherit; font-size:16px; color:var(--e2-ink,#16160F); }
+.acx-input span{ font-size:13px; color:var(--e2-muted,#8C8776); }
+.acx-hint{ max-width:440px; font-size:12.5px; line-height:1.5; color:var(--e2-ink-soft,#54503F); }
+.acx-list{ width:440px; max-width:100%; background:var(--e2-surface,#fff); border:1px solid var(--e2-line,#E9E3D5); border-radius:16px; overflow:hidden; text-align:left; }
+.acx-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; width:100%; padding:11px 16px; border:0; border-bottom:1px solid var(--e2-line,#E9E3D5); background:none; font-family:inherit; font-size:13.5px; color:var(--e2-ink,#16160F); cursor:pointer; }
+.acx-row:last-child{ border-bottom:0; }
+.acx-row:hover{ background:var(--e2-surface-muted,#F9F8F7); }
+.acx-row b{ font-weight:700; }
+.acx-row em{ font-style:normal; font-size:11.5px; color:var(--e2-accent,#862D2D); }
+.acx-rate{ font-size:30px; font-weight:800; color:var(--e2-ink,#16160F); letter-spacing:-.3px; }
+.acx-actions{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+
 #agentBubbleWrap{ position:fixed; right:20px; bottom:0; z-index:9000; display:none; align-items:flex-end; }
 body.estimly2-theme #agentBubbleWrap.is-visible{ display:flex; }
 .agent-bubble-btn{ width:118px; height:118px; border:0; background:none; padding:0; cursor:pointer; position:relative; flex:none; filter:drop-shadow(0 12px 22px rgba(22,22,15,0.22)); animation:agentBobBtn 3.6s ease-in-out infinite; transition:transform .15s ease; }
@@ -1689,6 +1716,15 @@ body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-fon
   <div class="agent-bubble"><p id="agentStepText"></p></div>
   <div id="agentStepBody"></div>
   <p class="agent-foot" id="agentStepFoot"></p>
+</div>
+
+<div id="agentCostOverlay" role="dialog" aria-modal="true" aria-label="Calcolo del costo orario">
+  <button class="acx-close" id="acxClose" type="button">Chiudi</button>
+  <div class="agent-mascot"><img src="assets/agent-mascotte.png" alt=""></div>
+  <div class="agent-name">ASSISTENTE ESTIMLY <span class="agent-talk-dots"><span></span><span></span><span></span></span></div>
+  <div class="agent-bubble"><p id="acxText"></p></div>
+  <div id="acxBody"></div>
+  <p class="agent-foot acx-end" id="acxFoot"></p>
 </div>
 
 <div id="agentBubbleWrap">
@@ -2469,10 +2505,10 @@ body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-fon
 
     <div id="wzCostBox" style="margin:0 0 18px; padding:14px 16px; background:var(--accent-soft); border-radius:var(--radius-sm); max-width:640px;">
       <div style="font-size:13px; font-weight:600; color:var(--ink); margin-bottom:4px;">Hai già i costi del tuo studio in Cost?</div>
-      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">Inserisci l'email con cui entri in Cost (e il codice di collegamento, se Cost te ne mostra uno): importiamo il totale annuo dei costi e lo trasformiamo in tariffa oraria. Se hai già compilato le ore lavorative qui sotto le usiamo, altrimenti usiamo quelle standard (46 settimane, 5 giorni, 7 ore, 60% fatturabile).</div>
+      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">Inserisci l'email con cui entri in Cost e il codice di collegamento che trovi nelle impostazioni di Cost (sezione "Collegamento a Estimly"): importiamo il totale annuo dei costi e lo trasformiamo in tariffa oraria. Se hai già compilato le ore lavorative qui sotto le usiamo, altrimenti usiamo quelle standard (46 settimane, 5 giorni, 7 ore, 60% fatturabile).</div>
       <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
         <input id="wzCostCode" placeholder="Email del tuo account Cost" style="flex:1; min-width:160px; padding:9px 11px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--surface); color:var(--ink);">
-        <input id="wzCostLink" placeholder="Codice di collegamento (se presente)" style="flex:1; min-width:160px; padding:9px 11px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--surface); color:var(--ink);">
+        <input id="wzCostLink" placeholder="Codice di collegamento di Cost" style="flex:1; min-width:160px; padding:9px 11px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--surface); color:var(--ink);">
         <button id="wzCostBtn" class="btn-save" style="white-space:nowrap;">Importa da Cost</button>
       </div>
       <div id="wzCostMsg" style="font-size:12px; margin-top:8px; display:none;"></div>
@@ -3055,10 +3091,10 @@ body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-fon
         <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">Hai già i costi fissi calcolati in Cost? Importa qui il totale annuo e lo trasformiamo in tariffa oraria usando le ore fatturabili qui sotto (verifica che siano impostate correttamente).</div>
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <input id="costAccessCodeInput" type="email" placeholder="Email del tuo account Cost" style="flex:1; min-width:160px; padding:8px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12.5px; background:var(--surface); color:var(--ink);">
-          <input id="costLinkCodeInput" placeholder="Codice di collegamento (se presente)" style="flex:1; min-width:160px; padding:8px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12.5px; background:var(--surface); color:var(--ink);">
+          <input id="costLinkCodeInput" placeholder="Codice di collegamento di Cost" style="flex:1; min-width:160px; padding:8px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12.5px; background:var(--surface); color:var(--ink);">
           <button id="costFromCostBtn" class="btn-cancel" style="padding:6px 12px; white-space:nowrap;">Sincronizza da Cost</button>
         </div>
-        <div style="font-size:11px; color:var(--ink-faint); margin-top:6px;">Usa la stessa email con cui entri in Cost — va inserita una sola volta. Se Cost ti mostra un codice di collegamento, scrivilo nel secondo campo.</div>
+        <div style="font-size:11px; color:var(--ink-faint); margin-top:6px;">Usa la stessa email con cui entri in Cost e il codice di collegamento che trovi nelle sue impostazioni ("Collegamento a Estimly") — vanno inseriti una sola volta.</div>
         <div id="costFromCostMsg" style="font-size:11.5px; margin-top:8px; display:none;"></div>
       </div>
       <div style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Calcola la tariffa oraria minima da applicare per coprire i tuoi costi e il tuo stipendio desiderato. Il risultato diventa il valore di partenza nel calcolatore a ore (resta sempre modificabile riga per riga).</div>
@@ -4701,6 +4737,10 @@ async function syncTariffaFromCost(wizard){
     showMsg('Inserisci l\'email del tuo account Cost.', 'error');
     return;
   }
+  if(!codiceAccesso){
+    showMsg('Inserisci anche il codice di collegamento: lo trovi nelle impostazioni di Cost, sezione "Collegamento a Estimly".', 'error');
+    return;
+  }
   // Salvati subito: una volta inseriti, restano impostati per le prossime sincronizzazioni.
   studioSettings.costEmail = emailCost;
   studioSettings.costAccessCode = codiceAccesso;
@@ -4740,6 +4780,8 @@ async function syncTariffaFromCost(wizard){
       }
     } else if(data.error === 'not_suite'){
       showMsg('Questa funzione fa parte del pacchetto Desearq completo. Scrivici per attivarla sul tuo account.', 'error');
+    } else if(data.error === 'code_required'){
+      showMsg('Inserisci anche il codice di collegamento di Cost.', 'error');
     } else if(data.error === 'not_found'){
       showMsg('Non trovo costi salvati in Cost per questa email (o il codice di collegamento non corrisponde). Salvali prima in Cost, poi riprova.', 'error');
     } else {
@@ -6644,7 +6686,7 @@ function switchEstimly2Page(pageId){
   if(pageId === 'seguire'){
     loadFollowupsCloud().then(renderFollowupsPanel);
   }
-  if(pageId === 'calcolatore') resetWizardCalc();
+  if(pageId === 'calcolatore'){ resetWizardCalc(); if(window.__openCostMascot) window.__openCostMascot(); }
 }
 
 
@@ -8048,15 +8090,26 @@ function updateWizardResult(){
 function resetWizardCalc(){
   const wzc = document.getElementById('wzCostCode'); if(wzc) wzc.value = (studioSettings && studioSettings.costEmail) || '';
   const wzl = document.getElementById('wzCostLink'); if(wzl) wzl.value = (studioSettings && studioSettings.costAccessCode) || '';
-  WZ_FIELD_IDS.forEach(id => { document.getElementById(id).value = ''; });
+  // I dati già inseriti restano: riaprendo il calcolatore si modifica solo ciò che serve.
+  const saved = (studioSettings && studioSettings.wzCalc) || {};
+  WZ_FIELD_IDS.forEach(id => { document.getElementById(id).value = (saved[id] !== undefined && saved[id] !== null) ? saved[id] : ''; });
   updateWizardSteps();
-  document.getElementById(WZ_FIELD_IDS[0]).focus();
+  if(!window.__openCostMascot) document.getElementById(WZ_FIELD_IDS[0]).focus();
+}
+
+let wzPersistTimer = null;
+function persistWizardValues(){
+  const o = {};
+  WZ_FIELD_IDS.forEach(id => { o[id] = document.getElementById(id).value; });
+  studioSettings.wzCalc = o;
+  clearTimeout(wzPersistTimer);
+  wzPersistTimer = setTimeout(() => { saveStudioSettings(); scheduleCloudSave(); }, 600);
 }
 
 let wzLastComputedRate = 0;
 
 WZ_FIELD_IDS.forEach(id => {
-  document.getElementById(id).addEventListener('input', updateWizardSteps);
+  document.getElementById(id).addEventListener('input', () => { updateWizardSteps(); persistWizardValues(); });
 });
 
 document.getElementById('wzSaveRateBtn').addEventListener('click', ()=>{
@@ -10778,6 +10831,102 @@ if('serviceWorker' in navigator){
   if(document.body.classList.contains('estimly2-theme')) activate();
   new MutationObserver(() => onThemeChange(document.body.classList.contains('estimly2-theme')))
     .observe(document.body, { attributes:true, attributeFilter:['class'] });
+})();
+</script>
+
+<script>
+/* Mascotte a tutta pagina sul "Costo orario" (ramo di prova): a ogni apertura della pagina compare
+   la scena dell'assistente con lo sfondo sfocato. I valori inseriti restano salvati
+   (studioSettings.wzCalc, sincronizzato col cloud): se ci sono già, si vede il riepilogo e si
+   cambia solo la voce che serve; se mancano, si procede una domanda alla volta. */
+(function(){
+  const F = [
+    {id:'wzStipendio',  q:'Quanto vuoi guadagnare in un anno? Indica lo stipendio netto che vuoi portare a casa.', label:'Stipendio netto annuo', unit:'€', step:'100'},
+    {id:'wzCostiFissi', q:'Quanto ti costa mandare avanti lo studio in un anno? Affitto, software, utenze, collaboratori: escluso il tuo stipendio.', label:'Costi fissi studio annui', unit:'€', step:'100'},
+    {id:'wzSettimane',  q:'Quante settimane lavori davvero in un anno? Escludi ferie, malattia e chiusure.', label:'Settimane lavorate', unit:'sett.', step:'1'},
+    {id:'wzGiorni',     q:'Quanti giorni lavori a settimana?', label:'Giorni a settimana', unit:'gg', step:'1'},
+    {id:'wzOreGiorno',  q:'Quante ore lavori al giorno, in una giornata tipo?', label:'Ore al giorno', unit:'ore', step:'0.5'},
+    {id:'wzFatturabile',q:'Che percentuale del tuo tempo riesci davvero a fatturare?', label:'Tempo fatturabile', unit:'%', step:'1'},
+    {id:'wzMargine',    q:'Quanto margine vuoi tenere per imprevisti o utile?', label:'Margine', unit:'%', step:'1'}
+  ];
+  const ov = document.getElementById('agentCostOverlay');
+  if(!ov) return;
+  const $ = id => document.getElementById(id);
+  const textEl = $('acxText'), bodyEl = $('acxBody'), footEl = $('acxFoot');
+  let idx = 0, fromSummary = false;
+
+  const val = i => $(F[i].id).value;
+  const anyData = () => F.some((f,i) => val(i) !== '');
+  const allData = () => F.every((f,i) => val(i) !== '');
+  const nf = n => n.toLocaleString('it-IT', {maximumFractionDigits:2});
+  const fmtVal = i => { const f = F[i], v = val(i); return v === '' ? '—' : (f.unit === '€' ? '€ ' + nf(parseFloat(v)) : nf(parseFloat(v)) + ' ' + f.unit); };
+  const esc = t => (typeof escapeHtml === 'function' ? escapeHtml(t) : String(t));
+
+  function setField(i, v){
+    const el = $(F[i].id);
+    el.value = v;
+    el.dispatchEvent(new Event('input', {bubbles:true}));
+  }
+
+  function showQuestion(){
+    const f = F[idx];
+    textEl.textContent = (idx + 1) + '/7 · ' + f.q;
+    bodyEl.innerHTML = '<div class="acx-input"><input type="number" id="acxField" step="' + f.step + '" min="0" inputmode="decimal"><span>' + esc(f.unit) + '</span><button class="agent-send" id="acxNext" type="button" aria-label="Avanti">→</button></div>' +
+      '<div class="acx-actions" style="margin-top:12px">' + (fromSummary || idx === 0 ? '' : '<button class="agent-chip" id="acxBack" type="button">← Indietro</button>') + (fromSummary ? '<button class="agent-chip" id="acxCancel" type="button">Annulla</button>' : '') + '</div>';
+    footEl.textContent = fromSummary ? 'Cambia solo questo valore: gli altri restano come li avevi inseriti.' : 'Potrai sempre cambiare le risposte in seguito.';
+    const input = $('acxField');
+    input.value = val(idx);
+    const go = () => {
+      if(input.value === '') { input.focus(); return; }
+      setField(idx, input.value);
+      if(fromSummary){ fromSummary = false; showSummary(); }
+      else if(idx < F.length - 1){ idx++; showQuestion(); }
+      else showSummary();
+    };
+    $('acxNext').addEventListener('click', go);
+    input.addEventListener('keydown', e => { if(e.key === 'Enter') go(); });
+    const b = $('acxBack'); if(b) b.addEventListener('click', () => { idx--; showQuestion(); });
+    const c = $('acxCancel'); if(c) c.addEventListener('click', () => { fromSummary = false; showSummary(); });
+    setTimeout(() => input.focus(), 30);
+  }
+
+  function showSummary(){
+    updateWizardSteps();
+    const complete = allData();
+    textEl.textContent = complete
+      ? 'Ecco i dati che avevi inserito. Tocca la voce che vuoi cambiare: il resto resta com\'è.'
+      : 'Alcune risposte mancano ancora. Tocca una voce per completarla.';
+    let html = '<div class="acx-list">' + F.map((f,i) => '<button type="button" class="acx-row" data-i="' + i + '"><span>' + esc(f.label) + '</span><span><b>' + esc(fmtVal(i)) + '</b> <em>Modifica</em></span></button>').join('') + '</div>';
+    if(complete){
+      const rate = ($('wzRateOut') || {}).textContent || '';
+      html += '<div class="acx-rate" style="margin-top:14px">' + esc(rate) + '</div>';
+    }
+    html += '<div class="acx-actions" style="margin-top:12px">' +
+      (complete ? '<button class="agent-chip picked" id="acxSave" type="button">Salva questa tariffa</button>' : '') +
+      '<button class="agent-chip" id="acxCost" type="button">Importa da Cost</button>' +
+      '<button class="agent-chip" id="acxDone" type="button">Chiudi</button></div>';
+    bodyEl.innerHTML = html;
+    footEl.textContent = 'I dati restano salvati nel tuo studio.';
+    bodyEl.querySelectorAll('.acx-row').forEach(b => b.addEventListener('click', () => { idx = +b.getAttribute('data-i'); fromSummary = true; showQuestion(); }));
+    const sv = $('acxSave'); if(sv) sv.addEventListener('click', () => { close(); $('wzSaveRateBtn').click(); });
+    $('acxCost').addEventListener('click', () => { close(); const bx = $('wzCostBox'); if(bx) bx.scrollIntoView({behavior:'smooth', block:'center'}); });
+    $('acxDone').addEventListener('click', close);
+  }
+
+  function open(){
+    if(typeof onboardingGateActive !== 'undefined' && onboardingGateActive) return;
+    if(!document.body.classList.contains('estimly2-theme')) return;
+    fromSummary = false;
+    ov.classList.add('is-open');
+    ov.scrollTop = 0;
+    if(anyData()) showSummary();
+    else { idx = 0; showQuestion(); }
+  }
+  function close(){ ov.classList.remove('is-open'); }
+
+  $('acxClose').addEventListener('click', close);
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && ov.classList.contains('is-open')) close(); });
+  window.__openCostMascot = open;
 })();
 </script>
 
