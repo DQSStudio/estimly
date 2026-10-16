@@ -78,6 +78,7 @@ export default async (req) => {
     return new Response(JSON.stringify({
       ok: true,
       totaleAnnuo: rows[0].totale_annuo,
+      anno: rows[0].anno || null,
       updatedAt: rows[0].updated_at
     }), { status: 200 });
   } catch (err) {
