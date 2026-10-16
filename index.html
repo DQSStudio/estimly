@@ -4776,7 +4776,7 @@ async function syncTariffaFromCost(wizard){
         const hcTariffa = document.getElementById('hcTariffa');
         if(hcTariffa) hcTariffa.value = studioSettings.tariffaOrariaBase;
         if(wizard && onboardingGateActive){ hideOnboardingGate(); switchEstimly2Page('dashboard'); }
-        showMsg(`Importata: € ${fmt(studioSettings.tariffaOrariaBase)} /h (da € ${fmt(totaleAnnuo)}/anno su Cost, in base a ${fmt(oreFatturabiliAnnue)} ore fatturabili/anno).`, 'ok');
+        showMsg(`Importata: € ${fmt(studioSettings.tariffaOrariaBase)} /h (da € ${fmt(totaleAnnuo)}/anno su Cost${data.anno ? ' · anno ' + data.anno : ''}, in base a ${fmt(oreFatturabiliAnnue)} ore fatturabili/anno).`, 'ok');
       }
     } else if(data.error === 'not_suite'){
       showMsg('Questa funzione fa parte del pacchetto Desearq completo. Scrivici per attivarla sul tuo account.', 'error');
@@ -10876,6 +10876,7 @@ if('serviceWorker' in navigator){
     footEl.textContent = fromSummary ? 'Cambia solo questo valore: gli altri restano come li avevi inseriti.' : 'Potrai sempre cambiare le risposte in seguito.';
     const input = $('acxField');
     input.value = val(idx);
+    if(f.id === 'wzCostiFissi') setupCostLink(input);
     const go = () => {
       if(input.value === '') { input.focus(); return; }
       setField(idx, input.value);
@@ -10888,6 +10889,68 @@ if('serviceWorker' in navigator){
     const b = $('acxBack'); if(b) b.addEventListener('click', () => { idx--; showQuestion(); });
     const c = $('acxCancel'); if(c) c.addEventListener('click', () => { fromSummary = false; showSummary(); });
     setTimeout(() => input.focus(), 30);
+  }
+
+  /* ---- collegamento a Cost nella domanda sui costi fissi ---- */
+  async function fetchCost(email, codice){
+    const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : '';
+    const res = await fetch('/.netlify/functions/desearq-costi', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ key, email, codiceAccesso: codice })
+    });
+    return res.json();
+  }
+  function costErrorText(data){
+    if(data.error === 'not_suite') return 'Questa funzione fa parte del pacchetto Desearq completo.';
+    if(data.error === 'code_required') return 'Inserisci anche il codice di collegamento di Cost.';
+    if(data.error === 'not_found') return 'Non trovo costi salvati in Cost per questa email e questo codice.';
+    return 'Impossibile recuperare il dato da Cost. Riprova più tardi.';
+  }
+  function setupCostLink(input){
+    const box = document.createElement('div');
+    box.style.cssText = 'margin-top:14px; display:flex; flex-direction:column; align-items:center; gap:8px;';
+    box.innerHTML = '<div class="acx-actions"><button class="agent-chip" id="acxLinkBtn" type="button"></button></div>' +
+      '<div id="acxLinkForm" style="display:none; flex-direction:column; gap:8px; align-items:center;">' +
+        '<div class="acx-input"><input type="email" id="acxCostEmail" placeholder="Email del tuo account Cost" autocomplete="off"></div>' +
+        '<div class="acx-input"><input type="text" id="acxCostCode" placeholder="Codice di collegamento di Cost" autocomplete="off"></div>' +
+        '<button class="agent-chip picked" id="acxLinkGo" type="button">Collega e importa</button>' +
+      '</div><div class="acx-hint" id="acxLinkMsg"></div>';
+    bodyEl.appendChild(box);
+    const btn = $('acxLinkBtn'), form = $('acxLinkForm'), msg = $('acxLinkMsg');
+    const em = (studioSettings && studioSettings.costEmail) || '', cd = (studioSettings && studioSettings.costAccessCode) || '';
+    const linked = !!(em && cd);
+    btn.textContent = linked ? 'Aggiorna da Cost' : 'Collega Cost';
+    $('acxCostEmail').value = em; $('acxCostCode').value = cd;
+
+    async function run(email, codice){
+      msg.textContent = 'Controllo su Cost…';
+      try{
+        const data = await fetchCost(email, codice);
+        if(data.ok){
+          studioSettings.costEmail = email; studioSettings.costAccessCode = codice;
+          saveStudioSettings(); scheduleCloudSave();
+          input.value = String(Math.round(Number(data.totaleAnnuo)));
+          form.style.display = 'none';
+          btn.textContent = 'Aggiorna da Cost';
+          msg.textContent = 'Importato da Cost' + (data.anno ? ' (anno ' + data.anno + ')' : '') + ': € ' + nf(Number(data.totaleAnnuo)) + '. Puoi modificarlo, poi premi →.';
+          return true;
+        }
+        msg.textContent = costErrorText(data);
+      }catch(err){ msg.textContent = 'Impossibile contattare Cost: controlla la connessione.'; }
+      return false;
+    }
+    btn.addEventListener('click', () => {
+      if(linked || (studioSettings.costEmail && studioSettings.costAccessCode)) run(studioSettings.costEmail, studioSettings.costAccessCode);
+      else { form.style.display = form.style.display === 'none' ? 'flex' : 'none'; }
+    });
+    $('acxLinkGo').addEventListener('click', () => {
+      const e = $('acxCostEmail').value.trim(), c = $('acxCostCode').value.trim();
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ msg.textContent = 'Inserisci l\'email del tuo account Cost.'; return; }
+      if(!c){ msg.textContent = 'Inserisci anche il codice di collegamento: lo trovi nelle impostazioni di Cost.'; return; }
+      run(e, c);
+    });
+    // già collegato e risposta ancora vuota: compare da solo nella risposta
+    if(linked && input.value === '') run(em, cd);
   }
 
   function showSummary(){
