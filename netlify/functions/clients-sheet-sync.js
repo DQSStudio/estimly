@@ -132,10 +132,10 @@ function parseSheetTimestamp(str) {
   const s = String(str || '').trim();
   if (!s) return null;
   // Formato italiano dei Moduli Google: 05/10/2026 11:08:32 (anche 5/10/2026 o con "." al posto di "/")
-  let m = s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})(?:[\s,]+(\d{1,2})[:.](\d{2})(?::(\d{2}))?)?$/);
+  let m = s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})(?:[\s,]+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?$/);
   if (m) return romeLocalToIso(+m[3], +m[2], +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
   // Formato ISO senza fuso: 2026-10-05 11:08:32
-  m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s]+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?$/);
   if (m) return romeLocalToIso(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d.toISOString();
