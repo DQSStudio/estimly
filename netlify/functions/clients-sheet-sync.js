@@ -167,6 +167,15 @@ function rowsToLeadRecords(rows) {
   const headers = rows[0].map((h) => String(h || '').trim());
   const records = [];
   const tsHeader = findTimestampHeader(headers, rows.slice(1, 4));
+  // Diagnostica mostrata nell'app: da quale colonna si legge la data e con quale esempio.
+  const tsIdx = tsHeader ? headers.indexOf(tsHeader) : -1;
+  const tsSample = tsIdx >= 0 && rows[1] ? String(rows[1][tsIdx] || '').trim() : '';
+  records.dateInfo = {
+    header: tsHeader || null,
+    sample: tsSample,
+    parsed: tsSample ? parseSheetTimestamp(tsSample) : null,
+    headers: tsHeader ? undefined : headers.slice(0, 8)
+  };
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
@@ -295,7 +304,15 @@ export default async (req) => {
   let dateFixed = 0;
   records.forEach((r) => {
     if (!r.ricevutoAt) return;
-    const lead = list.find((l) => l.sheetKey === r.sheetKey || (r.legacyKey && l.sheetKey === r.legacyKey));
+    let lead = list.find((l) => l.sheetKey === r.sheetKey || (r.legacyKey && l.sheetKey === r.legacyKey));
+    if (!lead) {
+      // Richieste importate da versioni più vecchie (chiave diversa): le riconosco per email+nome
+      // solo se la coppia è univoca sia nel foglio sia tra le richieste, per non scambiare due invii.
+      const same = (a) => normalize(a.email) === normalize(r.email) && normalize(a.nome) === normalize(r.nome);
+      const leadCands = list.filter((l) => l.canale === 'modulo' && !l.ricevutoAtFoglio && same(l));
+      const recCands = records.filter(same);
+      if (leadCands.length === 1 && recCands.length === 1) lead = leadCands[0];
+    }
     if (!lead || lead.ricevutoAtFoglio) return;
     lead.ricevutoAt = r.ricevutoAt;
     lead.sheetKey = r.sheetKey;
@@ -353,6 +370,8 @@ export default async (req) => {
   return new Response(JSON.stringify({
     ok: true,
     created: fresh.length,
+    dateFixed,
+    dateColumn: records.dateInfo || null,
     removedFromRubrica: pruned.removed,
     total: list.length,
     leads: list,
