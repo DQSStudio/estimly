@@ -65,12 +65,16 @@ export default async (req) => {
   // webhook): li ignoriamo senza segnalare errore, altrimenti Resend potrebbe disattivare
   // il webhook per troppi fallimenti.
   if (payload.type !== 'email.received') {
+    console.log(`[inbound-lead] evento ignorato: ${payload.type}`);
     return new Response(JSON.stringify({ ok: true, ignored: true }), { status: 200 });
   }
+
+  console.log(`[inbound-lead] webhook ricevuto per key=${key}, email_id=${payload.data && payload.data.email_id}`);
 
   const licenses = getStore('licenses');
   const license = await licenses.get(key, { type: 'json' });
   if (!license || license.status !== 'active') {
+    console.log(`[inbound-lead] licenza non valida per key=${key}`);
     return new Response(JSON.stringify({ error: 'invalid_license' }), { status: 401 });
   }
 
@@ -79,18 +83,23 @@ export default async (req) => {
   const settings = (studioData && studioData.studioSettings) || {};
   const resendApiKey = settings.resendApiKey;
   if (!resendApiKey) {
+    console.log(`[inbound-lead] nessuna chiave Resend configurata per key=${key}`);
     return new Response(JSON.stringify({ error: 'resend_not_configured' }), { status: 400 });
   }
 
   const emailId = payload.data && payload.data.email_id;
   if (!emailId) {
+    console.log('[inbound-lead] payload senza email_id');
     return new Response(JSON.stringify({ error: 'missing_email_id' }), { status: 400 });
   }
 
   let email;
   try {
+    console.log(`[inbound-lead] recupero email ${emailId} da Resend...`);
     email = await fetchReceivedEmail(resendApiKey, emailId);
+    console.log(`[inbound-lead] email recuperata, oggetto="${email.subject}", lunghezza testo=${(email.text||'').length}`);
   } catch (err) {
+    console.error('[inbound-lead] errore recupero email da Resend:', String(err.message || err));
     return new Response(JSON.stringify({ error: 'resend_fetch_failed', message: String(err.message || err) }), { status: 502 });
   }
 
@@ -99,9 +108,21 @@ export default async (req) => {
   const mittenteInfo = parseMittente(email.from);
 
   const leadsStore = getStore('leads');
-  const list = (await leadsStore.get(key, { type: 'json' })) || [];
+  const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
+
+  // Resend puo' reinviare lo stesso webhook (es. se questa function impiega troppo a
+  // rispondere) e senza un controllo qui finiremmo per salvare due volte lo stesso lead. L'email_id è stabile
+  // tra un invio e un eventuale reinvio dello stesso evento, quindi lo usiamo per capire
+  // se questa mail è già stata salvata in precedenza.
+  const already = list.find((l) => l.emailId === emailId);
+  if (already) {
+    console.log(`[inbound-lead] email_id=${emailId} già salvato come lead id=${already.id}, ignoro il reinvio`);
+    return new Response(JSON.stringify({ ok: true, lead: already, duplicate: true }), { status: 200 });
+  }
+
   const entry = {
     id: 'lead_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8),
+    emailId,
     canale: 'email',
     ricevutoAt: new Date().toISOString(),
     mittente: email.from || '',
@@ -118,6 +139,7 @@ export default async (req) => {
   };
   list.unshift(entry);
   await leadsStore.setJSON(key, list);
+  console.log(`[inbound-lead] lead salvato: id=${entry.id}, nome="${entry.nome}"`);
 
   return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
 };

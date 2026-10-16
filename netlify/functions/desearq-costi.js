@@ -42,7 +42,10 @@ export default async (req) => {
 
   const key = (body.key || '').trim().toUpperCase();
   const codiceAccesso = (body.codiceAccesso || '').trim();
-  if (!key || !codiceAccesso) return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+  // Cost ora usa email e password: lo studio indica l'email del suo account Cost e, se Cost lo
+  // mostra, il codice di collegamento. Resta valido anche il solo codice (studi già collegati).
+  const email = String(body.email || '').trim().toLowerCase();
+  if (!key || (!codiceAccesso && !email)) return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
 
   const licenses = getStore('licenses');
   const license = await licenses.get(key, { type: 'json' });
@@ -60,11 +63,11 @@ export default async (req) => {
 
   try {
     // Lettura tramite funzione del database (la tabella non è più leggibile pubblicamente):
-    // serve il codice di accesso Cost, non esiste un elenco.
+    // serve l'email dell'account Cost e/o il codice di collegamento, non esiste un elenco.
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/estimly_get_costi`, {
       method: 'POST',
       headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ p_email: null, p_codice: codiceAccesso || null })
+      body: JSON.stringify({ p_email: email || null, p_codice: codiceAccesso || null })
     });
     if (!res.ok) return new Response(JSON.stringify({ error: 'supabase_error' }), { status: 200 });
     const rows = await res.json();

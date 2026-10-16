@@ -48,7 +48,7 @@ export default async (req) => {
   const action = body.action;
 
   if (action === 'list') {
-    const list = (await leadsStore.get(key, { type: 'json' })) || [];
+    const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
     return new Response(JSON.stringify({ leads: list }), { status: 200 });
   }
 
@@ -57,7 +57,7 @@ export default async (req) => {
     if (!leadId || !VALID_FASI.includes(fase)) {
       return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
     }
-    const list = (await leadsStore.get(key, { type: 'json' })) || [];
+    const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
     const entry = list.find((l) => l.id === leadId);
     if (!entry) {
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
@@ -74,7 +74,7 @@ export default async (req) => {
     if (!leadId) {
       return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
     }
-    const list = (await leadsStore.get(key, { type: 'json' })) || [];
+    const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
     const entry = list.find((l) => l.id === leadId);
     if (!entry) {
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
@@ -90,7 +90,7 @@ export default async (req) => {
     if (!leadId || !fields || typeof fields !== 'object') {
       return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
     }
-    const list = (await leadsStore.get(key, { type: 'json' })) || [];
+    const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
     const entry = list.find((l) => l.id === leadId);
     if (!entry) {
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
@@ -147,7 +147,7 @@ export default async (req) => {
     if (!leadId) {
       return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
     }
-    const list = (await leadsStore.get(key, { type: 'json' })) || [];
+    const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
     const filtered = list.filter((l) => l.id !== leadId);
     await leadsStore.setJSON(key, filtered);
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
