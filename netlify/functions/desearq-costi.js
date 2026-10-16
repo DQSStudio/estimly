@@ -46,6 +46,9 @@ export default async (req) => {
   // mostra, il codice di collegamento. Resta valido anche il solo codice (studi già collegati).
   const email = String(body.email || '').trim().toLowerCase();
   if (!key || (!codiceAccesso && !email)) return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+  // La sola email non basta: chiunque la conosca potrebbe leggere i costi di un altro studio.
+  // Serve il codice di collegamento (segreto, generato da Cost per ogni account).
+  if (!codiceAccesso) return new Response(JSON.stringify({ error: 'code_required' }), { status: 200 });
 
   const licenses = getStore('licenses');
   const license = await licenses.get(key, { type: 'json' });
