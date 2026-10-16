@@ -3238,7 +3238,15 @@ async function importLeadsFromSheet(){
     if(data && data.ok){
       if(Array.isArray(data.clients)){ clients = data.clients; persistClientsLocal(); renderRubricaList(); renderClientPickerList(); }
       if(Array.isArray(data.leads)){ leadsList = data.leads; renderLeadsSection(); updateLeadsNavBadge(); }
-      say(data.created ? `Fatto: ${data.created} nuove richieste importate.` : 'Fatto: nessuna nuova richiesta.');
+      let msg = data.created ? `Fatto: ${data.created} nuove richieste importate.` : 'Fatto: nessuna nuova richiesta.';
+      if(data.dateFixed) msg += ` Date corrette su ${data.dateFixed} richieste.`;
+      const dc = data.dateColumn;
+      if(dc){
+        if(!dc.header) msg += ` Attenzione: non trovo la colonna con la data di invio (intestazioni lette: ${(dc.headers||[]).join(' | ')}).`;
+        else if(!dc.parsed) msg += ` Attenzione: la data nella colonna «${dc.header}» ("${dc.sample}") non ha un formato riconosciuto.`;
+        else msg += ` Data letta da «${dc.header}» (es. ${dc.sample} → ${new Date(dc.parsed).toLocaleString('it-IT',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}).`;
+      }
+      say(msg);
     } else {
       const detail = (data && data.message) ? ` (${data.message})` : '';
       say('Importazione non riuscita: ' + (data && data.error ? data.error : 'errore sconosciuto') + detail);
