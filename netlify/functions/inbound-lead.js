@@ -43,6 +43,19 @@ function parseMittente(from) {
   return { nome: '', email: str };
 }
 
+// Data in cui la richiesta è stata davvero inviata (non quella in cui Estimly l'ha elaborata):
+// usa la data della mail restituita da Resend, con ripiego su quella del webhook e, solo in
+// mancanza, su adesso.
+function originalDate(email, payload) {
+  const candidates = [email && email.created_at, email && email.date, payload && payload.data && payload.data.created_at, payload && payload.created_at];
+  for (const c of candidates) {
+    if (!c) continue;
+    const d = new Date(c);
+    if (!isNaN(d.getTime()) && d.getTime() <= Date.now() + 3600e3) return d.toISOString();
+  }
+  return new Date().toISOString();
+}
+
 export default async (req) => {
   if (req.method !== 'POST') {
     return new Response('method not allowed', { status: 405 });
@@ -124,7 +137,7 @@ export default async (req) => {
     id: 'lead_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8),
     emailId,
     canale: 'email',
-    ricevutoAt: new Date().toISOString(),
+    ricevutoAt: originalDate(email, payload),
     mittente: email.from || '',
     oggetto: subject,
     testo: bodyText.slice(0, 4000),

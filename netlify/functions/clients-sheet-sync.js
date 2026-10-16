@@ -110,17 +110,48 @@ function normalize(str) {
 // data/ora di invio + email + nome) per non importarla due volte.
 const TIMESTAMP_HEADERS = ['Informazioni cronologiche', 'Timestamp', 'Data e ora'];
 
+// Offset (in minuti) di Europa/Roma rispetto a UTC in un dato istante: i Moduli Google scrivono
+// la data nel fuso del foglio, non in UTC.
+function romeOffsetMinutes(ms) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Rome', hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+  }).formatToParts(new Date(ms)).reduce((o, p) => { o[p.type] = p.value; return o; }, {});
+  const asUtc = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+  return Math.round((asUtc - ms) / 60000);
+}
+function romeLocalToIso(y, mo, d, h, mi, sec) {
+  const guess = Date.UTC(y, mo - 1, d, h, mi, sec);
+  let ms = guess - romeOffsetMinutes(guess) * 60000;
+  ms = guess - romeOffsetMinutes(ms) * 60000; // secondo passaggio vicino al cambio ora legale
+  const dt = new Date(ms);
+  return isNaN(dt.getTime()) ? null : dt.toISOString();
+}
+
 function parseSheetTimestamp(str) {
   const s = String(str || '').trim();
   if (!s) return null;
-  // Formato italiano dei Moduli Google: 05/10/2026 11:08:32
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
-  if (m) {
-    const d = new Date(Date.UTC(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)));
-    return isNaN(d.getTime()) ? null : d.toISOString();
-  }
+  // Formato italiano dei Moduli Google: 05/10/2026 11:08:32 (anche 5/10/2026 o con "." al posto di "/")
+  let m = s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})(?:[\s,]+(\d{1,2})[:.](\d{2})(?::(\d{2}))?)?$/);
+  if (m) return romeLocalToIso(+m[3], +m[2], +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  // Formato ISO senza fuso: 2026-10-05 11:08:32
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (m) return romeLocalToIso(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+// Trova la colonna con la data di invio: prima per nome esatto, poi per nome simile
+// ("Marca temporale", "Data richiesta"...), infine guardando se la prima colonna contiene date.
+function findTimestampHeader(headers, firstRows) {
+  const exact = headers.find((h) => TIMESTAMP_HEADERS.includes(h));
+  if (exact) return exact;
+  const like = headers.find((h) => /cronolog|timestamp|marca temporale|data e ora|data (della )?richiesta|data (di )?invio|^data$/i.test(h));
+  if (like) return like;
+  const idx = 0;
+  const sample = firstRows.map((r) => (r[idx] || '').toString().trim()).filter(Boolean).slice(0, 3);
+  if (sample.length && sample.every((v) => parseSheetTimestamp(v))) return headers[idx] || null;
+  return null;
 }
 
 function sheetKeyFor(timestamp, email, nome) {
@@ -135,6 +166,7 @@ function rowsToLeadRecords(rows) {
   if (!rows.length) return [];
   const headers = rows[0].map((h) => String(h || '').trim());
   const records = [];
+  const tsHeader = findTimestampHeader(headers, rows.slice(1, 4));
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
@@ -159,10 +191,11 @@ function rowsToLeadRecords(rows) {
     rec.tipoProgetto = labelOf['Tipo progetto'] || labelOf['Tipo di servizio'] || '';
     rec.fonte = (labelOf['Provenienza'] || '').slice(0, 80);
 
-    const tsHeader = TIMESTAMP_HEADERS.find((h) => byHeader[h]);
     const tsRaw = tsHeader ? byHeader[tsHeader] : '';
     rec.ricevutoAt = parseSheetTimestamp(tsRaw);
     rec.sheetKey = sheetKeyFor(tsRaw || ('riga' + i), rec.email, rec.nome);
+    // Chiave usata dalle versioni precedenti quando la data non veniva riconosciuta.
+    rec.legacyKey = sheetKeyFor('riga' + i, rec.email, rec.nome);
     records.push(rec);
   }
   return records;
@@ -255,8 +288,22 @@ export default async (req) => {
   list.forEach((l) => { if (l.sheetKey) seen.add(l.sheetKey); });
 
   const pruned = pruneUntouchedSheetClients(existingClients, savedQuotes);
-  const fresh = records.filter((r) => !seen.has(r.sheetKey));
   const now = new Date().toISOString();
+
+  // Riallinea la data delle richieste già importate: prima poteva restare quella dell'importazione
+  // (colonna della data non riconosciuta) o spostata di qualche ora (fuso orario).
+  let dateFixed = 0;
+  records.forEach((r) => {
+    if (!r.ricevutoAt) return;
+    const lead = list.find((l) => l.sheetKey === r.sheetKey || (r.legacyKey && l.sheetKey === r.legacyKey));
+    if (!lead || lead.ricevutoAtFoglio) return;
+    lead.ricevutoAt = r.ricevutoAt;
+    lead.sheetKey = r.sheetKey;
+    lead.ricevutoAtFoglio = true;
+    seen.add(r.sheetKey);
+    dateFixed++;
+  });
+  const fresh = records.filter((r) => !seen.has(r.sheetKey) && !(r.legacyKey && seen.has(r.legacyKey)));
   fresh.forEach((r) => {
     const client = findClient(pruned.clients, r.email, r.nome);
     const quoted = hasQuoteFor(savedQuotes, r.email, r.nome);
@@ -265,6 +312,7 @@ export default async (req) => {
       canale: 'modulo',
       sheetKey: r.sheetKey,
       ricevutoAt: r.ricevutoAt || now,
+      ricevutoAtFoglio: !!r.ricevutoAt,
       mittente: r.email || r.nome,
       oggetto: r.tipoProgetto ? 'Modulo: ' + r.tipoProgetto : 'Modulo di contatto',
       testo: r.testo.slice(0, 4000),
@@ -283,7 +331,7 @@ export default async (req) => {
     seen.add(r.sheetKey);
   });
 
-  if (fresh.length) {
+  if (fresh.length || dateFixed) {
     list.sort((a, b) => String(b.ricevutoAt || '').localeCompare(String(a.ricevutoAt || '')));
     await leadsStore.setJSON(key, list);
     await seenStore.setJSON(key, Array.from(seen));
@@ -300,7 +348,7 @@ export default async (req) => {
     await dataStore.setJSON(key, { ...existing, clients, updatedAt: now });
   }
 
-  console.log(`[clients-sheet-sync] key=${key} righe_foglio=${rows.length - 1} richieste_nuove=${fresh.length} clienti_rimossi_da_rubrica=${pruned.removed}`);
+  console.log(`[clients-sheet-sync] key=${key} righe_foglio=${rows.length - 1} richieste_nuove=${fresh.length} date_corrette=${dateFixed} clienti_rimossi_da_rubrica=${pruned.removed}`);
 
   return new Response(JSON.stringify({
     ok: true,

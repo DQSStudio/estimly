@@ -14,6 +14,10 @@ const VALID_FASI = ['nuova', 'contattato', 'presentazione_inviata', 'preventivo_
 const FONTE_MAX_LEN = 80;
 // Campi della richiesta modificabili a mano dalla scheda lead (niente estrazione AI:
 // nome/email vengono riconosciuti dall'intestazione della mail, il resto si compila a mano).
+// Motivi di perdita predefiniti (per le statistiche); è ammesso anche un testo libero breve.
+const MOTIVI_PERSO = ['Prezzo troppo alto', 'Ha scelto un altro professionista', 'Tempistiche non compatibili', 'Budget insufficiente', 'Progetto rimandato o annullato', 'Non risponde più', 'Fuori zona', 'Servizio non offerto', 'Altro'];
+const MOTIVO_MAX_LEN = 80;
+const NOTA_MAX_LEN = 500;
 const EDITABLE_FIELDS = ['nome', 'email', 'telefono', 'tipoProgetto', 'indirizzoIntervento', 'note'];
 
 export default async (req) => {
@@ -62,7 +66,38 @@ export default async (req) => {
     if (!entry) {
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
     }
+    const nowIso = new Date().toISOString();
+    const prev = entry.fase;
+    if (prev !== fase) {
+      // Storico dei passaggi di fase: serve alle statistiche per capire dove le richieste si fermano.
+      entry.storia = Array.isArray(entry.storia) ? entry.storia : [];
+      if (!entry.storia.length && prev) entry.storia.push({ fase: prev, at: entry.ricevutoAt || nowIso });
+      entry.storia.push({ fase, at: nowIso });
+      if (fase === 'perso') { entry.persoAt = nowIso; entry.faseAlPerso = prev; }
+      if (fase === 'vinto') entry.vintoAt = nowIso;
+      if (prev === 'perso' && fase !== 'perso') { delete entry.persoAt; delete entry.faseAlPerso; delete entry.motivoPerso; delete entry.motivoPersoNota; }
+    }
     entry.fase = fase;
+    entry.aggiornatoAt = nowIso;
+    await leadsStore.setJSON(key, list);
+    return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
+  }
+
+  // Motivo per cui la richiesta è stata persa (elenco predefinito o testo libero) + nota facoltativa.
+  if (action === 'updateLoss') {
+    const { leadId } = body;
+    const motivo = String(body.motivo || '').trim().slice(0, MOTIVO_MAX_LEN);
+    const nota = String(body.nota || '').trim().slice(0, NOTA_MAX_LEN);
+    if (!leadId) {
+      return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
+    }
+    const list = (await leadsStore.get(key, { type: 'json', consistency: 'strong' })) || [];
+    const entry = list.find((l) => l.id === leadId);
+    if (!entry) {
+      return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+    }
+    entry.motivoPerso = motivo;
+    entry.motivoPersoNota = nota;
     entry.aggiornatoAt = new Date().toISOString();
     await leadsStore.setJSON(key, list);
     return new Response(JSON.stringify({ ok: true, lead: entry }), { status: 200 });
