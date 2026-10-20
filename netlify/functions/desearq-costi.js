@@ -4,15 +4,13 @@
 // e riscrivere lo stesso numero in due posti). Riservato agli studi col pacchetto completo
 // (license.suiteEnabled), flag indipendente da Estimly 2.0/followupEnabled.
 //
-// Lo studio non ha (e non deve avere) accesso a Supabase: il collegamento tra Cost ed Estimly
-// passa per il CODICE DI ACCESSO CHE COST GIÀ ASSEGNA A OGNI CLIENTE (deciso a mano da Nicola,
-// come sempre) — lo studio lo inserisce direttamente dentro Estimly (Impostazioni studio), non
-// serve nessuna configurazione nuova né in Cost né in Supabase. Cost continua a scrivere nella
-// tabella condivisa usando lo stesso codice che già conosce.
+// Il collegamento tra Cost ed Estimly passa per la LICENZA di Estimly: la suite sa a quale studio
+// appartiene la licenza (core.licenze_prodotto) e da lì legge il totale annuo calcolato da Cost
+// (flow.costi_studio). Lo studio non deve inserire nessun codice né l'email di Cost.
 //
-// Legge dalla tabella condivisa public.estimly_costi_studio (Supabase, stesso progetto già usato
-// per DSQ Manager), scritta da Cost tramite la stessa SUPABASE_ANON_KEY. Nessun dato scritto da
-// qui: questo endpoint è sola lettura.
+// La lettura avviene solo da qui, con la chiave segreta della suite (variabile d'ambiente su Netlify,
+// mai nel codice né nel browser), tramite la funzione public.estimly_costi_da_licenza che riceve
+// soltanto l'impronta SHA-256 della licenza. Nessun dato scritto da qui: sola lettura.
 //
 // Cost scrive il TOTALE ANNUO dei costi da coprire (stipendio + costi fissi + margine, secondo
 // il proprio calcolo) in `totale_annuo`, non una tariffa oraria già pronta: la conversione in
@@ -22,9 +20,9 @@
 
 import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
+import { createHash } from 'node:crypto';
 
-const SUPABASE_URL = 'https://qgeiehavpnqdxqnggfzq.supabase.co';
-const TABLE = 'estimly_costi_studio';
+const SUITE_URL = process.env.SUITE_SUPABASE_URL || 'https://qudoygcfphqhhyenpwlr.supabase.co';
 
 export default async (req) => {
   if (req.method !== 'POST') {
@@ -41,14 +39,7 @@ export default async (req) => {
   body.key = auth.key;
 
   const key = (body.key || '').trim().toUpperCase();
-  const codiceAccesso = (body.codiceAccesso || '').trim();
-  // Cost ora usa email e password: lo studio indica l'email del suo account Cost e, se Cost lo
-  // mostra, il codice di collegamento. Resta valido anche il solo codice (studi già collegati).
-  const email = String(body.email || '').trim().toLowerCase();
-  if (!key || (!codiceAccesso && !email)) return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
-  // La sola email non basta: chiunque la conosca potrebbe leggere i costi di un altro studio.
-  // Serve il codice di collegamento (segreto, generato da Cost per ogni account).
-  if (!codiceAccesso) return new Response(JSON.stringify({ error: 'code_required' }), { status: 200 });
+  if (!key) return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
 
   const licenses = getStore('licenses');
   const license = await licenses.get(key, { type: 'json' });
@@ -59,27 +50,26 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: 'not_suite' }), { status: 200 });
   }
 
-  const anonKey = process.env.SUPABASE_ANON_KEY;
-  if (!anonKey) {
+  const secretKey = process.env.SUITE_SUPABASE_SECRET_KEY;
+  if (!secretKey) {
     return new Response(JSON.stringify({ error: 'not_configured' }), { status: 200 });
   }
 
   try {
-    // Lettura tramite funzione del database (la tabella non è più leggibile pubblicamente):
-    // serve l'email dell'account Cost e/o il codice di collegamento, non esiste un elenco.
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/estimly_get_costi`, {
+    const hash = createHash('sha256').update(key).digest('hex');
+    const res = await fetch(`${SUITE_URL}/rest/v1/rpc/estimly_costi_da_licenza`, {
       method: 'POST',
-      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ p_email: email || null, p_codice: codiceAccesso || null })
+      headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_chiave_hash: hash })
     });
     if (!res.ok) return new Response(JSON.stringify({ error: 'supabase_error' }), { status: 200 });
-    const rows = await res.json();
-    if (!rows.length) return new Response(JSON.stringify({ error: 'not_found' }), { status: 200 });
+    const row = await res.json();
+    if (!row) return new Response(JSON.stringify({ error: 'not_found' }), { status: 200 });
     return new Response(JSON.stringify({
       ok: true,
-      totaleAnnuo: rows[0].totale_annuo,
-      anno: rows[0].anno || null,
-      updatedAt: rows[0].updated_at
+      totaleAnnuo: row.totale_annuo,
+      anno: row.anno || null,
+      updatedAt: row.updated_at
     }), { status: 200 });
   } catch (err) {
     return new Response(JSON.stringify({ error: 'server_error' }), { status: 200 });

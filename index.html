@@ -2516,11 +2516,9 @@ body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-fon
 
     <div id="wzCostBox" style="margin:0 0 18px; padding:14px 16px; background:var(--accent-soft); border-radius:var(--radius-sm); max-width:640px;">
       <div style="font-size:13px; font-weight:600; color:var(--ink); margin-bottom:4px;">Hai già i costi del tuo studio in Cost?</div>
-      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">Inserisci l'email con cui entri in Cost e il codice di collegamento che trovi nelle impostazioni di Cost (sezione "Collegamento a Estimly"): importiamo il totale annuo dei costi e lo trasformiamo in tariffa oraria. Se hai già compilato le ore lavorative qui sotto le usiamo, altrimenti usiamo quelle standard (46 settimane, 5 giorni, 7 ore, 60% fatturabile).</div>
+      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:10px; line-height:1.5;">Importiamo da Cost il totale annuo dei costi e lo trasformiamo in tariffa oraria. Se hai già compilato le ore lavorative qui sotto le usiamo, altrimenti usiamo quelle standard (46 settimane, 5 giorni, 7 ore, 60% fatturabile).</div>
       <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-        <input id="wzCostCode" placeholder="Email del tuo account Cost" style="flex:1; min-width:160px; padding:9px 11px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--surface); color:var(--ink);">
-        <input id="wzCostLink" placeholder="Codice di collegamento di Cost" style="flex:1; min-width:160px; padding:9px 11px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--surface); color:var(--ink);">
-        <button id="wzCostBtn" class="btn-save" style="white-space:nowrap;">Importa da Cost</button>
+                <button id="wzCostBtn" class="btn-save" style="white-space:nowrap;">Importa da Cost</button>
       </div>
       <div id="wzCostMsg" style="font-size:12px; margin-top:8px; display:none;"></div>
     </div>
@@ -3101,11 +3099,8 @@ body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-fon
       <div id="costFromCostBox" style="margin-bottom:16px; padding:12px 14px; background:var(--accent-soft); border-radius:var(--radius-sm);">
         <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">Hai già i costi fissi calcolati in Cost? Importa qui il totale annuo e lo trasformiamo in tariffa oraria usando le ore fatturabili qui sotto (verifica che siano impostate correttamente).</div>
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <input id="costAccessCodeInput" type="email" placeholder="Email del tuo account Cost" style="flex:1; min-width:160px; padding:8px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12.5px; background:var(--surface); color:var(--ink);">
-          <input id="costLinkCodeInput" placeholder="Codice di collegamento di Cost" style="flex:1; min-width:160px; padding:8px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12.5px; background:var(--surface); color:var(--ink);">
-          <button id="costFromCostBtn" class="btn-cancel" style="padding:6px 12px; white-space:nowrap;">Sincronizza da Cost</button>
+                    <button id="costFromCostBtn" class="btn-cancel" style="padding:6px 12px; white-space:nowrap;">Sincronizza da Cost</button>
         </div>
-        <div style="font-size:11px; color:var(--ink-faint); margin-top:6px;">Usa la stessa email con cui entri in Cost e il codice di collegamento che trovi nelle sue impostazioni ("Collegamento a Estimly") — vanno inseriti una sola volta.</div>
         <div id="costFromCostMsg" style="font-size:11.5px; margin-top:8px; display:none;"></div>
       </div>
       <div style="font-size:12px; color:var(--ink-soft); margin-bottom:14px;">Calcola la tariffa oraria minima da applicare per coprire i tuoi costi e il tuo stipendio desiderato. Il risultato diventa il valore di partenza nel calcolatore a ore (resta sempre modificabile riga per riga).</div>
@@ -4684,8 +4679,6 @@ function openCostCalcModal(){
   document.getElementById('costCalcResult').style.display = 'none';
   document.getElementById('costCalcApply').style.display = 'none';
   document.getElementById('costFromCostMsg').style.display = 'none';
-  document.getElementById('costAccessCodeInput').value = studioSettings.costEmail || '';
-  document.getElementById('costLinkCodeInput').value = studioSettings.costAccessCode || '';
   document.getElementById('costCalcModal').style.display = 'flex';
 }
 function closeCostCalcModal(){
@@ -4750,28 +4743,13 @@ async function syncTariffaFromCost(wizard){
   const btn = document.getElementById(wizard ? 'wzCostBtn' : 'costFromCostBtn');
   const key = getLicenseKey();
   if(!key) return;
-  const emailCost = document.getElementById(wizard ? 'wzCostCode' : 'costAccessCodeInput').value.trim();
-  const codiceAccesso = document.getElementById(wizard ? 'wzCostLink' : 'costLinkCodeInput').value.trim();
-  if(!emailCost || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailCost)){
-    showMsg('Inserisci l\'email del tuo account Cost.', 'error');
-    return;
-  }
-  if(!codiceAccesso){
-    showMsg('Inserisci anche il codice di collegamento: lo trovi nelle impostazioni di Cost, sezione "Collegamento a Estimly".', 'error');
-    return;
-  }
-  // Salvati subito: una volta inseriti, restano impostati per le prossime sincronizzazioni.
-  studioSettings.costEmail = emailCost;
-  studioSettings.costAccessCode = codiceAccesso;
-  saveStudioSettings();
-  scheduleCloudSave();
   btn.disabled = true;
   showMsg('Verifico su Cost…', 'info');
   try{
     const res = await fetch('/.netlify/functions/desearq-costi', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ key, email: emailCost, codiceAccesso })
+      body: JSON.stringify({ key })
     });
     const data = await res.json();
     if(data.ok){
@@ -4799,10 +4777,8 @@ async function syncTariffaFromCost(wizard){
       }
     } else if(data.error === 'not_suite'){
       showMsg('Questa funzione fa parte del pacchetto Desearq completo. Scrivici per attivarla sul tuo account.', 'error');
-    } else if(data.error === 'code_required'){
-      showMsg('Inserisci anche il codice di collegamento di Cost.', 'error');
     } else if(data.error === 'not_found'){
-      showMsg('Non trovo costi salvati in Cost per questa email (o il codice di collegamento non corrisponde). Salvali prima in Cost, poi riprova.', 'error');
+      showMsg('Non trovo costi salvati in Cost per il tuo studio. Salvali prima in Cost, poi riprova.', 'error');
     } else {
       showMsg('Impossibile recuperare il dato da Cost al momento. Riprova più tardi.', 'error');
     }
@@ -4814,7 +4790,6 @@ async function syncTariffaFromCost(wizard){
 
 document.getElementById('costFromCostBtn').addEventListener('click', () => syncTariffaFromCost(false));
 document.getElementById('wzCostBtn').addEventListener('click', () => syncTariffaFromCost(true));
-document.getElementById('wzCostCode').addEventListener('keydown', (e) => { if(e.key === 'Enter') syncTariffaFromCost(true); });
 /* ===================== fine Sincronizza tariffa oraria da Cost ===================== */
 
 document.getElementById('applyRateAllBtn').addEventListener('click', ()=>{
@@ -8153,8 +8128,6 @@ function updateWizardResult(){
 }
 
 function resetWizardCalc(){
-  const wzc = document.getElementById('wzCostCode'); if(wzc) wzc.value = (studioSettings && studioSettings.costEmail) || '';
-  const wzl = document.getElementById('wzCostLink'); if(wzl) wzl.value = (studioSettings && studioSettings.costAccessCode) || '';
   // I dati già inseriti restano: riaprendo il calcolatore si modifica solo ciò che serve.
   const saved = (studioSettings && studioSettings.wzCalc) || {};
   WZ_FIELD_IDS.forEach(id => { document.getElementById(id).value = (saved[id] !== undefined && saved[id] !== null) ? saved[id] : ''; });
@@ -10981,46 +10954,31 @@ if('serviceWorker' in navigator){
   }
 
   /* ---- collegamento a Cost nella domanda sui costi fissi ---- */
-  async function fetchCost(email, codice){
+  async function fetchCost(){
     const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : '';
     const res = await fetch('/.netlify/functions/desearq-costi', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ key, email, codiceAccesso: codice })
+      body: JSON.stringify({ key })
     });
     return res.json();
   }
   function costErrorText(data){
     if(data.error === 'not_suite') return 'Questa funzione fa parte del pacchetto Desearq completo.';
-    if(data.error === 'code_required') return 'Inserisci anche il codice di collegamento di Cost.';
-    if(data.error === 'not_found') return 'Non trovo costi salvati in Cost per questa email e questo codice.';
+    if(data.error === 'not_found') return 'Non trovo costi salvati in Cost per il tuo studio.';
     return 'Impossibile recuperare il dato da Cost. Riprova più tardi.';
   }
   function setupCostLink(input){
     const box = document.createElement('div');
     box.style.cssText = 'margin-top:14px; display:flex; flex-direction:column; align-items:center; gap:8px;';
-    box.innerHTML = '<div class="acx-actions"><button class="agent-chip" id="acxLinkBtn" type="button"></button></div>' +
-      '<div id="acxLinkForm" style="display:none; flex-direction:column; gap:8px; align-items:center;">' +
-        '<div class="acx-input"><input type="email" id="acxCostEmail" placeholder="Email del tuo account Cost" autocomplete="off"></div>' +
-        '<div class="acx-input"><input type="text" id="acxCostCode" placeholder="Codice di collegamento di Cost" autocomplete="off"></div>' +
-        '<button class="agent-chip picked" id="acxLinkGo" type="button">Collega e importa</button>' +
-      '</div><div class="acx-hint" id="acxLinkMsg"></div>';
+    box.innerHTML = '<div class="acx-actions"><button class="agent-chip" id="acxLinkBtn" type="button">Importa da Cost</button></div><div class="acx-hint" id="acxLinkMsg"></div>';
     bodyEl.appendChild(box);
-    const btn = $('acxLinkBtn'), form = $('acxLinkForm'), msg = $('acxLinkMsg');
-    const em = (studioSettings && studioSettings.costEmail) || '', cd = (studioSettings && studioSettings.costAccessCode) || '';
-    const linked = !!(em && cd);
-    btn.textContent = linked ? 'Aggiorna da Cost' : 'Collega Cost';
-    $('acxCostEmail').value = em; $('acxCostCode').value = cd;
-
-    async function run(email, codice){
+    const btn = $('acxLinkBtn'), msg = $('acxLinkMsg');
+    async function run(){
       msg.textContent = 'Controllo su Cost…';
       try{
-        const data = await fetchCost(email, codice);
+        const data = await fetchCost();
         if(data.ok){
-          studioSettings.costEmail = email; studioSettings.costAccessCode = codice;
-          saveStudioSettings(); scheduleCloudSave();
           input.value = String(Math.round(Number(data.totaleAnnuo)));
-          form.style.display = 'none';
-          btn.textContent = 'Aggiorna da Cost';
           msg.textContent = 'Importato da Cost' + (data.anno ? ' (anno ' + data.anno + ')' : '') + ': € ' + nf(Number(data.totaleAnnuo)) + '. Puoi modificarlo, poi premi →.';
           return true;
         }
@@ -11028,18 +10986,7 @@ if('serviceWorker' in navigator){
       }catch(err){ msg.textContent = 'Impossibile contattare Cost: controlla la connessione.'; }
       return false;
     }
-    btn.addEventListener('click', () => {
-      if(linked || (studioSettings.costEmail && studioSettings.costAccessCode)) run(studioSettings.costEmail, studioSettings.costAccessCode);
-      else { form.style.display = form.style.display === 'none' ? 'flex' : 'none'; }
-    });
-    $('acxLinkGo').addEventListener('click', () => {
-      const e = $('acxCostEmail').value.trim(), c = $('acxCostCode').value.trim();
-      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ msg.textContent = 'Inserisci l\'email del tuo account Cost.'; return; }
-      if(!c){ msg.textContent = 'Inserisci anche il codice di collegamento: lo trovi nelle impostazioni di Cost.'; return; }
-      run(e, c);
-    });
-    // già collegato e risposta ancora vuota: compare da solo nella risposta
-    if(linked && input.value === '') run(em, cd);
+    btn.addEventListener('click', run);
   }
 
   function showSummary(){
