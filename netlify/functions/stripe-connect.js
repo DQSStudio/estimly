@@ -101,7 +101,7 @@ export async function markPaymentPaid(dataStore, licenseKeyUpper, quoteId, payme
     try{
       const license = await licenses.get(licenseKeyUpper, { type: 'json' });
       if(license && license.suiteEnabled){
-        await syncQuoteToDesearqManager(quote, { markNuovo: false });
+        await syncQuoteToDesearqManager(quote, { markNuovo: false, key: licenseKeyUpper });
       }
     }catch(err){
       console.error('Sincronizzazione Desearq Studio Manager (pagamento) fallita', err);

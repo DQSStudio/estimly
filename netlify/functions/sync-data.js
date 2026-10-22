@@ -183,7 +183,7 @@ export default async (req) => {
     };
     await dataStore.setJSON(key, record);
     if (becameVinto && license.suiteEnabled) {
-      await syncQuoteToDesearqManager(savedQuotes[idx], { markNuovo: true });
+      await syncQuoteToDesearqManager(savedQuotes[idx], { markNuovo: true, key });
     }
     return new Response(JSON.stringify({ ok: true, savedQuotes: savedQuotes.map(stripPhoto) }), { status: 200 });
   }
@@ -203,7 +203,7 @@ export default async (req) => {
     let synced = 0;
     let failed = 0;
     for (const q of targets) {
-      const ok = await syncQuoteToDesearqManager(q, { markNuovo: true });
+      const ok = await syncQuoteToDesearqManager(q, { markNuovo: true, key });
       if (ok) synced++; else failed++;
     }
     return new Response(JSON.stringify({ ok: failed === 0, synced, failed, total: targets.length }), { status: 200 });

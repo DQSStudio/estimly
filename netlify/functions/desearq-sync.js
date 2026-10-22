@@ -20,8 +20,9 @@
 // Se assente, la sincronizzazione viene saltata silenziosamente: non deve mai bloccare firma
 // o pagamento, che sono il percorso critico per il cliente finale.
 
-const SUPABASE_URL = 'https://qgeiehavpnqdxqnggfzq.supabase.co';
-const TABLE = 'estimly_quotes';
+import { createHash } from 'node:crypto';
+
+const SUITE_URL = 'https://qudoygcfphqhhyenpwlr.supabase.co';
 
 const REGIMI_RATE = {
   ord22: 0.22, rid10: 0.10, rid4: 0.04, esente: 0, forfettario: 0, reverse: 0
@@ -47,13 +48,15 @@ function computeTotale(quote){
 }
 
 export async function syncQuoteToDesearqManager(quote, opts){
-  const anonKey = process.env.SUPABASE_ANON_KEY;
-  if(!anonKey || !quote || !quote.id) return false;
+  // I preventivi vanno al Manager della suite tramite la licenza (impronta SHA-256), con la chiave segreta del server.
+  const secret = process.env.SUITE_SUPABASE_SECRET_KEY;
+  const key = opts && opts.key ? String(opts.key).trim().toUpperCase() : '';
+  if(!secret || !key || !quote || !quote.id) return false;
+  const suiteUrl = process.env.SUITE_SUPABASE_URL || SUITE_URL;
 
   const client = quote.client || {};
   const row = {
     id: quote.id,
-    external_id: quote.id,
     numero: client.numero || null,
     revisione: client.revisione || null,
     data: client.data || null,
@@ -62,51 +65,27 @@ export async function syncQuoteToDesearqManager(quote, opts){
     progetto_label: client.progetto || null,
     totale: computeTotale(quote),
     payload: {
-      // Estimly chiama questo campo "clienteEmail" (vedi currentQuoteState in index.html), ma lo
-      // schema letto da Flow/DSQ Manager per costruire cliente/progetto/pagamenti cerca
-      // "payload.client.email": senza questo alias l'email del cliente non arriverebbe mai a
-      // Flow, pur essendo già salvata qui dentro "clienteEmail". Non rinominiamo il campo
-      // originale per non rompere nient'altro in Estimly che legge "clienteEmail".
+      // Il Manager cerca "payload.client.email": alias del campo "clienteEmail" di Estimly.
       client: { ...client, email: client.clienteEmail || client.email || '' },
       cart: Array.isArray(quote.cart) ? quote.cart : []
     }
   };
-  // Il preventivo arriva sempre come 'Nuovo' alla prima sincronizzazione (firma online o "Vinto"
-  // manuale): è DSQ Manager/Flow a intercettarlo con una schermata di revisione manuale che crea
-  // cliente+progetto+piano pagamenti e solo a quel punto lo marca 'Confermato' da parte sua
-  // (riempiendo anche desearq_client_id/desearq_project_id). Estimly non deve mai scrivere
-  // 'Confermato' direttamente, altrimenti quella schermata di revisione non si attiva mai.
-  if(opts && opts.markNuovo) row.stato = 'Nuovo';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    apikey: anonKey,
-    Authorization: `Bearer ${anonKey}`,
-    Prefer: 'return=minimal'
-  };
   try{
-    // NB: niente upsert (on_conflict): PostgREST lo esegue come INSERT ... ON CONFLICT DO UPDATE e
-    // richiede anche il permesso SELECT, che il ruolo anon non ha -> RLS 42501 e nessun dato scritto.
-    // Si fa quindi INSERT semplice e, se la riga esiste già (409), UPDATE senza toccare 'stato'.
-    let res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
-      method: 'POST', headers, body: JSON.stringify(row)
+    const hash = createHash('sha256').update(key).digest('hex');
+    const res = await fetch(`${suiteUrl}/rest/v1/rpc/estimly_sincronizza_preventivo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: secret, Authorization: `Bearer ${secret}` },
+      body: JSON.stringify({ p_chiave_hash: hash, p_riga: row, p_nuovo: !!(opts && opts.markNuovo) })
     });
-    if(res.status === 409){
-      const { id, external_id, stato, ...patch } = row;
-      res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?external_id=eq.${encodeURIComponent(quote.id)}`, {
-        method: 'PATCH', headers, body: JSON.stringify(patch)
-      });
-    }
-    if(!res.ok){
-      const txt = await res.text().catch(() => '');
-      console.error('Sincronizzazione Desearq Studio Manager rifiutata', res.status, txt.slice(0, 300));
+    const out = await res.json().catch(() => ({}));
+    if(!res.ok || out.ok === false){
+      console.error('Sincronizzazione con il Manager della suite rifiutata', res.status, JSON.stringify(out).slice(0, 300));
       return false;
     }
     return true;
   }catch(err){
-    // Non critico: firma e pagamento devono comunque andare a buon fine su Estimly anche se
-    // la sincronizzazione con Desearq Studio Manager fallisce (es. Supabase temporaneamente giù).
-    console.error('Sincronizzazione Desearq Studio Manager fallita', err);
+    // Non critico: firma e pagamento devono comunque andare a buon fine anche se la sincronizzazione fallisce.
+    console.error('Sincronizzazione con il Manager della suite fallita', err);
     return false;
   }
 }

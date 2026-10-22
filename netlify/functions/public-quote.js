@@ -258,7 +258,7 @@ async function signPublicQuote(licenses, dataStore, body, req){
   // mai bloccare la firma del cliente: eventuali errori sono già gestiti (silenziosamente)
   // dentro syncQuoteToDesearqManager.
   if(license.suiteEnabled){
-    await syncQuoteToDesearqManager(quote, { markNuovo: true });
+    await syncQuoteToDesearqManager(quote, { markNuovo: true, key: link.key });
   }
 
   // Preventivo firmato -> aggiorna anche il follow-up collegato (se il preventivo era stato
