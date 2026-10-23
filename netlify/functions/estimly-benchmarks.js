@@ -1,8 +1,11 @@
 import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
 
-// Stesso progetto Supabase già usato da test-supabase.js per l'ecosistema Desearq.
-const SUPABASE_URL = 'https://qgeiehavpnqdxqnggfzq.supabase.co';
+// Benchmark nel database unico della suite Desearq (accesso solo dal server, con la chiave secret).
+// Se la chiave della suite non è impostata su questo sito si usa ancora il vecchio database, così nulla si interrompe.
+const SUITE_URL = process.env.SUITE_SUPABASE_URL || 'https://qudoygcfphqhhyenpwlr.supabase.co';
+const OLD_URL = 'https://qgeiehavpnqdxqnggfzq.supabase.co';
+const SUPABASE_URL = process.env.SUITE_SUPABASE_SECRET_KEY ? SUITE_URL : OLD_URL;
 const TABLE = 'estimly_benchmarks';
 
 const TIPI_PROGETTO = ['Appartamento', 'Villa', 'Ufficio', 'Negozio', 'Hotel'];
@@ -234,7 +237,7 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: 'invalid_license' }), { status: 401 });
   }
 
-  const anonKey = process.env.SUPABASE_ANON_KEY;
+  const anonKey = process.env.SUITE_SUPABASE_SECRET_KEY || process.env.SUPABASE_ANON_KEY;
   if (!anonKey) {
     return new Response(JSON.stringify({ error: 'server_error', message: 'Database benchmark non configurato.' }), { status: 500 });
   }
