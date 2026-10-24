@@ -4419,6 +4419,7 @@ function showOnboardingGate(){
   gate.style.display = 'block';
   resetWizardCalc();
   renderOnboardingProgress();
+  if(window.__openCostMascot) window.__openCostMascot();
 }
 
 function hideOnboardingGate(){
@@ -11015,8 +11016,9 @@ if('serviceWorker' in navigator){
   }
 
   function open(){
-    if(typeof onboardingGateActive !== 'undefined' && onboardingGateActive) return;
     if(!document.body.classList.contains('estimly2-theme')) return;
+    const inGate = (typeof onboardingGateActive !== 'undefined' && onboardingGateActive);
+    $('acxClose').style.display = inGate ? 'none' : ''; // nella prima attivazione non si può saltare la tariffa
     fromSummary = false;
     ov.classList.add('is-open');
     ov.scrollTop = 0;
@@ -11027,8 +11029,9 @@ if('serviceWorker' in navigator){
   function close(){ ov.classList.remove('is-open'); }
 
   $('acxClose').addEventListener('click', close);
-  document.addEventListener('keydown', e => { if(e.key === 'Escape' && ov.classList.contains('is-open')) close(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && ov.classList.contains('is-open') && !(typeof onboardingGateActive !== 'undefined' && onboardingGateActive)) close(); });
   window.__openCostMascot = open;
+  if(typeof onboardingGateActive !== 'undefined' && onboardingGateActive) open();
 })();
 </script>
 
