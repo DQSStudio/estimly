@@ -969,6 +969,7 @@ body.estimly2-theme #agentCostOverlay.is-open{ display:flex; }
   -webkit-backdrop-filter:blur(16px) saturate(1.05); backdrop-filter:blur(16px) saturate(1.05);
   font-family:var(--e2-font, inherit);
 }
+#agentCostOverlay{ height:100vh; height:100dvh; inset:0 auto auto 0; width:100%; box-sizing:border-box; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
 #agentCostOverlay > *{ flex:none; }
 #agentCostOverlay .agent-mascot{ width:150px; height:150px; margin-top:auto; }
 #agentCostOverlay .acx-end{ margin-bottom:auto; }
@@ -11018,6 +11019,7 @@ if('serviceWorker' in navigator){
   function open(){
     if(!document.body.classList.contains('estimly2-theme')) return;
     const inGate = (typeof onboardingGateActive !== 'undefined' && onboardingGateActive);
+    try{ window.scrollTo(0,0); document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; const g=document.getElementById('e2OnboardingGate'); if(g){ g.scrollTop=0; g.style.overflow='hidden'; } }catch(e){}
     $('acxClose').style.display = inGate ? 'none' : ''; // nella prima attivazione non si può saltare la tariffa
     fromSummary = false;
     ov.classList.add('is-open');
@@ -11026,7 +11028,7 @@ if('serviceWorker' in navigator){
     if(allData()) showSummary();
     else { const first = F.findIndex((f,i) => val(i) === ''); idx = first < 0 ? 0 : first; showQuestion(); }
   }
-  function close(){ ov.classList.remove('is-open'); }
+  function close(){ ov.classList.remove('is-open'); try{ document.documentElement.style.overflow=''; document.body.style.overflow=''; const g=document.getElementById('e2OnboardingGate'); if(g) g.style.overflow=''; }catch(e){} }
 
   $('acxClose').addEventListener('click', close);
   document.addEventListener('keydown', e => { if(e.key === 'Escape' && ov.classList.contains('is-open') && !(typeof onboardingGateActive !== 'undefined' && onboardingGateActive)) close(); });
