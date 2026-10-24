@@ -6,6 +6,7 @@ const SUITE_URL = process.env.SUITE_SUPABASE_URL || 'https://qudoygcfphqhhyenpwl
 const SUITE_KEY = process.env.SUITE_SUPABASE_SECRET_KEY || '';
 
 export default async (req) => {
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || '';
   const out = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { 'Content-Type': 'application/json' } });
   if (req.method !== 'POST') return out({ error: 'method not allowed' }, 405);
   const auth = req.headers.get('x-admin-password');
@@ -25,6 +26,7 @@ export default async (req) => {
         p_chiave: b.key,
         p_cliente: lic.customer || '',
         p_attiva: lic.status === 'active',
+        p_url: host ? 'https://' + host : null,
         p_funzioni: { ai: !!lic.aiEnabled, followup: !!lic.followupEnabled, costcalc: !!lic.costCalcEnabled, suite: !!lic.suiteEnabled }
       })
     });
