@@ -1,6 +1,7 @@
 import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
 import crypto from 'crypto';
+import { licenseStore } from './lib/licenze.js';
 
 // ===================== Import clienti da Google Sheet (Estimly 2.0) =====================
 // Legge le risposte di un Google Form (raccolte in un Google Sheet) e le importa come
@@ -266,7 +267,7 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: 'missing_key' }), { status: 400 });
   }
 
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   const license = await licenses.get(key, { type: 'json' });
   if (!license || license.status !== 'active') {
     return new Response(JSON.stringify({ error: 'invalid_license' }), { status: 401 });

@@ -2,6 +2,7 @@ import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
 import { syncQuoteToDesearqManager } from './desearq-sync.js';
 import { normalizeCanvaUrl } from './canva-url.js';
+import { licenseStore } from './lib/licenze.js';
 
 // ===================== Pagina pubblica del preventivo (Estimly 2.0) =====================
 // Espone un preventivo tramite un token opaco (non indovinabile), senza richiedere login al
@@ -466,7 +467,7 @@ export default async (req) => {
     body.key = auth.key;
   }
 
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   const dataStore = getStore('studio-data');
 
   try {

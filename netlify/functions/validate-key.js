@@ -1,5 +1,6 @@
 import { getStore } from '@netlify/blobs';
 import { authorize, capsFor, publicUser, ROLE_LABELS } from './lib/auth.js';
+import { licenseStore } from './lib/licenze.js';
 
 export default async (req) => {
   if (req.method !== 'POST') {
@@ -29,7 +30,7 @@ export default async (req) => {
       return new Response(JSON.stringify({ valid: false, error: err }), { status: status === 401 || status === 403 ? 200 : status, headers: { 'Content-Type': 'application/json' } });
     }
     const { license, key } = auth;
-    const store = getStore('licenses');
+    const store = licenseStore();
     const record = { ...license };
     record.lastValidatedAt = new Date().toISOString();
     record.validationCount = (record.validationCount || 0) + 1;

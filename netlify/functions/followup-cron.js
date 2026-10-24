@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs';
+import { licenseStore } from './lib/licenze.js';
 
 // Sequenza di default, usata solo per i follow-up creati prima dell'introduzione della
 // personalizzazione per cliente (che non hanno ancora il campo 'sequenceDays' salvato).
@@ -48,7 +49,7 @@ function messageForStep(step, f, studioName) {
 }
 
 export default async (req) => {
-  const licensesStore = getStore('licenses');
+  const licensesStore = licenseStore();
   const followupsStore = getStore('followups');
   const dataStore = getStore('studio-data');
 

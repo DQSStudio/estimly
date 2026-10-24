@@ -1,6 +1,7 @@
 import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
 import { syncQuoteToDesearqManager } from './desearq-sync.js';
+import { licenseStore } from './lib/licenze.js';
 
 // ===================== Collegamento Stripe (Estimly 2.0) =====================
 // Ogni studio collega il PROPRIO account Stripe (modello "connect your own account"):
@@ -423,7 +424,7 @@ export default async (req) => {
     body.key = auth.key;
   }
 
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   const dataStore = getStore('studio-data');
 
   try{

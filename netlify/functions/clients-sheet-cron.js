@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs';
+import { licenseStore } from './lib/licenze.js';
 
 // ===================== Rete di sicurezza per l'import clienti da Google Sheet =====================
 // Lo script agganciato al Google Form dovrebbe già chiamare clients-sheet-sync.js ad ogni invio
@@ -16,7 +17,7 @@ export default async () => {
     return new Response('ok', { status: 200 });
   }
 
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   for (const key of keys) {
     try {
       const license = await licenses.get(key, { type: 'json' });

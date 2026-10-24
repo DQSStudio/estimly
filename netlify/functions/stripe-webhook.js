@@ -1,5 +1,6 @@
 import { getStore } from '@netlify/blobs';
 import { markPaymentPaid } from './stripe-connect.js';
+import { licenseStore } from './lib/licenze.js';
 
 // ===================== Webhook Stripe (conferma pagamenti, Estimly 2.0) =====================
 // Perché serve: senza webhook, un pagamento viene segnato "pagato" solo quando il cliente
@@ -108,7 +109,7 @@ export default async (req) => {
   }
 
   const dataStore = getStore('studio-data');
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   try{
     await markPaymentPaid(dataStore, licenseKey, quoteId, paymentId, licenses);
   }catch(err){

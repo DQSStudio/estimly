@@ -12,6 +12,7 @@
 //  - changePassword  cambio della propria password
 import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
+import { licenseStore } from './lib/licenze.js';
 import {
   ROLE_KEYS, ROLE_LABELS, authorize, can, capsFor, createSession, destroySession, dummyVerify,
   generateStudioCode, getTeam, hashPassword, json, publicUser, saveTeam, sha256, teamHasUsers,
@@ -80,7 +81,7 @@ async function login(body) {
     await throttle.setJSON(tid, { n, last: Date.now(), until: n >= MAX_FAILS ? Date.now() + LOCK_MS : 0 });
     return json({ error: 'invalid_credentials' }, 401);
   }
-  const license = await getStore('licenses').get(studioKey, { type: 'json' });
+  const license = await licenseStore().get(studioKey, { type: 'json' });
   if (!license || license.status !== 'active') return json({ error: 'invalid_license' }, 401);
   await throttle.delete(tid).catch(() => {});
   const session = await createSession(studioKey, user);
@@ -100,7 +101,7 @@ async function bootstrap(body) {
   if (!EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400);
   if (password.length < 8) return json({ error: 'weak_password' }, 400);
 
-  const license = await getStore('licenses').get(key, { type: 'json' });
+  const license = await licenseStore().get(key, { type: 'json' });
   if (!license || license.status !== 'active') return json({ error: 'invalid_license' }, 401);
   const existing = await getTeam(key);
   if (teamHasUsers(existing)) return json({ error: 'already_activated' }, 409);

@@ -1,5 +1,6 @@
 import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
+import { licenseStore } from './lib/licenze.js';
 
 // Benchmark nel database unico della suite Desearq (accesso solo dal server, con la chiave secret).
 // Se la chiave della suite non è impostata su questo sito si usa ancora il vecchio database, così nulla si interrompe.
@@ -231,7 +232,7 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: 'missing key' }), { status: 400 });
   }
 
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   const license = await licenses.get(key, { type: 'json' });
   if (!license || license.status !== 'active') {
     return new Response(JSON.stringify({ error: 'invalid_license' }), { status: 401 });

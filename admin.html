@@ -53,6 +53,7 @@
 <body>
 <div class="wrap">
   <h1>Gestione licenze — DESEARQ Preventivatore</h1>
+  <div style="margin:8px 0 14px; font-size:13px; color:#6b6e78;">Le licenze si gestiscono ora anche dal Pannello Desearq. <button id="suiteImportBtn" class="secondary" style="padding:4px 10px; font-size:12px;">Importa le licenze nella suite</button> <span id="suiteImportOut"></span></div>
   <div class="sub">Pagina riservata: crea, controlla e revoca le chiavi di licenza dei clienti.</div>
 
   <div class="card" id="loginCard">
@@ -115,6 +116,19 @@ async function callAdmin(action, extra){
   if(res.status === 401) throw new Error('unauthorized');
   return res.json();
 }
+
+document.addEventListener('click', async (ev)=>{
+  if(ev.target && ev.target.id === 'suiteImportBtn'){
+    const out = document.getElementById('suiteImportOut');
+    if(!adminPassword){ out.textContent = 'Accedi prima.'; return; }
+    out.textContent = 'Importo…';
+    try{
+      const res = await fetch('/.netlify/functions/suite-import', { method:'POST', headers:{'x-admin-password': adminPassword} });
+      const d = await res.json();
+      out.textContent = d.ok ? ('Importate ' + d.totale + ' licenze: ' + d.risultati.map(r=>r.cliente + (r.ok?' ✓':' ✗ '+r.errore)).join(', ')) : ('Errore: ' + (d.error||res.status));
+    }catch(e){ out.textContent = 'Errore: ' + e.message; }
+  }
+});
 
 async function loadKeys(){
   const data = await callAdmin('list');

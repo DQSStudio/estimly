@@ -1,5 +1,6 @@
 import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
+import { licenseStore } from './lib/licenze.js';
 
 // Modello economico: adatto a compiti brevi e mirati come questi (non serve un modello più potente/costoso).
 const MODEL = 'claude-haiku-4-5-20251001';
@@ -61,7 +62,7 @@ export default async (req) => {
   }
 
   // 1) La licenza deve essere valida e avere EstimlyAI abilitato
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   const license = await licenses.get(key, { type: 'json' });
   if (!license || license.status !== 'active') {
     return new Response(JSON.stringify({ error: 'invalid_license' }), { status: 401 });

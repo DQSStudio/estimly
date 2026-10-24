@@ -9,6 +9,7 @@
 // il controllo vero è questo.
 import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
+import { licenseStore } from './licenze.js';
 
 export const ROLE_KEYS = ['admin', 'socio', 'segreteria', 'marketing', 'lettura'];
 export const ROLE_LABELS = {
@@ -165,7 +166,7 @@ export async function authorize(body, fn, opts = {}) {
   if (cap === undefined) cap = '*';
   if (opts.cap !== undefined) cap = opts.cap;
 
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
 
   if (/^SES-/i.test(raw)) {
     const m = /^SES-([0-9a-f]{48})$/i.exec(raw);

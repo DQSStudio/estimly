@@ -1,5 +1,6 @@
 import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
+import { licenseStore } from './lib/licenze.js';
 
 // Sequenza di default se lo studio non ne sceglie una diversa per il singolo preventivo
 // (vedi sanitizeSequenceDays): promemoria dopo 3, 7 e 14 giorni dall'attivazione.
@@ -76,7 +77,7 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: 'missing key' }), { status: 400 });
   }
 
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   const license = await licenses.get(key, { type: 'json' });
   if (!license || license.status !== 'active') {
     return new Response(JSON.stringify({ error: 'invalid_license' }), { status: 401 });

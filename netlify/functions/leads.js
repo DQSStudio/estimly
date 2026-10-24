@@ -1,5 +1,6 @@
 import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
+import { licenseStore } from './lib/licenze.js';
 
 // ===================== Lettura e gestione lead (Estimly 2.0) =====================
 // I lead vengono creati da inbound-lead.js (webhook Resend, nome/email letti dall'intestazione
@@ -42,7 +43,7 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: 'missing_key' }), { status: 400 });
   }
 
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   const license = await licenses.get(key, { type: 'json' });
   if (!license || license.status !== 'active') {
     return new Response(JSON.stringify({ error: 'invalid_license' }), { status: 401 });

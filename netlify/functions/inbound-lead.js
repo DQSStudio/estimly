@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs';
+import { licenseStore } from './lib/licenze.js';
 
 // ===================== Ricezione lead via mail (Estimly 2.0) =====================
 // Ogni studio configura la ricezione email sul proprio account Resend (lo stesso già usato
@@ -84,7 +85,7 @@ export default async (req) => {
 
   console.log(`[inbound-lead] webhook ricevuto per key=${key}, email_id=${payload.data && payload.data.email_id}`);
 
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   const license = await licenses.get(key, { type: 'json' });
   if (!license || license.status !== 'active') {
     console.log(`[inbound-lead] licenza non valida per key=${key}`);

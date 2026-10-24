@@ -21,6 +21,7 @@
 import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
 import { createHash } from 'node:crypto';
+import { licenseStore } from './lib/licenze.js';
 
 const SUITE_URL = process.env.SUITE_SUPABASE_URL || 'https://qudoygcfphqhhyenpwlr.supabase.co';
 
@@ -41,7 +42,7 @@ export default async (req) => {
   const key = (body.key || '').trim().toUpperCase();
   if (!key) return new Response(JSON.stringify({ error: 'missing_fields' }), { status: 400 });
 
-  const licenses = getStore('licenses');
+  const licenses = licenseStore();
   const license = await licenses.get(key, { type: 'json' });
   if (!license || license.status !== 'active') {
     return new Response(JSON.stringify({ error: 'invalid_license' }), { status: 200 });
