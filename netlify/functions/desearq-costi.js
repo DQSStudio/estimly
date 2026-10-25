@@ -70,7 +70,8 @@ export default async (req) => {
       ok: true,
       totaleAnnuo: row.totale_annuo,
       anno: row.anno || null,
-      updatedAt: row.updated_at
+      updatedAt: row.updated_at,
+      anni: Array.isArray(row.anni) ? row.anni.map(a => ({ anno: a.anno, totaleAnnuo: a.totale_annuo, updatedAt: a.updated_at })) : []
     }), { status: 200 });
   } catch (err) {
     return new Response(JSON.stringify({ error: 'server_error' }), { status: 200 });
