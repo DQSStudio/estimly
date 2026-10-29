@@ -973,7 +973,7 @@ body.estimly2-theme #agentCostOverlay.is-open{ display:flex; }
 #agentCostOverlay > *{ flex:none; }
 #agentCostOverlay .agent-mascot{ width:150px; height:150px; margin-top:auto; }
 #agentCostOverlay .acx-end{ margin-bottom:auto; }
-.acx-close{ position:absolute; top:20px; right:24px; font-size:12px; color:var(--e2-muted,#8C8776); background:none; border:0; cursor:pointer; font-family:inherit; text-decoration:underline; text-underline-offset:2px; }
+.acx-close{ position:absolute; top:20px; right:24px; font-size:15px; padding:10px 12px; z-index:2; color:var(--e2-muted,#8C8776); background:none; border:0; cursor:pointer; font-family:inherit; text-decoration:underline; text-underline-offset:2px; }
 .acx-input{ display:flex; align-items:center; gap:8px; width:300px; max-width:100%; background:var(--e2-surface,#fff); border:1px solid var(--e2-line,#E9E3D5); border-radius:999px; padding:6px 6px 6px 18px; }
 .acx-input input{ flex:1; min-width:0; border:0; outline:0; background:transparent; font-family:inherit; font-size:16px; color:var(--e2-ink,#16160F); }
 .acx-input span{ font-size:13px; color:var(--e2-muted,#8C8776); }
@@ -4401,7 +4401,7 @@ function maybeShowOnboardingGate(){
   if(!(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled)) return;
   // la procedura iniziale spetta a chi gestisce lo studio; gli altri ruoli non devono restarne bloccati
   if(window.E2Auth && window.E2Auth.role && ['admin','socio'].indexOf(window.E2Auth.role) < 0){ hideOnboardingGate(); return; }
-  if(studioSettings.tariffaOrariaBase){ hideOnboardingGate(); return; }
+  if(studioSettings.tariffaOrariaBase || studioSettings.tariffaOnboardingSaltata){ hideOnboardingGate(); return; }
   showOnboardingGate();
 }
 
@@ -11020,7 +11020,8 @@ if('serviceWorker' in navigator){
     if(!document.body.classList.contains('estimly2-theme')) return;
     const inGate = (typeof onboardingGateActive !== 'undefined' && onboardingGateActive);
     try{ window.scrollTo(0,0); document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; const g=document.getElementById('e2OnboardingGate'); if(g){ g.scrollTop=0; g.style.overflow='hidden'; } }catch(e){}
-    $('acxClose').style.display = inGate ? 'none' : ''; // nella prima attivazione non si può saltare la tariffa
+    $('acxClose').style.display = '';
+    $('acxClose').textContent = inGate ? 'Lo faccio dopo' : 'Chiudi'; // all'ingresso si può rimandare: il calcolo resta in "Costo orario"
     fromSummary = false;
     ov.classList.add('is-open');
     ov.scrollTop = 0;
@@ -11030,8 +11031,18 @@ if('serviceWorker' in navigator){
   }
   function close(){ ov.classList.remove('is-open'); try{ document.documentElement.style.overflow=''; document.body.style.overflow=''; const g=document.getElementById('e2OnboardingGate'); if(g) g.style.overflow=''; }catch(e){} }
 
-  $('acxClose').addEventListener('click', close);
-  document.addEventListener('keydown', e => { if(e.key === 'Escape' && ov.classList.contains('is-open') && !(typeof onboardingGateActive !== 'undefined' && onboardingGateActive)) close(); });
+  function closeOrSkip(){
+    const inGate = (typeof onboardingGateActive !== 'undefined' && onboardingGateActive);
+    close();
+    if(inGate){
+      studioSettings.tariffaOnboardingSaltata = true;
+      try{ saveStudioSettings(); scheduleCloudSave(); }catch(e){}
+      hideOnboardingGate();
+      if(typeof switchEstimly2Page === 'function') switchEstimly2Page('dashboard');
+    }
+  }
+  $('acxClose').addEventListener('click', closeOrSkip);
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && ov.classList.contains('is-open')) closeOrSkip(); });
   window.__openCostMascot = open;
   if(typeof onboardingGateActive !== 'undefined' && onboardingGateActive) open();
 })();
