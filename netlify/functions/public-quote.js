@@ -1,7 +1,7 @@
 import { authorize } from './lib/auth.js';
 import { getStore } from '@netlify/blobs';
 import { syncQuoteToDesearqManager } from './desearq-sync.js';
-import { normalizeCanvaUrl } from './canva-url.js';
+import { normalizeCanvaUrl, loadExtraHosts } from './canva-url.js';
 import { licenseStore } from './lib/licenze.js';
 
 // ===================== Pagina pubblica del preventivo (Estimly 2.0) =====================
@@ -385,7 +385,7 @@ async function downloadSignedDocument(licenses, dataStore, body){
 async function createPresentationLink(licenses, body){
   const key = (body.key || '').trim().toUpperCase();
   const leadId = body.leadId;
-  const canva = normalizeCanvaUrl(body.url);
+  const canva = normalizeCanvaUrl(body.url, await loadExtraHosts());
   if(!key || !leadId) return { error: 'missing_fields' };
   if(!canva) return { error: 'invalid_canva_url' };
 
@@ -414,7 +414,7 @@ async function getPresentation(licenses, dataStore, body){
   if(!link || link.kind !== 'presentazione') return { error: 'not_found' };
   const license = await licenses.get(link.key, { type: 'json' });
   if(!license || license.status !== 'active') return { error: 'not_found' };
-  const canva = normalizeCanvaUrl(link.url);
+  const canva = normalizeCanvaUrl(link.url, await loadExtraHosts());
   if(!canva) return { error: 'not_found' };
 
   const record = await loadStudioRecord(dataStore, link.key);

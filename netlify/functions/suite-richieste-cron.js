@@ -6,7 +6,7 @@
 // Se la suite non risponde non cambia nulla in Estimly: riprova al giro dopo.
 import { getStore } from '@netlify/blobs';
 import { licenseStore } from './lib/licenze.js';
-import { normalizeCanvaUrl } from './canva-url.js';
+import { normalizeCanvaUrl, loadExtraHosts } from './canva-url.js';
 
 export const config = { schedule: '*/5 * * * *' };
 
@@ -81,7 +81,7 @@ export default async () => {
         const entry = list.find((l) => l.id === r.lead_id);
         if (!entry) continue;
         if (r.da_allineare_presentazione && r.presentazione_url) {
-          const ok = normalizeCanvaUrl(r.presentazione_url);   // solo Canva o View, come nel resto di Estimly
+          const ok = normalizeCanvaUrl(r.presentazione_url, await loadExtraHosts());   // solo Canva o View, come nel resto di Estimly
           if (ok) entry.presentazioneUrl = ok.url;
           if (entry.fase === 'nuova' || entry.fase === 'contattato') porta(entry, 'presentazione_inviata', nowIso);
           entry.aggiornatoAt = nowIso;
