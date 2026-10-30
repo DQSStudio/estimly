@@ -2035,8 +2035,8 @@ body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-fon
       </div>
       <div class="e2-scheda-card" id="leadPresCard" style="display:none;">
         <div class="e2-scheda-label">Presentazione e follow-up</div>
-        <div style="font-size:12px; color:var(--ink-soft,#6B6D76); margin-bottom:10px; line-height:1.5;">Incolla il link di condivisione Canva (visualizzazione per chiunque abbia il link). Il cliente riceve un'email con una pagina che mostra la presentazione; da quel momento Estimly traccia la visualizzazione e manda i promemoria scelti, finché non invii il preventivo.</div>
-        <input type="url" id="leadPresUrl" class="e2-lead-edit-input" style="width:100%; box-sizing:border-box; margin-bottom:10px;" placeholder="https://www.canva.com/design/.../view">
+        <div style="font-size:12px; color:var(--ink-soft,#6B6D76); margin-bottom:10px; line-height:1.5;">Incolla il link di condivisione Canva (visualizzazione per chiunque abbia il link) oppure un link di accesso a View. Il cliente riceve un'email con una pagina che mostra la presentazione (con View, un pulsante che la apre); da quel momento Estimly traccia la visualizzazione e manda i promemoria scelti, finché non invii il preventivo.</div>
+        <input type="url" id="leadPresUrl" class="e2-lead-edit-input" style="width:100%; box-sizing:border-box; margin-bottom:10px;" placeholder="https://www.canva.com/design/.../view  oppure  https://dsqview.netlify.app/?s=...">
         <div id="leadPresConfig">
           <div style="font-size:11px; color:var(--ink-soft); margin-bottom:6px;">Promemoria automatici — dopo quanti giorni dall'invio:</div>
           <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px;">
@@ -6402,7 +6402,7 @@ function buildPresentationEmailHtml(lead, linkUrl){
 async function ensurePresentationLink(lead){
   const key = getLicenseKey();
   const url = document.getElementById('leadPresUrl').value.trim();
-  if(!url){ alert('Incolla prima il link di condivisione della presentazione Canva.'); return null; }
+  if(!url){ alert('Incolla prima il link della presentazione (Canva oppure un link di accesso a View).'); return null; }
   try{
     const res = await fetch('/.netlify/functions/public-quote', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -6415,7 +6415,7 @@ async function ensurePresentationLink(lead){
       return `${window.location.origin}/presentazione.html?t=${data.token}`;
     }
     if(data && data.error === 'invalid_canva_url'){
-      alert('Il link non sembra una presentazione Canva: deve iniziare con https://www.canva.com/ (oppure https://canva.link/).');
+      alert('Il link non è valido: deve iniziare con https://www.canva.com/ (oppure https://canva.link/) o con https://dsqview.netlify.app/ (link di accesso a View).');
     } else {
       alert('Non sono riuscito a generare il link della presentazione (' + ((data && data.error) || 'errore') + '). Riprova tra poco.');
     }
