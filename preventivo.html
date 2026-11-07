@@ -88,6 +88,15 @@
   .pd-nota{ font-size:10px; color:#777; font-style:italic; margin-top:7px; text-align:right; }
   .pd-payment{ font-size:11px; color:#444; margin-top:14px; padding-top:9px; border-top:1px dashed #ccc; }
 
+  /* Allegati: contratto e pagine extra (stesso aspetto del PDF dello studio). */
+  .pd-attach{ margin-top:26px; padding-top:18px; border-top:2px solid var(--accent); }
+  .cert-wrap .pd-contract-page{ margin-top:0; border-top:0; padding-top:0; }
+  .pd-attach .pd-attach-head{ margin-bottom:12px; }
+  .pd-contract-body, .pd-extra-pages-body{ font-size:12.5px; line-height:1.6; color:#222; }
+  .pd-contract-h2{ font-size:14px; margin:18px 0 8px; color:#111; font-weight:700; }
+  .pd-contract-p, .pd-extra-p{ margin:0 0 10px; }
+  .pd-line{ display:block; }
+  .pd-pagebreak{ height:0; margin:0; padding:0; border:0; }
   .cert-sign-box{ margin-top:22px; border:1.5px solid #E6E6E9; border-radius:12px; padding:16px 18px; }
   .cert-sign-box .h{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:#7A7C85; margin-bottom:10px; }
   .cert-meta-row{ display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0; gap:14px; }
@@ -287,8 +296,52 @@
   // con logo/dati studio, blocchi cliente/progetto, tabella voci per categoria (codice, descrizione,
   // qtà/ore, prezzo unitario, totale) e riepilogo totali. Usata sia per la vista online (dentro
   // #app) sia, con signatureHtml valorizzato, per il PDF scaricabile dopo la firma.
+  // Testo semplice -> paragrafi (righe vuote) con ogni riga a capo come blocco a sé: serve sia a
+  // tenere lo stesso aspetto del PDF dello studio sia a poter spezzare le pagine del PDF tra una riga e l'altra.
+  function textToBlocksHtml(text, pClass){
+    return String(text || '').split(/\n{2,}/).map(par => par.trim() ? `<div class="${pClass}">${par.split('\n').map(r => `<span class="pd-line">${esc(r) || '&nbsp;'}</span>`).join('')}</div>` : '').join('');
+  }
+
+  function buildStudioHeaderHtml(studio, title, metaRows, forPdf){
+    const useLH = studio.letterheadMode === 'custom' && !!studio.letterheadHeader;
+    const grid = metaRows.map(r => `<span>${esc(r[0])}</span><b>${esc(r[1])}</b>`).join('');
+    if(useLH){
+      return `${forPdf ? '' : `<img src="${studio.letterheadHeader}" alt="" class="pd-letterhead-header">`}
+        <div class="pd-meta pd-meta-standalone pd-attach-head"><div class="pd-doc-title">${esc(title)}</div><div class="pd-meta-grid">${grid}</div></div>`;
+    }
+    const studioBits = [studio.indirizzo, studio.piva?('P.IVA '+studio.piva):'', studio.telefono, studio.email].filter(Boolean).map(esc).join(' &middot; ');
+    return `<div class="pd-accent-bar"></div>
+      <div class="pd-header pd-attach-head">
+        <div class="pd-brand">
+          ${studio.logo ? `<img src="${studio.logo}" alt="" class="pd-logo">` : ''}
+          <div class="pd-brand-name">${esc(studio.nome || 'Studio')}</div>
+          ${studioBits ? `<div class="pd-brand-sub">${studioBits}</div>` : ''}
+        </div>
+        <div class="pd-meta"><div class="pd-doc-title">${esc(title)}</div><div class="pd-meta-grid">${grid}</div></div>
+      </div>`;
+  }
+
+  // Contratto scelto dallo studio e pagine extra: parte del documento che il cliente vede e firma.
+  function buildAttachmentsHtml(studio, quote, forPdf){
+    const dataLabel = quote.data ? new Date(quote.data+'T00:00:00').toLocaleDateString('it-IT') : '—';
+    let contract = '';
+    const c = quote.contratto;
+    if(c && Array.isArray(c.sections) && c.sections.length){
+      const body = c.sections.map(sec => `${sec.titolo ? `<h2 class="pd-contract-h2">${esc(sec.titolo)}</h2>` : ''}${textToBlocksHtml(sec.corpo, 'pd-contract-p')}`).join('');
+      contract = `${forPdf ? '' : '<div class="pd-pagebreak"></div>'}<div class="pd-attach pd-contract-page">
+        ${buildStudioHeaderHtml(studio, 'Contratto', [['Rif. preventivo', quote.numero || '—'], ['Data', dataLabel]], forPdf)}
+        <div class="pd-contract-body">${body}</div></div><div class="pd-pagebreak"></div>`;
+    }
+    const extras = (Array.isArray(quote.pagineExtra) ? quote.pagineExtra : []);
+    const extraHtml = extras.map((testo, idx) => `<div class="pd-pagebreak"></div><div class="pd-attach pd-extra-pages">
+        ${buildStudioHeaderHtml(studio, 'Allegato', [['Rif. preventivo', quote.numero || '—'], ['Pagina', `${idx+1} di ${extras.length}`]], forPdf)}
+        <div class="pd-extra-pages-body">${textToBlocksHtml(testo, 'pd-extra-p')}</div></div>`).join('');
+    return { contract, extras: extraHtml };
+  }
+
   function buildQuoteDocumentHtml(studio, quote, signatureHtml, opts){
     const forPdf = !!(opts && opts.forPdf);
+    const attach = buildAttachmentsHtml(studio, quote, forPdf);
     const useLH = studio.letterheadMode === 'custom' && !!studio.letterheadHeader;
     const totals = computeTotals(quote);
     const dataLabel = quote.data ? new Date(quote.data+'T00:00:00').toLocaleDateString('it-IT') : '—';
@@ -323,7 +376,7 @@
       });
     }
 
-    const totalsHtml = hidePrices ? '' : `
+    const totalsHtml = `
       <div class="pd-totals">
         <div class="pd-total-row"><span>Imponibile</span><span>€ ${fmt(totals.imponibile)}</span></div>
         ${totals.sconto > 0 ? `<div class="pd-total-row"><span>Sconto</span><span>− € ${fmt(totals.sconto)}</span></div>` : ''}
@@ -377,6 +430,7 @@
 
     return `
       <div ${rootAttrs}>
+      ${forPdf ? attach.contract : ''}
       ${headerHtml}
       <div class="pd-parties">
         <div class="pd-party">
@@ -396,6 +450,8 @@
       ${totalsHtml}
       ${totals.regime.nota ? `<div class="pd-nota">${esc(totals.regime.nota)}</div>` : ''}
       ${paymentHtml}
+      ${forPdf ? '' : attach.contract}
+      ${attach.extras}
       ${signatureHtml || ''}
       ${footerHtml}
       </div>
@@ -575,10 +631,10 @@
 
   function collectBreakPoints(node, scale){
     const top = node.getBoundingClientRect().top;
-    const sel = 'tr, .pd-meta-standalone, .pd-header, .pd-parties, .pd-totals, .pd-nota, .pd-payment, .cert-sign-box';
+    const sel = 'tr, .pd-meta-standalone, .pd-header, .pd-parties, .pd-totals, .pd-nota, .pd-payment, .cert-sign-box, .pd-line, .pd-contract-h2';
     const pts = Array.from(node.querySelectorAll(sel)).map(el => ({
       bottom: Math.round((el.getBoundingClientRect().bottom - top) * scale),
-      isCat: el.classList.contains('pd-cat-row')
+      isCat: el.classList.contains('pd-cat-row') || el.classList.contains('pd-contract-h2')
     })).filter(p => p.bottom > 0);
     pts.sort((a, b) => a.bottom - b.bottom);
     return pts;
@@ -625,6 +681,11 @@
       const tableBottom = tableEl ? Math.round((tableEl.getBoundingClientRect().bottom - nodeTop) * scale) : 0;
       const stripH = theadBottom - theadTop;
 
+      // Inizio di contratto / pagine extra: ricominciano sempre da una pagina nuova.
+      const forced = Array.from(node.querySelectorAll('.pd-pagebreak'))
+        .map(el => Math.round((el.getBoundingClientRect().top - nodeTop) * scale))
+        .filter(y => y > 0 && y < canvas.height).sort((a, b) => a - b);
+
       let start = 0, pageIdx = 0;
       while(start < canvas.height){
         const needStrip = theadEl && pageIdx > 0 && start >= theadBottom && start < tableBottom;
@@ -643,6 +704,8 @@
           }
           if(idx >= 0) end = pts[idx].bottom;
         }
+        const fb = forced.find(y => y > start + 8 && y < end);
+        if(fb) end = fb;
         const sliceH = end - start;
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = canvas.width;

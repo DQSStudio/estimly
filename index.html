@@ -96,7 +96,12 @@ body.estimly2-theme #e2Sidebar{
   font-family:var(--e2-font);
 }
 body.estimly2-theme{ padding-left:212px; }
-@media print{ body.estimly2-theme{ padding-left:0 !important; } #e2Sidebar{ display:none !important; } }
+@media print{
+  body.estimly2-theme{ padding-left:0 !important; padding-top:0 !important; }
+  /* nel PDF deve comparire solo il documento: niente barra superiore, avvisi, suggerimenti, pulsanti flottanti, assistente */
+  #e2Sidebar, #e2MobBar, #e2Scrim, #editingQuoteBar, #aiSuggestPanel, .e2-pv-actions, .e2-page-head, .e2ph-card,
+  #agentBubbleWrap, #agentWelcomeToast, #agentPanel, #agentOnboarding, #agentCostOverlay{ display:none !important; }
+}
 
 /* ===================== Onboarding obbligatorio "Costo orario" all'ingresso in Estimly 2.0 ===================== */
 #e2OnboardingGate{
@@ -3616,6 +3621,8 @@ function currentQuoteState(){
       sconto: parseFloat(document.getElementById('fSconto').value)||0,
       notePagamento: document.getElementById('fNotePagamento').value,
       pagineExtra: extraPages.map(p=>p.testo),
+      contrattoId: (document.getElementById('contractTemplateSelect')||{}).value || '',
+      contratto: buildContractSnapshot(),
       contributoLabel: document.getElementById('fContributoLabel').value,
       contributoPct: parseFloat(document.getElementById('fContributoPct').value) || 0,
       regime: document.getElementById('fRegime').value,
@@ -4260,6 +4267,7 @@ function loadQuoteById(id){
   document.getElementById('fHidePrices').checked = !!c.hidePrices;
   document.getElementById('fNotePagamento').value = c.notePagamento || '';
   extraPages = normalizeExtraPages(c.pagineExtra); renderExtraPages();
+  setContractSelection(c.contrattoId || '');
   document.getElementById('fContributoLabel').value = c.contributoLabel || '';
   document.getElementById('fContributoPct').value = c.contributoPct ?? 0;
   document.getElementById('fRegime').value = c.regime || 'ord22';
@@ -4858,6 +4866,31 @@ function substitutePlaceholders(text, data){
     out = out.split('{' + key + '}').join(escapeHtml(String(data[key])));
   });
   return out;
+}
+
+// Fotografia del contratto scelto, con i segnaposto già sostituiti (testo semplice): viene salvata
+// nel preventivo così il cliente lo vede e lo firma insieme al preventivo dal link online
+// (preventivo.html), esattamente com'è nel PDF dello studio.
+function buildContractSnapshot(){
+  const sel = document.getElementById('contractTemplateSelect');
+  const templateId = sel ? sel.value : '';
+  if(!templateId) return null;
+  const template = (studioSettings.contractTemplates||[]).find(t=>t.id===templateId);
+  if(!template) return null;
+  const data = getContractData();
+  const sub = txt => { let out = txt || ''; Object.keys(data).forEach(k=>{ out = out.split('{'+k+'}').join(String(data[k])); }); return out; };
+  const sections = (template.sections||[])
+    .map(sec => ({ titolo: sub(sec.titolo).trim(), corpo: sub(sec.corpo).trim() }))
+    .filter(sec => sec.titolo || sec.corpo);
+  if(!sections.length) return null;
+  return { nome: template.nome || 'Contratto', sections };
+}
+function setContractSelection(id){
+  const sel = document.getElementById('contractTemplateSelect');
+  if(!sel) return;
+  const ok = id && (studioSettings.contractTemplates||[]).some(t=>t.id===id);
+  sel.value = ok ? id : '';
+  sel.dispatchEvent(new Event('change'));
 }
 
 function buildContractPrintHtml(template, skipImages){
@@ -6126,6 +6159,7 @@ function resetQuoteFormFields(){
   document.getElementById('fHidePrices').checked = false;
   document.getElementById('fNotePagamento').value = '';
   extraPages = []; if(typeof renderExtraPages==='function') renderExtraPages();
+  if(typeof setContractSelection==='function') setContractSelection('');
   document.getElementById('fContributoLabel').value = '';
   document.getElementById('fContributoPct').value = 0;
   document.getElementById('fRegime').value = 'ord22';
@@ -7285,6 +7319,7 @@ async function initStorage(){
       document.getElementById('fHidePrices').checked = !!(d.client?.hidePrices);
       document.getElementById('fNotePagamento').value = d.client?.notePagamento || '';
       extraPages = normalizeExtraPages(d.client?.pagineExtra); renderExtraPages();
+      setContractSelection(d.client?.contrattoId || '');
       document.getElementById('fContributoLabel').value = d.client?.contributoLabel || '';
       document.getElementById('fContributoPct').value = d.client?.contributoPct ?? 0;
       document.getElementById('fRegime').value = d.client?.regime || 'ord22';
@@ -7355,6 +7390,7 @@ async function saveDraft(){
       sconto: parseFloat(document.getElementById('fSconto').value)||0,
       notePagamento: document.getElementById('fNotePagamento').value,
       pagineExtra: extraPages.map(p=>p.testo),
+      contrattoId: (document.getElementById('contractTemplateSelect')||{}).value || '',
       contributoLabel: document.getElementById('fContributoLabel').value,
       contributoPct: parseFloat(document.getElementById('fContributoPct').value) || 0,
       regime: document.getElementById('fRegime').value,
@@ -8222,6 +8258,7 @@ document.getElementById('resetBtn').addEventListener('click', async ()=>{
   document.getElementById('fHidePrices').checked=false;
   document.getElementById('fNotePagamento').value='';
   extraPages = []; renderExtraPages();
+  setContractSelection('');
   document.getElementById('fContributoLabel').value='';
   document.getElementById('fContributoPct').value=0;
   document.getElementById('fRegime').value='ord22';

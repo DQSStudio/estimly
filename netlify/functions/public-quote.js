@@ -35,8 +35,31 @@ function getClientIp(req){
 
 // Contenuto "canonico" del preventivo su cui calcolare l'impronta (hash) firmata dal cliente:
 // se anche un solo importo/voce cambia dopo la firma, l'hash non corrisponde più.
+// Allegati del preventivo (pagine extra e contratto): fanno parte di ciò che il cliente vede e firma,
+// quindi finiscono sia nella vista pubblica sia nell'impronta. Testo semplice, con limiti di sicurezza.
+function cleanAttachments(client){
+  const txt = (v, max) => String(v == null ? '' : v).slice(0, max);
+  const pagineExtra = (Array.isArray(client?.pagineExtra) ? client.pagineExtra : [])
+    .map(t => txt(t, 20000).trim()).filter(Boolean).slice(0, 20);
+  let contratto = null;
+  const c = client?.contratto;
+  if(c && Array.isArray(c.sections)){
+    const sections = c.sections.slice(0, 80)
+      .map(sec => ({ titolo: txt(sec?.titolo, 400).trim(), corpo: txt(sec?.corpo, 20000).trim() }))
+      .filter(sec => sec.titolo || sec.corpo);
+    if(sections.length) contratto = { nome: txt(c.nome, 200) || 'Contratto', sections };
+  }
+  return { pagineExtra, contratto };
+}
+
 function canonicalQuoteContent(quote){
+  const att = cleanAttachments(quote.client);
+  const extra = {};
+  // Aggiunti solo se presenti, così le impronte dei preventivi senza allegati restano identiche a prima.
+  if(att.pagineExtra.length) extra.pagineExtra = att.pagineExtra;
+  if(att.contratto) extra.contratto = att.contratto;
   return JSON.stringify({
+    ...extra,
     numero: quote.client?.numero || '',
     revisione: quote.client?.revisione || '',
     cliente: quote.client?.cliente || '',
@@ -112,6 +135,7 @@ function sanitizeQuote(q){
     regime: q.client?.regime || 'ord22',
     aliquotaCustom: q.client?.aliquotaCustom || 22,
     hidePrices: !!q.client?.hidePrices,
+    ...cleanAttachments(q.client),
     concluso: !!q.concluso,
     firma: q.client?.firma ? {
       firmato: true,
