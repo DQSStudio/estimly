@@ -330,7 +330,7 @@
   }
 
   // Contratto scelto dallo studio e pagine extra: parte del documento che il cliente vede e firma.
-  function buildAttachmentsHtml(studio, quote, forPdf){
+  function buildAttachmentsHtml(studio, quote, forPdf, contractSignHtml){
     const dataLabel = quote.data ? new Date(quote.data+'T00:00:00').toLocaleDateString('it-IT') : '—';
     let contract = '';
     const c = quote.contratto;
@@ -338,7 +338,7 @@
       const body = c.sections.map(sec => `${sec.titolo ? `<h2 class="pd-contract-h2">${esc(sec.titolo)}</h2>` : ''}${textToBlocksHtml(sec.corpo, 'pd-contract-p')}`).join('');
       contract = `<div class="pd-pagebreak"></div><div class="pd-attach pd-contract-page">
         ${buildStudioHeaderHtml(studio, 'Contratto', [['Rif. preventivo', quote.numero || '—'], ['Data', dataLabel]], forPdf)}
-        <div class="pd-contract-body">${body}</div></div><div class="pd-pagebreak"></div>`;
+        <div class="pd-contract-body">${body}</div>${contractSignHtml || ''}</div><div class="pd-pagebreak"></div>`;
     }
     const extras = (Array.isArray(quote.pagineExtra) ? quote.pagineExtra : []);
     const extraHtml = extras.map((testo, idx) => `<div class="pd-pagebreak"></div><div class="pd-attach pd-extra-pages">
@@ -349,7 +349,7 @@
 
   function buildQuoteDocumentHtml(studio, quote, signatureHtml, opts){
     const forPdf = !!(opts && opts.forPdf);
-    const attach = buildAttachmentsHtml(studio, quote, forPdf);
+    const attach = buildAttachmentsHtml(studio, quote, forPdf, opts && opts.sigContractHtml);
     const useLH = studio.letterheadMode === 'custom' && !!studio.letterheadHeader;
     const totals = computeTotals(quote);
     const dataLabel = quote.data ? new Date(quote.data+'T00:00:00').toLocaleDateString('it-IT') : '—';
@@ -457,6 +457,7 @@
       ${totalsHtml}
       ${totals.regime.nota ? `<div class="pd-nota">${esc(totals.regime.nota)}</div>` : ''}
       ${paymentHtml}
+      ${(opts && opts.sigQuoteHtml) || ''}
       ${attach.contract}
       ${attach.extras}
       ${signatureHtml || ''}
@@ -590,27 +591,37 @@
   // con in più il blocco di firma "in calce": così il PDF che il cliente scarica dopo aver
   // firmato è riconoscibile come il preventivo stesso, non un certificato a parte riassuntivo
   // come in precedenza.
-  function buildSignedDocumentNode(studio, quote){
-    const firma = quote.firma || {};
+  function signBoxHtml(firma, titolo, oggetto){
+    firma = firma || {};
     const firmatoLabel = firma.firmatoAt ? new Date(firma.firmatoAt).toLocaleString('it-IT') : '—';
     const metodoLabel = firma.metodo === 'disegnata' ? 'Firma disegnata' : 'Nome digitato';
-
-    const signatureHtml = `
+    return `
       <div class="cert-sign-box">
-        <div class="h">Firma e accettazione</div>
+        <div class="h">${esc(titolo)}</div>
         <div class="cert-meta-row"><span class="k">Firmatario</span><span class="v">${esc(firma.firmatarioNome || '—')}</span></div>
         <div class="cert-meta-row"><span class="k">Metodo</span><span class="v">${esc(metodoLabel)}</span></div>
         <div class="cert-meta-row"><span class="k">Data e ora</span><span class="v">${esc(firmatoLabel)}</span></div>
         ${firma.ip ? `<div class="cert-meta-row"><span class="k">Indirizzo IP</span><span class="v">${esc(firma.ip)}</span></div>` : ''}
         ${firma.hashDocumento ? `<div class="cert-meta-row stack"><span class="k">Impronta documento (SHA-256)</span><span class="v" style="font-family:monospace; font-size:10.5px;">${esc(firma.hashDocumento)}</span></div>` : ''}
         ${(firma.metodo === 'disegnata' && firma.firmaImage) ? `<img class="cert-sign-img" src="${firma.firmaImage}" alt="Firma">` : ''}
-        <div class="cert-legal">Firma elettronica semplice (SES) ai sensi del Regolamento eIDAS (UE) 910/2014, art. 25. Data/ora, indirizzo IP e impronta del documento sono stati registrati al momento della firma come prova dell'accettazione del preventivo sopra riportato.</div>
-      </div>
-    `;
+        <div class="cert-legal">Firma elettronica semplice (SES) ai sensi del Regolamento eIDAS (UE) 910/2014, art. 25. Data/ora, indirizzo IP e impronta del documento sono stati registrati al momento della firma come prova dell'accettazione ${esc(oggetto)}.</div>
+      </div>`;
+  }
+
+  function buildSignedDocumentNode(studio, quote){
+    const hasContract = !!(quote.contratto && Array.isArray(quote.contratto.sections) && quote.contratto.sections.length);
+    let docOpts = { forPdf: true }, signatureHtml = '';
+    if(hasContract){
+      // Due firme: una sotto il preventivo e una in fondo al contratto.
+      docOpts.sigQuoteHtml = signBoxHtml(quote.firma, 'Firma e accettazione del preventivo', 'del preventivo sopra riportato');
+      docOpts.sigContractHtml = signBoxHtml(quote.firmaContratto, 'Firma e accettazione del contratto', 'del contratto qui riportato');
+    } else {
+      signatureHtml = signBoxHtml(quote.firma, 'Firma e accettazione', 'del preventivo sopra riportato');
+    }
 
     const node = document.createElement('div');
     node.className = 'cert-wrap';
-    node.innerHTML = buildQuoteDocumentHtml(studio, quote, signatureHtml, { forPdf: true });
+    node.innerHTML = buildQuoteDocumentHtml(studio, quote, signatureHtml, docOpts);
     node.style.cssText = 'position:absolute; left:-10000px; top:0; z-index:-1;';
     document.body.appendChild(node);
     return node;
@@ -788,24 +799,40 @@
 
   function renderSignArea(quote){
     const area = document.getElementById('signArea');
-    if(quote.firma && quote.firma.firmato){
-      const firmatoLabel = quote.firma.firmatoAt ? new Date(quote.firma.firmatoAt).toLocaleString('it-IT') : '';
-      area.innerHTML = `
+    const hasContract = !!(quote.contratto && Array.isArray(quote.contratto.sections) && quote.contratto.sections.length);
+    const quoteSigned = !!(quote.firma && quote.firma.firmato);
+    const contractSigned = !!(quote.firmaContratto && quote.firmaContratto.firmato);
+    const badge = (firma, testo) => `
         <div class="signed-badge">
           <span>✓</span>
           <div>
-            Preventivo firmato da ${esc(quote.firma.firmatarioNome)}
-            <div class="signed-sub">${firmatoLabel}</div>
-            <button type="button" class="signed-download-btn" id="downloadSignedBtn">Scarica il documento firmato (PDF)</button>
+            ${testo} ${esc(firma.firmatarioNome)}
+            <div class="signed-sub">${firma.firmatoAt ? new Date(firma.firmatoAt).toLocaleString('it-IT') : ''}</div>
           </div>
         </div>`;
+
+    if(quoteSigned && (!hasContract || contractSigned)){
+      area.innerHTML = `
+        ${badge(quote.firma, hasContract ? 'Preventivo firmato da' : 'Preventivo firmato da')}
+        ${hasContract ? badge(quote.firmaContratto, 'Contratto firmato da') : ''}
+        <div class="signed-badge"><div><button type="button" class="signed-download-btn" id="downloadSignedBtn">Scarica il documento firmato (PDF)</button></div></div>`;
       const dlBtn = document.getElementById('downloadSignedBtn');
       if(dlBtn) dlBtn.addEventListener('click', ()=>downloadSignedDocumentPublic(dlBtn));
       return;
     }
 
+    // Con un contratto allegato servono due firme, una dopo l'altra: prima il preventivo, poi il contratto.
+    const scope = quoteSigned ? 'contratto' : 'preventivo';
+    const titolo = !hasContract ? 'Firma per accettazione'
+      : (scope === 'preventivo' ? 'Firma 1 di 2 — accettazione del preventivo' : 'Firma 2 di 2 — accettazione del contratto');
+    const accetto = scope === 'contratto'
+      ? 'Ho letto e accetto il contratto allegato.'
+      : 'Ho letto e accetto le condizioni del preventivo e i termini di pagamento indicati.';
+    const btnLabel = !hasContract ? 'Conferma e firma' : (scope === 'preventivo' ? 'Conferma e firma il preventivo' : 'Conferma e firma il contratto');
+
     area.innerHTML = `
-      <div class="section-label">Firma per accettazione</div>
+      ${quoteSigned ? badge(quote.firma, 'Preventivo firmato da') : ''}
+      <div class="section-label">${titolo}</div>
       <div class="sign-pad-wrap" id="signPadWrap">
         <canvas id="signCanvas"></canvas>
         <div class="sign-hint" id="signHint">Firma qui col dito o col mouse</div>
@@ -820,17 +847,17 @@
       </div>
       <label class="check-row">
         <input type="checkbox" id="acceptCheck">
-        <span>Ho letto e accetto le condizioni del preventivo e i termini di pagamento indicati.</span>
+        <span>${accetto}</span>
       </label>
-      <button type="button" class="btn-primary" id="confirmSignBtn" disabled>Conferma e firma</button>
+      <button type="button" class="btn-primary" id="confirmSignBtn" data-label="${esc(btnLabel)}" disabled>${esc(btnLabel)}</button>
       <div class="hint-row">Firma elettronica semplice ai sensi del Regolamento eIDAS (UE) 910/2014 — data/ora, indirizzo IP e impronta del documento vengono registrati come prova. Riceverai una conferma via email.</div>
       <div id="signErrorBox"></div>
     `;
 
-    setupSignaturePad(quote);
+    setupSignaturePad(quote, scope);
   }
 
-  function setupSignaturePad(quote){
+  function setupSignaturePad(quote, scope){
     const canvas = document.getElementById('signCanvas');
     const wrap = document.getElementById('signPadWrap');
     const hint = document.getElementById('signHint');
@@ -931,25 +958,31 @@
       try{
         const res = await fetch('/.netlify/functions/public-quote', {
           method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ mode:'sign', token, firmatarioNome, metodo, firmaImage, accettaCondizioni:true })
+          body: JSON.stringify({ mode:'sign', token, scope: scope === 'contratto' ? 'contratto' : undefined, firmatarioNome, metodo, firmaImage, accettaCondizioni:true })
         });
         const data = await res.json();
         if(data.error){
           errBox.innerHTML = `<div class="error-box">Non è stato possibile registrare la firma. Riprova o contatta lo studio.</div>`;
-          btn.disabled = false; btn.textContent = 'Conferma e firma';
+          btn.disabled = false; btn.textContent = btn.getAttribute('data-label') || 'Conferma e firma';
           return;
         }
-        quote.firma = { firmato:true, firmatarioNome, firmatoAt:data.firmatoAt, metodo, firmaImage, ip:data.ip, hashDocumento:data.hashDocumento };
+        const nuovaFirma = { firmato:true, firmatarioNome, firmatoAt:data.firmatoAt, metodo, firmaImage, ip:data.ip, hashDocumento:data.hashDocumento };
+        if(scope === 'contratto') quote.firmaContratto = nuovaFirma; else quote.firma = nuovaFirma;
+        const hasContract = !!(quote.contratto && Array.isArray(quote.contratto.sections) && quote.contratto.sections.length);
+        const complete = !!(quote.firma && quote.firma.firmato) && (!hasContract || !!(quote.firmaContratto && quote.firmaContratto.firmato));
         renderSignArea(quote);
         renderPaymentsArea(quote);
-        // Genera e conserva il documento di accettazione firmato: non deve bloccare né
-        // rallentare la conferma già mostrata al cliente, per questo non è "await"-ato qui.
-        generateSignedDocumentPdf(currentStudio, quote).then(pdf => {
-          if(pdf) storeSignedDocument(pdf.base64);
-        });
+        if(!complete){ window.scrollTo({ top: document.getElementById('signArea').getBoundingClientRect().top + window.scrollY - 20, behavior:'smooth' }); }
+        // Genera e conserva il documento firmato solo quando le firme sono complete: non deve
+        // bloccare né rallentare la conferma già mostrata al cliente, per questo non è "await"-ato.
+        if(complete){
+          generateSignedDocumentPdf(currentStudio, quote).then(pdf => {
+            if(pdf) storeSignedDocument(pdf.base64);
+          });
+        }
       }catch(err){
         errBox.innerHTML = '<div class="error-box">Errore di connessione. Riprova.</div>';
-        btn.disabled = false; btn.textContent = 'Conferma e firma';
+        btn.disabled = false; btn.textContent = btn.getAttribute('data-label') || 'Conferma e firma';
       }
     });
   }

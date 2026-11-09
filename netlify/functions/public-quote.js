@@ -143,6 +143,14 @@ function sanitizeQuote(q){
       firmatarioNome: q.client.firma.firmatarioNome,
       metodo: q.client.firma.metodo
     } : { firmato: false },
+    // Seconda firma, solo per i preventivi con contratto allegato: il cliente firma prima il
+    // preventivo e poi il contratto (stessa struttura della firma del preventivo).
+    firmaContratto: q.client?.firmaContratto ? {
+      firmato: true,
+      firmatoAt: q.client.firmaContratto.firmatoAt,
+      firmatarioNome: q.client.firmaContratto.firmatarioNome,
+      metodo: q.client.firmaContratto.metodo
+    } : { firmato: false },
     // Richieste di pagamento (SAL) create dallo studio dopo la firma: qui esponiamo solo
     // i campi utili al cliente, mai gli identificativi interni di Stripe.
     pagamenti: (Array.isArray(q.client?.pagamenti) ? q.client.pagamenti : []).map(p => ({
@@ -253,6 +261,26 @@ async function signPublicQuote(licenses, dataStore, body, req){
   if(idx === -1) return { error: 'not_found' };
 
   const quote = savedQuotes[idx];
+  if(body.scope === 'contratto'){
+    // Seconda firma: quella sul contratto allegato. Richiede un contratto nel preventivo e la
+    // firma del preventivo già registrata; non si può firmare due volte.
+    if(!cleanAttachments(quote.client).contratto) return { error: 'nessun_contratto' };
+    if(!quote.client || !quote.client.firma || quote.client.firma.firmato === false) return { error: 'firma_preventivo_mancante' };
+    if(quote.client.firmaContratto && quote.client.firmaContratto.firmato !== false) return { error: 'already_signed' };
+    const firmaContratto = {
+      firmato: true,
+      firmatarioNome,
+      metodo,
+      firmaImage: metodo === 'disegnata' ? (body.firmaImage || '').slice(0, 200000) : '',
+      firmatoAt: new Date().toISOString(),
+      ip: getClientIp(req),
+      hashDocumento: await sha256Hex(canonicalQuoteContent(quote))
+    };
+    quote.client = { ...quote.client, firmaContratto };
+    savedQuotes[idx] = quote;
+    await saveStudioRecord(dataStore, link.key, { ...record, savedQuotes });
+    return { ok: true, firmatoAt: firmaContratto.firmatoAt, ip: firmaContratto.ip, hashDocumento: firmaContratto.hashDocumento };
+  }
   if(quote.client && quote.client.firma && quote.client.firma.firmato !== false){
     // Già firmato: non si può firmare due volte lo stesso preventivo.
     return { error: 'already_signed' };
@@ -347,6 +375,10 @@ async function storeSignedDocument(licenses, dataStore, body){
   if(!quote.client || !quote.client.firma || !quote.client.firma.firmato){
     // Si può conservare un documento firmato solo per un preventivo che risulta davvero firmato.
     return { error: 'non_firmato' };
+  }
+  if(cleanAttachments(quote.client).contratto && !(quote.client.firmaContratto && quote.client.firmaContratto.firmato)){
+    // Con un contratto allegato il documento firmato si conserva solo a firme complete.
+    return { error: 'contratto_non_firmato' };
   }
 
   let bytes;
