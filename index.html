@@ -3737,8 +3737,16 @@ function quoteEsito(q){
 let quoteSchedaCurrentId = null;
 let editingQuoteId = null;
 
+// Imponibile netto di un preventivo salvato: somma delle voci meno lo sconto in percentuale
+// (il totale mostrato in schede, elenchi e statistiche deve tenere conto dello sconto).
+function quoteNetImponibile(q){
+  const imp = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
+  const pct = parseFloat(q.client && q.client.sconto) || 0;
+  return imp - imp * pct / 100;
+}
+
 function savedQuoteCompactRowHtml(q){
-  const totale = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
+  const totale = quoteNetImponibile(q);
   let dataLabel = '—';
   if(q.client && q.client.data){
     const d = new Date(q.client.data + 'T00:00:00');
@@ -3787,7 +3795,7 @@ function renderQuoteScheda(){
   const body = document.getElementById('quoteSchedaBody');
   if(!q){ closeQuoteScheda(); return; }
   const c = q.client || {};
-  const totale = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
+  const totale = quoteNetImponibile(q);
   const esito = quoteEsito(q);
   const sent = quoteIsSent(q);
   const firmato = !!(c.firma && c.firma.firmato);
@@ -3864,7 +3872,7 @@ function renderQuoteScheda(){
         ${savedQuoteSendStatusHtml(q)}
       </div>
       <div style="text-align:right;">
-        <div style="font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em;">Totale imponibile voci</div>
+        <div style="font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em;">${(parseFloat(c.sconto)||0) > 0 ? 'Imponibile netto (sconto ' + fmt(parseFloat(c.sconto)) + '%)' : 'Totale imponibile voci'}</div>
         <div class="display" style="font-weight:800; font-size:24px;">€ ${fmt(totale)}</div>
       </div>
     </div>
@@ -3979,7 +3987,7 @@ function updateEditingQuoteBar(){
 }
 
 function savedQuoteRowHtml(q){
-  const totale = (q.cart||[]).reduce((s,l)=>s + lineTotal(l), 0);
+  const totale = quoteNetImponibile(q);
   let dataLabel = '—';
   if(q.client && q.client.data){
     const d = new Date(q.client.data + 'T00:00:00');
@@ -5546,6 +5554,11 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
     alert('Prima collega un account Resend in Impostazioni Studio → Follow-up automatico.');
     return;
   }
+  // Avviso: se esistono modelli di contratto ma nessuno è scelto per questo preventivo, l'email e
+  // il link del cliente conterranno solo il preventivo (una sola firma, nessuna lettera di incarico).
+  if((studioSettings.contractTemplates||[]).length && !buildContractSnapshot()){
+    if(!confirm('Per questo preventivo NON hai scelto nessun contratto (menu "Contratto da generare insieme al preventivo", in fondo al riepilogo): il cliente riceverà solo il preventivo, senza lettera di incarico e con una sola firma.\n\nInviare comunque?')) return;
+  }
   if(!confirm(`Inviare il preventivo n. ${numero} a ${clienteEmail}?`)) return;
   const key = getLicenseKey();
   const totaleEl = document.querySelector('.total-row.grand .val');
@@ -7005,7 +7018,7 @@ function renderDashboard(){
   // Il valore totale conta solo i preventivi marcati come "validi": un cliente può avere più
   // versioni salvate dello stesso preventivo, ma solo quelle correnti devono pesare sul totale.
   const validQuotes = savedQuotes.filter(q => q.valido !== false);
-  const total = validQuotes.reduce((sum, q) => sum + (q.cart||[]).reduce((s,l)=>s+lineTotal(l),0), 0);
+  const total = validQuotes.reduce((sum, q) => sum + quoteNetImponibile(q), 0);
   document.getElementById('e2StatCount').textContent = count;
   document.getElementById('e2StatTotal').textContent = '€ ' + fmt(total);
   document.getElementById('e2StatWon').textContent = savedQuotes.filter(q=>q.vinto).length;
@@ -7027,7 +7040,7 @@ function renderDashboard(){
       if(q.vinto) entry.vinti += 1;
       if(q.valido !== false){
         entry.validi += 1;
-        entry.totaleValido += (q.cart||[]).reduce((s,l)=>s+lineTotal(l),0);
+        entry.totaleValido += quoteNetImponibile(q);
       }
     });
     const clients = Array.from(byClient.values()).sort((a,b)=> b.count - a.count);
