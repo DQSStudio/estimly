@@ -647,6 +647,27 @@
     return { data: c.toDataURL('image/jpeg', 0.92), fmt: 'JPEG' };
   }
 
+  // Misura posizione dei tagli pagina sul documento CLONATO da html2canvas (non su quello "vivo"):
+  // il PDF viene disegnato dalla copia, e su Safari/iPad le altezze delle righe possono differire di
+  // qualche pixel dall'originale, tanto da tagliare a metà una riga a fine pagina.
+  function measureLayout(el){
+    const top = el.getBoundingClientRect().top;
+    const rel = n => n.getBoundingClientRect();
+    const sel = 'tr, .pd-meta-standalone, .pd-header, .pd-parties, .pd-totals, .pd-nota, .pd-payment, .cert-sign-box, .pd-line, .pd-contract-h2';
+    const pts = Array.from(el.querySelectorAll(sel)).map(n => ({
+      bottom: rel(n).bottom - top,
+      isCat: n.classList.contains('pd-cat-row') || n.classList.contains('pd-contract-h2')
+    })).filter(x => x.bottom > 0).sort((x, y) => x.bottom - y.bottom);
+    const forced = Array.from(el.querySelectorAll('.pd-pagebreak')).map(n => rel(n).top - top).filter(y => y > 0).sort((x, y) => x - y);
+    const thead = el.querySelector('.pd-table thead'), table = el.querySelector('.pd-table');
+    return {
+      pts, forced, height: rel(el).height,
+      theadTop: thead ? rel(thead).top - top : 0,
+      theadBottom: thead ? rel(thead).bottom - top : 0,
+      tableBottom: table ? rel(table).bottom - top : 0
+    };
+  }
+
   function collectBreakPoints(node, scale){
     const top = node.getBoundingClientRect().top;
     const sel = 'tr, .pd-meta-standalone, .pd-header, .pd-parties, .pd-totals, .pd-nota, .pd-payment, .cert-sign-box, .pd-line, .pd-contract-h2';
@@ -675,7 +696,9 @@
       const ftrIm = (useLH && studio.letterheadFooter) ? await loadImage(studio.letterheadFooter) : null;
 
       const CAP_SCALE = 2.5;
-      const canvas = await window.html2canvas(node, { scale: CAP_SCALE, useCORS:true, backgroundColor:'#ffffff', windowWidth: node.offsetWidth });
+      let M = null;
+      const canvas = await window.html2canvas(node, { scale: CAP_SCALE, useCORS:true, backgroundColor:'#ffffff', windowWidth: node.offsetWidth, onclone: (cd, cel) => { try{ M = measureLayout(cel || cd.querySelector('.cert-wrap')); }catch(e){ M = null; } } });
+      if(!M) M = measureLayout(node);
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:'mm', format:'a4' });
 
@@ -689,20 +712,16 @@
       const hdrPdf = hdrIm ? imageForPdf(hdrIm, studio.letterheadHeader) : null;
       const ftrPdf = ftrIm ? imageForPdf(ftrIm, studio.letterheadFooter) : null;
 
-      const scale = canvas.width / node.offsetWidth;
-      const pts = collectBreakPoints(node, scale);
-      const nodeTop = node.getBoundingClientRect().top;
-      const theadEl = node.querySelector('.pd-table thead');
-      const tableEl = node.querySelector('.pd-table');
-      const theadTop = theadEl ? Math.round((theadEl.getBoundingClientRect().top - nodeTop) * scale) : 0;
-      const theadBottom = theadEl ? Math.round((theadEl.getBoundingClientRect().bottom - nodeTop) * scale) : 0;
-      const tableBottom = tableEl ? Math.round((tableEl.getBoundingClientRect().bottom - nodeTop) * scale) : 0;
+      const scale = canvas.height / M.height;
+      const pts = M.pts.map(x => ({ bottom: Math.round(x.bottom * scale), isCat: x.isCat }));
+      const theadTop = Math.round(M.theadTop * scale);
+      const theadBottom = Math.round(M.theadBottom * scale);
+      const tableBottom = Math.round(M.tableBottom * scale);
+      const theadEl = theadBottom > theadTop ? true : null;
       const stripH = theadBottom - theadTop;
 
       // Inizio di contratto / pagine extra: ricominciano sempre da una pagina nuova.
-      const forced = Array.from(node.querySelectorAll('.pd-pagebreak'))
-        .map(el => Math.round((el.getBoundingClientRect().top - nodeTop) * scale))
-        .filter(y => y > 0 && y < canvas.height).sort((a, b) => a - b);
+      const forced = M.forced.map(y => Math.round(y * scale)).filter(y => y > 0 && y < canvas.height);
 
       let start = 0, pageIdx = 0;
       while(start < canvas.height){

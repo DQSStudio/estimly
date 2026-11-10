@@ -5308,6 +5308,10 @@ async function updateFollowupStatus(newStatus){
 // online, coerente col fatto che anche il PDF non viene più allegato qui (il cliente lo scarica,
 // con la propria firma riportata in calce, solo dopo aver firmato — vedi preventivo.html).
 function buildQuoteEmailHtml(clientLinkUrl, pagamenti){
+  // Documenti presenti nel preventivo: se c'è un contratto (lettera di incarico) l'email lo dice
+  // esplicitamente e spiega che le firme sono due, così il cliente sa cosa troverà nel link.
+  const contrattoSnap = (typeof buildContractSnapshot === 'function') ? buildContractSnapshot() : null;
+  const nExtra = (typeof extraPages !== 'undefined' && Array.isArray(extraPages)) ? extraPages.filter(p=>(p.testo||'').trim()).length : 0;
   const s = studioSettings;
   const accent = s.colorPrimary || '#4338CA';
   const cliente = document.getElementById('fCliente').value || '—';
@@ -5350,11 +5354,24 @@ function buildQuoteEmailHtml(clientLinkUrl, pagamenti){
       <div style="font-size:12px; color:#666; margin-top:8px; line-height:1.5;">Dopo aver firmato il preventivo dal link qui sotto potrà pagare online con carta, in modo sicuro.</div>
     </div>` : '';
 
+  const docsHtml = contrattoSnap ? `
+    <div style="margin:18px 0 0; padding:14px 16px; border:1px solid ${accent}; border-radius:8px; background:#FAFAFB;">
+      <div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:${accent}; margin-bottom:8px;">Documenti da firmare</div>
+      <ol style="margin:0; padding-left:20px; font-size:13px; line-height:1.7;">
+        <li>Preventivo${numero!=='—'?` n. ${escapeHtml(numero)}`:''}</li>
+        <li><b>${escapeHtml(contrattoSnap.nome || 'Lettera di incarico professionale')}</b></li>
+      </ol>
+      ${nExtra ? `<div style="font-size:12px; color:#666; margin-top:6px;">Sono inclusi anche ${nExtra} ${nExtra===1?'allegato':'allegati'}.</div>` : ''}
+      <div style="font-size:12px; color:#666; margin-top:8px; line-height:1.5;">Dal pulsante qui sotto potrà leggere tutto e firmare in due passaggi: prima il preventivo, poi il contratto. Al termine potrà scaricare il documento firmato.</div>
+    </div>` : (nExtra ? `
+    <div style="font-size:12px; color:#666; margin-top:10px;">Il documento include ${nExtra} ${nExtra===1?'allegato':'allegati'}.</div>` : '');
+
   return `
   <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; max-width:640px; margin:0 auto; color:#222;">
     ${headerHtml}
     <p style="font-size:14px; line-height:1.6;">Gentile ${escapeHtml(cliente)},</p>
     <p style="font-size:14px; line-height:1.6;">${escapeHtml(s.nome||'il nostro studio')} ha preparato per${progetto?` "${escapeHtml(progetto)}"`:' lei'} il preventivo${numero!=='—'?` n. <b>${escapeHtml(numero)}</b>`:''}. Può visualizzarlo nel dettaglio e firmarlo direttamente online dal pulsante qui sotto.</p>
+    ${docsHtml}
     ${pagHtml}
     ${ctaHtml}
     <p style="font-size:13px; line-height:1.6; color:#555; margin-top:22px;">Resto a disposizione per qualsiasi chiarimento.<br>Cordiali saluti,<br><b>${escapeHtml(s.nome||'Studio')}</b></p>
@@ -5581,13 +5598,33 @@ document.getElementById('sendQuoteEmailBtn').addEventListener('click', async ()=
     return;
   }
   const html = buildQuoteEmailHtml(clientLinkUrl, savedEntryForEmail && savedEntryForEmail.client ? savedEntryForEmail.client.pagamenti : []);
+  // Se il preventivo ha un contratto, la lettera di incarico viaggia anche come PDF allegato
+  // (da leggere); la firma resta comunque dal link online.
+  let contractAttachment = null;
+  if(buildContractSnapshot()){
+    btn.textContent = 'Preparo la lettera di incarico…';
+    try{
+      const pdf = await generateStudioPdf({ only:'contract' });
+      if(pdf){
+        const buf = new Uint8Array(await pdf.blob.arrayBuffer());
+        let bin = ''; for(let i = 0; i < buf.length; i += 8192) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 8192));
+        contractAttachment = { filename: pdf.filename, contentBase64: btoa(bin) };
+      }
+    }catch(err){ console.error('PDF lettera di incarico non creato', err); }
+    if(!contractAttachment && !confirm('Non sono riuscito a creare il PDF della lettera di incarico da allegare. Inviare comunque l\'email con il solo link (il contratto si legge e si firma da lì)?')){
+      btn.disabled = false; btn.textContent = originalLabel;
+      return;
+    }
+    btn.textContent = 'Invio in corso...';
+  }
   try{
     const res = await fetch('/.netlify/functions/followups', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         key, action:'send',
-        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html, sequenceDays: getFollowupSequenceDays(), leadId: quoteLeadId() }
+        followup: { quoteRef:numero, numero, clienteNome:cliente, clienteEmail, oggetto:progetto, totale, subject, html, sequenceDays: getFollowupSequenceDays(), leadId: quoteLeadId() },
+        ...(contractAttachment ? { attachment: contractAttachment } : {})
       })
     });
     const data = await res.json();
@@ -8541,7 +8578,8 @@ function pdfxImageData(im, src){
   const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0,0,c.width,c.height); cx.drawImage(im,0,0);
   return { data: c.toDataURL('image/jpeg',0.92), fmt: 'JPEG' };
 }
-async function generateStudioPdf(){
+async function generateStudioPdf(opts){
+  opts = opts || {};
   if(!window.jspdf || !window.jspdf.jsPDF || typeof window.html2canvas !== 'function') throw new Error('librerie PDF mancanti');
   buildPrintDoc();
   const s = studioSettings;
@@ -8562,6 +8600,13 @@ async function generateStudioPdf(){
     if(useLH){
       node.querySelectorAll('.pd-letterhead-header,.pd-letterhead-footer').forEach(el=>el.remove());
       node.querySelectorAll(':scope > table > thead, :scope > table > tfoot').forEach(el=>el.remove());
+    }
+    if(opts.only === 'contract'){
+      // Solo la lettera di incarico (per l'allegato dell'email di invio).
+      const cp = node.querySelector('.pd-contract-page');
+      if(!cp) return null;
+      node.innerHTML = '';
+      node.appendChild(cp);
     }
     try{
       if(s.customFontData && d.fonts && d.fonts.load) await d.fonts.load("12px 'EstimlyCustomFont'");
@@ -8584,20 +8629,32 @@ async function generateStudioPdf(){
     const hdrPdf = hdrIm ? pdfxImageData(hdrIm, s.letterheadHeader) : null;
     const ftrPdf = ftrIm ? pdfxImageData(ftrIm, s.letterheadFooter) : null;
 
-    const total = Math.ceil(node.getBoundingClientRect().height);
-    const nodeTop = node.getBoundingClientRect().top;
-    const rel = el => el.getBoundingClientRect();
-    const pts = Array.from(node.querySelectorAll('tr, .pd-meta-standalone, .pd-header, .pd-parties, .pd-totals, .pd-nota, .pd-payment, .pd-contract-p, .pd-contract-h2, .pd-extra-pages-body p'))
-      .map(el=>({ bottom: Math.round(rel(el).bottom - nodeTop), isCat: el.classList.contains('pd-cat-row') || el.classList.contains('pd-contract-h2') }))
-      .filter(p=>p.bottom > 0).sort((a,b)=>a.bottom-b.bottom);
-    const forced = [];
-    node.querySelectorAll('.pd-extra-pages').forEach(el=>{ const y = Math.round(rel(el).top - nodeTop); if(y>0) forced.push(y); });
-    node.querySelectorAll('.pd-contract-page').forEach(el=>{ const y = Math.round(rel(el).bottom - nodeTop); if(y>0 && y<total) forced.push(y); });
-    forced.sort((a,b)=>a-b);
-    const theadEl = node.querySelector('.pd-table thead'), tableEl = node.querySelector('.pd-table');
-    const theadTop = theadEl ? Math.round(rel(theadEl).top - nodeTop) : 0;
-    const theadBottom = theadEl ? Math.round(rel(theadEl).bottom - nodeTop) : 0;
-    const tableBottom = tableEl ? Math.round(rel(tableEl).bottom - nodeTop) : 0;
+    // Le posizioni dei tagli si misurano sulla copia che html2canvas disegna davvero (onclone), non
+    // sul riquadro "vivo": su Safari/iPad le altezze possono differire di qualche pixel e un taglio
+    // misurato sull'originale finirebbe a metà di una riga.
+    const measure = (el)=>{
+      const top = el.getBoundingClientRect().top;
+      const r = n => n.getBoundingClientRect();
+      const pts = Array.from(el.querySelectorAll('tr, .pd-meta-standalone, .pd-header, .pd-parties, .pd-totals, .pd-nota, .pd-payment, .pd-contract-p, .pd-contract-h2, .pd-extra-pages-body p'))
+        .map(n=>({ bottom: Math.round(r(n).bottom - top), isCat: n.classList.contains('pd-cat-row') || n.classList.contains('pd-contract-h2') }))
+        .filter(x=>x.bottom > 0).sort((a,b)=>a.bottom-b.bottom);
+      const forced = [];
+      el.querySelectorAll('.pd-extra-pages').forEach(n=>{ const y = Math.round(r(n).top - top); if(y>0) forced.push(y); });
+      const ct = el.querySelectorAll('.pd-contract-page');
+      const total = Math.ceil(r(el).height);
+      ct.forEach(n=>{ const y = Math.round(r(n).bottom - top); if(y>0 && y<total) forced.push(y); });
+      forced.sort((a,b)=>a-b);
+      const th = el.querySelector('.pd-table thead'), tb = el.querySelector('.pd-table');
+      return { pts, forced, total,
+        theadTop: th ? Math.round(r(th).top - top) : 0, theadBottom: th ? Math.round(r(th).bottom - top) : 0,
+        tableBottom: tb ? Math.round(r(tb).bottom - top) : 0, hasThead: !!th };
+    };
+    let M = null;
+    await window.html2canvas(node, { scale:0.2, x:0, y:0, width:PDFX_W, height:20, windowWidth:PDFX_W, windowHeight:Math.ceil(node.scrollHeight+40), scrollX:0, scrollY:0, backgroundColor:'#ffffff', useCORS:true,
+      onclone:(cd, cel)=>{ try{ M = measure(cel || cd.getElementById('printDoc')); }catch(e){ M = null; } } });
+    if(!M) M = measure(node);
+    const total = M.total, pts = M.pts, forced = M.forced;
+    const theadEl = M.hasThead, theadTop = M.theadTop, theadBottom = M.theadBottom, tableBottom = M.tableBottom;
     const stripH = theadBottom - theadTop;
 
     const grab = (y, h)=>window.html2canvas(node, { scale:2, useCORS:true, backgroundColor:'#ffffff', x:0, y:y, width:PDFX_W, height:h, windowWidth:PDFX_W, windowHeight:Math.ceil(node.scrollHeight+40), scrollX:0, scrollY:0 });
@@ -8636,7 +8693,7 @@ async function generateStudioPdf(){
       start = end; pageIdx++;
     }
     const numero = (document.getElementById('fNumero').value || 'preventivo').replace(/[^a-zA-Z0-9_-]+/g,'_');
-    return { blob: doc.output('blob'), filename: `Preventivo_${numero}.pdf` };
+    return { blob: doc.output('blob'), filename: opts.only === 'contract' ? `Lettera_di_incarico_${numero}.pdf` : `Preventivo_${numero}.pdf` };
   } finally {
     fr.remove();
   }
