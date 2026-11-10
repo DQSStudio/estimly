@@ -1,4 +1,5 @@
 // Collegamento View <-> Estimly, ogni 5 minuti, per ogni licenza collegata a uno studio della suite:
+//  0. con la suite completa, scrive nella suite il costo orario calcolato da Estimly (lo legge Flow);
 //  1. copia le richieste (lead) nella suite, così View le vede;
 //  2. riceve da View il link della presentazione e porta il lead a "presentazione inviata";
 //  3. quando il cliente ha confermato in View ("Voglio lavorare con voi") porta il lead a "vinto"
@@ -68,6 +69,14 @@ export default async () => {
     try {
       const license = await licenseStore().get(key, { type: 'json' });
       if (!license || license.status !== 'active') continue;
+      // Costo orario (tariffa oraria base) per Flow: solo con la suite completa. Valore assente o <= 0: lo studio non ne ha uno.
+      if (license.suiteEnabled) {
+        try {
+          const st = await dataStore.get(key, { type: 'json' });
+          const t = Number(st && st.studioSettings && st.studioSettings.tariffaOrariaBase);
+          if (st) await rpc('estimly_costo_orario_imposta', { p_chiave: key, p_valore: t > 0 ? t : 0 });
+        } catch (e) { console.error('[suite-richieste] costo orario', key.slice(-4), String(e.message || e)); }
+      }
       const sync = await rpc('estimly_richieste_sincronizza', { p_chiave: key, p_leads: (await leadsStore.get(key, { type: 'json' })) || [] });
       if (!sync || sync.ok === false) continue;          // studio non collegato o senza View: niente da fare
       const todo = await rpc('estimly_richieste_da_allineare', { p_chiave: key });
