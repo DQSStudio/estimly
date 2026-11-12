@@ -94,3 +94,28 @@ export async function syncQuoteToDesearqManager(quote, opts){
     return false;
   }
 }
+
+// Il costo orario dello studio (Estimly -> Flow). Non critico: un errore non blocca mai il salvataggio.
+export async function syncCostoOrarioToSuite(key, valore){
+  const secret = process.env.SUITE_SUPABASE_SECRET_KEY;
+  const k = key ? String(key).trim().toUpperCase() : '';
+  const v = Number(valore);
+  if(!secret || !k || !Number.isFinite(v)) return false;
+  const suiteUrl = process.env.SUITE_SUPABASE_URL || SUITE_URL;
+  try{
+    const res = await fetch(`${suiteUrl}/rest/v1/rpc/estimly_costo_orario_imposta`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: secret, Authorization: `Bearer ${secret}` },
+      body: JSON.stringify({ p_chiave: k, p_valore: v })
+    });
+    const out = await res.json().catch(() => null);
+    if(!res.ok || out === false){
+      console.error('Costo orario non inviato alla suite', res.status, JSON.stringify(out).slice(0, 200));
+      return false;
+    }
+    return true;
+  }catch(err){
+    console.error('Costo orario non inviato alla suite', err);
+    return false;
+  }
+}

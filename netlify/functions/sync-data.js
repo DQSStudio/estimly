@@ -1,5 +1,5 @@
 import { getStore } from '@netlify/blobs';
-import { syncQuoteToDesearqManager } from './desearq-sync.js';
+import { syncQuoteToDesearqManager, syncCostoOrarioToSuite } from './desearq-sync.js';
 import { authorize, can, brandingOnly, settingsForRole, validPhoto } from './lib/auth.js';
 
 const MAX_SAVED_QUOTES_BASE = 10;
@@ -84,6 +84,12 @@ export default async (req) => {
       updatedAt: new Date().toISOString()
     };
     await dataStore.setJSON(key, record);
+    // Costo orario -> Flow (solo se il valore è presente; 0 lo cancella solo se prima c'era)
+    const tariffa = Number(record.studioSettings && record.studioSettings.tariffaOrariaBase);
+    const prima = Number(existing && existing.studioSettings && existing.studioSettings.tariffaOrariaBase) || 0;
+    if (Number.isFinite(tariffa) && (tariffa > 0 || prima > 0)) {
+      await syncCostoOrarioToSuite(key, tariffa);
+    }
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   }
 
