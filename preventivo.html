@@ -687,7 +687,18 @@
     return pts;
   }
 
+  // Il salvataggio passa da una funzione Netlify (limite ~6 MB per richiesta): se il PDF è troppo pesante
+  // lo si rigenera con compressione JPEG via via più alta.
   async function generateSignedDocumentPdf(studio, quote){
+    let out = null;
+    for(const q of [0.92, 0.78, 0.62, 0.5]){
+      out = await generateSignedDocumentPdfQ(studio, quote, q);
+      if(!out || out.base64.length < 4500000) break;
+    }
+    return out;
+  }
+
+  async function generateSignedDocumentPdfQ(studio, quote, JPEG_Q){
     if(typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF || typeof window.html2canvas !== 'function') return null;
     ensureStudioFont(studio);
     const node = buildSignedDocumentNode(studio, quote);
@@ -764,7 +775,7 @@
         if(pageIdx > 0) doc.addPage();
         if(hdrPdf) doc.addImage(hdrPdf.data, hdrPdf.fmt, PDF_MARGIN_MM, PDF_MARGIN_MM, CW, hh);
         const contentMm = pageCanvas.height / pxPerMm;
-        doc.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', PDF_MARGIN_MM, topY, CW, contentMm);
+        doc.addImage(pageCanvas.toDataURL('image/jpeg', JPEG_Q), 'JPEG', PDF_MARGIN_MM, topY, CW, contentMm);
         if(ftrPdf){
           const isLast = end >= canvas.height;
           const fy = isLast
@@ -790,10 +801,11 @@
 
   async function storeSignedDocument(pdfBase64){
     try{
-      await fetch('/.netlify/functions/public-quote', {
+      const r = await fetch('/.netlify/functions/public-quote', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ mode:'store-signed-document', token, pdfBase64 })
       });
+      if(!r.ok){ const t = await r.text().catch(()=>''); console.error('Salvataggio PDF firmato non riuscito', r.status, t.slice(0,200)); }
     }catch(err){ /* la firma è già stata registrata: se il salvataggio del PDF fallisce, lo studio può comunque riscaricarlo più avanti se il caricamento fosse solo momentaneamente fallito, oppure il cliente può usare "Scarica documento firmato" qui sotto in un secondo momento */ }
   }
 
