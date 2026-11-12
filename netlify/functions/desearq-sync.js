@@ -32,7 +32,7 @@ function lineTotal(l){
   return l.modalita === 'orario' ? (l.ore || 0) * (l.tariffa || 0) : (l.qty || 0) * (l.prezzo || 0);
 }
 
-// Importi del preventivo. A Flow arriva il NETTO (imponibile dopo lo sconto, senza contributo e senza IVA):
+// Importi del preventivo. A Flow arriva il NETTO = dopo lo sconto, con contributo (INPS) e senza IVA ('imponibile'):
 // è la cifra che conta per parcella, ricavi e SAL. Contributo, IVA e lordo viaggiano a parte, solo come riferimento.
 function computeTotali(quote){
   const client = quote.client || {};
@@ -47,9 +47,9 @@ function computeTotali(quote){
     : (Object.prototype.hasOwnProperty.call(REGIMI_RATE, client.regime) ? REGIMI_RATE[client.regime] : 0.22);
   const iva = baseIva * (rate || 0);
   const r2 = (n) => Math.round(n * 100) / 100;
-  return { netto: r2(netto), contributo: r2(contributo), iva: r2(iva), lordo: r2(baseIva + iva) };
+  return { imponibile: r2(baseIva), netto: r2(netto), contributo: r2(contributo), iva: r2(iva), lordo: r2(baseIva + iva) };
 }
-function computeTotale(quote){ return computeTotali(quote).netto; }
+function computeTotale(quote){ return computeTotali(quote).imponibile; }
 
 export async function syncQuoteToDesearqManager(quote, opts){
   // I preventivi vanno al Manager della suite tramite la licenza (impronta SHA-256), con la chiave segreta del server.
