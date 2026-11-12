@@ -141,7 +141,11 @@ function sanitizeQuote(q){
       firmato: true,
       firmatoAt: q.client.firma.firmatoAt,
       firmatarioNome: q.client.firma.firmatarioNome,
-      metodo: q.client.firma.metodo
+      metodo: q.client.firma.metodo,
+      // Servono al link del firmatario per rigenerare il PDF firmato se non era stato conservato.
+      ip: q.client.firma.ip, hashDocumento: q.client.firma.hashDocumento,
+      firmaImage: q.client.firma.metodo === 'disegnata' ? (q.client.firma.firmaImage || '') : '',
+      documentoConservato: !!q.client.firma.documentoConservato
     } : { firmato: false },
     // Seconda firma, solo per i preventivi con contratto allegato: il cliente firma prima il
     // preventivo e poi il contratto (stessa struttura della firma del preventivo).
@@ -149,7 +153,9 @@ function sanitizeQuote(q){
       firmato: true,
       firmatoAt: q.client.firmaContratto.firmatoAt,
       firmatarioNome: q.client.firmaContratto.firmatarioNome,
-      metodo: q.client.firmaContratto.metodo
+      metodo: q.client.firmaContratto.metodo,
+      ip: q.client.firmaContratto.ip, hashDocumento: q.client.firmaContratto.hashDocumento,
+      firmaImage: q.client.firmaContratto.metodo === 'disegnata' ? (q.client.firmaContratto.firmaImage || '') : ''
     } : { firmato: false },
     // Richieste di pagamento (SAL) create dallo studio dopo la firma: qui esponiamo solo
     // i campi utili al cliente, mai gli identificativi interni di Stripe.

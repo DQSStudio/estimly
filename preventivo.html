@@ -519,6 +519,14 @@
     fitLogos(app);
     renderSignArea(quote);
     renderPaymentsArea(quote);
+
+    // Preventivo già firmato (tutte le firme) ma PDF firmato mai conservato (es. firmato prima di un
+    // aggiornamento): lo rigeneriamo e lo conserviamo qui, così lo studio può scaricarlo.
+    const hasC = !!(quote.contratto && Array.isArray(quote.contratto.sections) && quote.contratto.sections.length);
+    const allSigned = !!(quote.firma && quote.firma.firmato) && (!hasC || !!(quote.firmaContratto && quote.firmaContratto.firmato));
+    if(allSigned && !quote.firma.documentoConservato){
+      generateSignedDocumentPdf(studio, quote).then(pdf => { if(pdf) storeSignedDocument(pdf.base64); });
+    }
   }
 
   function paymentStatusLabel(p){

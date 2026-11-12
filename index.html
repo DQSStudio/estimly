@@ -3881,7 +3881,7 @@ function renderQuoteScheda(){
       ${btn('data-edit-quote', '✏️ Modifica', 'background:var(--ink); color:#fff; border-color:var(--ink); font-weight:700;')}
       ${live ? btn('data-client-link', 'Link cliente') : ''}
       ${live ? btn('data-payments', '💳 Pagamenti') : ''}
-      ${live && firmato && c.firma.documentoConservato ? btn('data-download-signed', 'Documento firmato') : ''}
+      ${live && firmato ? btn('data-download-signed', 'Documento firmato') : ''}
       ${live ? (q.concluso ? '<span style="font-size:11px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:8px 12px; border-radius:6px;">✓ Concluso</span>' : btn('data-close-quote', 'Concludi progetto')) : ''}
       ${btn('data-toggle-valido', isValido ? '✔ Valido nel totale' : 'Includi nel totale')}
       ${btn('data-delete-quote', 'Elimina', 'color:var(--danger); margin-left:auto;')}
@@ -4015,7 +4015,7 @@ function savedQuoteRowHtml(q){
         <button data-toggle-vinto="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="${q.vinto ? 'Segna come non vinto' : 'Segna come vinto'}">${q.vinto ? '🏆 Vinto' : 'Segna vinto'}</button>
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? `<button data-client-link="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Genera/copia il link che il cliente apre per vedere il preventivo e firmare">Link cliente</button>` : ''}
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? `<button data-payments="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Crea e monitora le richieste di pagamento (acconto, saldo a rate, ecc.)">Pagamenti</button>` : ''}
-        ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && q.client && q.client.firma && q.client.firma.firmato && q.client.firma.documentoConservato) ? `<button data-download-signed="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Scarica il documento di accettazione firmato dal cliente, con firma, data/ora, IP e impronta del documento come prova">Documento firmato</button>` : ''}
+        ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled && q.client && q.client.firma && q.client.firma.firmato) ? `<button data-download-signed="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Scarica il documento di accettazione firmato dal cliente, con firma, data/ora, IP e impronta del documento come prova">Documento firmato</button>` : ''}
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? (q.concluso
           ? '<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:6px 10px; border-radius:6px;">✓ Concluso</span>'
           : `<button data-close-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Registra ore/durata reali e confronta con la stima">Concludi progetto</button>`) : ''}
@@ -9739,7 +9739,7 @@ if('serviceWorker' in navigator){
 
   // ---------- Link pubblico preventivo (firma cliente) ----------
 
-  async function estimlyOpenClientLink(quoteId){
+  async function estimlyOpenClientLink(quoteId, openIt){
     if(!estimly3IsActive()) return;
     const key = (typeof getLicenseKey === 'function') ? getLicenseKey() : null;
     if(!key){ alert('Chiave di licenza non trovata.'); return; }
@@ -9754,6 +9754,7 @@ if('serviceWorker' in navigator){
         return;
       }
       const url = `${window.location.origin}/preventivo.html?t=${data.token}`;
+      if(openIt){ window.open(url, '_blank'); return; }
       window.prompt('Link per il cliente (copialo e invialo, ad es. via email):', url);
     }catch(err){
       console.error('Errore generazione link cliente', err);
@@ -9776,7 +9777,9 @@ if('serviceWorker' in navigator){
         body: JSON.stringify({ mode:'download-signed-document', key, quoteId })
       });
       if(!res.ok){
-        alert('Documento non trovato. Riprova o contatta l\'assistenza.');
+        // PDF mai conservato (firma fatta prima dell'aggiornamento): apro il link cliente, che lo rigenera e lo salva.
+        alert('Il PDF firmato non era ancora stato salvato. Apro la pagina del preventivo: attendi qualche secondo che venga generato e salvato, poi torna qui e riclicca "Documento firmato".');
+        estimlyOpenClientLink(quoteId, true);
         return;
       }
       const blob = await res.blob();
