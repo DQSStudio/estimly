@@ -1786,7 +1786,7 @@ body.estimly2-theme #aiGenerateBtn{ border-radius:12px; font-family:var(--e2-fon
             <input id="lgPwd" type="password" placeholder="La tua password" autocomplete="current-password">
           </div>
           <div class="lg-checks" id="lgChecksLogin">
-            <label class="lg-check"><input type="checkbox" id="acceptTos"><span>Ho letto e accetto i <a href="termini.html" target="_blank" rel="noopener">Termini di Servizio</a> e l'<a href="privacy.html" target="_blank" rel="noopener">Informativa Privacy</a></span></label>
+            <label class="lg-check"><input type="checkbox" id="acceptTos"><span>Ho letto e accetto i <a href='/termini' rel='noopener' target='_blank'>Termini di Servizio</a> e l'<a href='/privacy' rel='noopener' target='_blank'>Informativa Privacy</a></span></label>
             <label class="lg-check"><input type="checkbox" id="acceptVessatorie"><span>Approvo specificamente, ai sensi degli artt. 1341&ndash;1342 c.c., le clausole 8 (Disponibilit&agrave; del Servizio e limitazione di responsabilit&agrave;) e 12 (Legge applicabile e foro competente) dei Termini di Servizio.</span></label>
           </div>
           <button type="button" id="licenseSubmitBtn" class="lg-submit" disabled style="opacity:0.5; cursor:not-allowed;">Accedi <span class="lg-arrow">&rarr;</span></button>
@@ -3848,7 +3848,7 @@ function renderQuoteScheda(){
   const paymentsBlock = `
     <div class="field-section-label" style="margin-top:22px;">Pagamenti online</div>
     <div id="schedaStripeStatus" style="font-size:12px; color:var(--ink-soft); margin-bottom:10px;">Verifica Stripe…</div>
-    ${(suiteFeatureEnabled && (q.vinto || (q.client && q.client.firma && q.client.firma.firmato))) ? `<div style="font-size:12px; color:var(--ink-soft); margin-bottom:10px;">Desearq Manager: <button type="button" class="btn-cancel" data-sync-manager="${q.id}" style="padding:4px 10px; margin-left:4px;">Invia a Desearq Manager</button> <span id="schedaManagerMsg"></span></div>` : ''}
+    ${(suiteFeatureEnabled && (q.vinto || (q.client && q.client.firma && q.client.firma.firmato))) ? `<div style="font-size:12px; color:var(--ink-soft); margin-bottom:10px;">Flow: <button type="button" class="btn-cancel" data-sync-manager="${q.id}" style="padding:4px 10px; margin-left:4px;">Invia a Flow</button> <span id="schedaManagerMsg"></span></div>` : ''}
     ${pagamenti.length ? pagamenti.map(p=>`
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px;">
         <div><b>${escapeHtml(p.label)}</b> <span style="color:var(--ink-soft);">· € ${fmt((p.importoCent||0)/100)}${p.paidAt ? ' · pagato il ' + new Date(p.paidAt).toLocaleDateString('it-IT') : ''}</span></div>
@@ -3926,7 +3926,7 @@ async function loadSchedaStripeStatus(){
 }
 
 // Imposta l'esito (accettato / in trattativa / perso / nessuno). "Accettato" = vinto (resta
-// coerente con dashboard e Desearq Studio Manager); "Perso" esce dal totale in essere.
+// coerente con dashboard e Flow); "Perso" esce dal totale in essere.
 async function setQuoteEsito(id, esito, opts){
   const q = savedQuotes.find(x=>x.id===id);
   if(!q) return;
@@ -4134,7 +4134,7 @@ function handleSavedQuotesListClick(e){
     syncBtn.disabled = true; if(msg) msg.textContent = 'Invio…';
     fetch('/.netlify/functions/sync-data', { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ key: getLicenseKey(), action:'syncManager', id: syncBtn.getAttribute('data-sync-manager') }) })
-      .then(r=>r.json()).then(d=>{ if(msg) msg.textContent = d.ok ? '✅ Inviato a Desearq Manager' : (d.error==='suite_disabled' ? 'Collegamento Manager non attivo sulla tua licenza.' : '⚠️ Invio non riuscito, riprova.'); })
+      .then(r=>r.json()).then(d=>{ if(msg) msg.textContent = d.ok ? '✅ Inviato a Flow' : (d.error==='suite_disabled' ? 'Collegamento Flow non attivo sulla tua licenza.' : '⚠️ Invio non riuscito, riprova.'); })
       .catch(()=>{ if(msg) msg.textContent = '⚠️ Invio non riuscito, riprova.'; })
       .finally(()=>{ syncBtn.disabled = false; });
     return;
@@ -4485,7 +4485,7 @@ function hideOnboardingGate(){
    i due Netlify Blobs store. */
 const COSTCALC_FEATURE_LIVE = true;
 let costCalcFeatureEnabled = false;
-let suiteFeatureEnabled = false; // "pacchetto completo": sincronizzazioni con DSQ Manager e Cost
+let suiteFeatureEnabled = false; // "pacchetto completo": sincronizzazioni con Flow e Cost
 
 function applyCostCalcVisibility(){
   const is2Active = FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled;
