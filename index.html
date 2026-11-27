@@ -3770,7 +3770,7 @@ function savedQuoteCompactRowHtml(q){
         <div class="e2sv-meta">${dataLabel}</div>
         ${savedQuoteSendStatusHtml(q)}
       </div>
-      <div class="e2sv-right"><span class="e2sv-amount">€ ${fmt(totale)}</span><button data-open-scheda="${q.id}" class="e2sv-open" aria-label="Apri">›</button></div>
+      <div class="e2sv-right"><button type="button" data-pdf-quote="${q.id}" class="e2sv-open" style="width:auto; padding:3px 10px; font-size:11.5px; font-weight:600; color:var(--ink-soft); border:1px solid var(--border); border-radius:999px; background:#fff;" title="Scarica il preventivo in PDF" aria-label="Scarica PDF">PDF</button><span class="e2sv-amount">€ ${fmt(totale)}</span><button data-open-scheda="${q.id}" class="e2sv-open" aria-label="Apri">›</button></div>
     </div>`;
 }
 
@@ -3879,6 +3879,7 @@ function renderQuoteScheda(){
 
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 6px;">
       ${btn('data-edit-quote', '✏️ Modifica', 'background:var(--ink); color:#fff; border-color:var(--ink); font-weight:700;')}
+      ${btn('data-pdf-quote', '⬇️ Scarica PDF')}
       ${live ? btn('data-client-link', 'Link cliente') : ''}
       ${live ? btn('data-payments', '💳 Pagamenti') : ''}
       ${live && firmato ? btn('data-download-signed', 'Documento firmato') : ''}
@@ -4019,6 +4020,7 @@ function savedQuoteRowHtml(q){
         ${(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) ? (q.concluso
           ? '<span style="font-size:10.5px; font-weight:700; color:#0F8A5F; background:#E7F6EF; padding:6px 10px; border-radius:6px;">✓ Concluso</span>'
           : `<button data-close-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Registra ore/durata reali e confronta con la stima">Concludi progetto</button>`) : ''}
+        <button data-pdf-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;" title="Scarica il preventivo in PDF senza aprirlo in modifica">Scarica PDF</button>
         <button data-open-quote="${q.id}" class="btn-cancel" style="padding:6px 10px;">Apri</button>
         <button data-delete-quote="${q.id}" class="btn-cancel" style="padding:6px 10px; color:var(--danger);">Elimina</button>
       </div>
@@ -4121,6 +4123,8 @@ function handleSavedQuotesListClick(e){
   const validoId = e.target.getAttribute('data-toggle-valido');
   const schedaEl = e.target.closest ? e.target.closest('[data-open-scheda]') : null;
   const schedaId = schedaEl ? schedaEl.getAttribute('data-open-scheda') : null;
+  const pdfBtn = e.target.closest ? e.target.closest('[data-pdf-quote]') : null;
+  if(pdfBtn){ e.stopPropagation(); downloadQuotePdfById(pdfBtn.getAttribute('data-pdf-quote'), pdfBtn); return; }
   const editId = e.target.getAttribute('data-edit-quote');
   const esitoBtn = e.target.closest ? e.target.closest('[data-set-esito]') : null;
   const live = FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled;
@@ -4269,7 +4273,8 @@ async function saveCurrentQuote(){
   alert('Preventivo salvato nell\'elenco.');
 }
 
-function loadQuoteById(id){
+function loadQuoteById(id, opts){
+  opts = opts || {};
   const q = savedQuotes.find(x=>x.id===id);
   if(!q) return;
   pendingQuoteLeadId = null;
@@ -4307,10 +4312,52 @@ function loadQuoteById(id){
   renderCartiglio();
   renderFollowupSection();
   updateQuoteClientSummary();
+  if(opts.silent) return; // usato per generare il PDF di un preventivo salvato senza cambiare schermata
   scheduleSave();
   closeSavedQuotesModal();
   if(FOLLOWUP_FEATURE_LIVE && followupFeatureEnabled) switchEstimly2Page('preventivo');
 }
+
+// Scarica il PDF di un preventivo salvato senza doverlo aprire in modifica: carica il preventivo
+// nell'editor "di nascosto", genera il PDF con lo stesso motore di "Scarica PDF" e poi rimette
+// l'editor com'era (bozza in corso, preventivo in modifica, lead collegato, caratteristiche).
+let quotePdfBusy = false;
+async function downloadQuotePdfById(id, btn){
+  if(quotePdfBusy) return;
+  const q = savedQuotes.find(x=>x.id===id);
+  if(!q) return;
+  quotePdfBusy = true;
+  const label = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Preparo il PDF…'; }
+  const st = captureEditorState();
+  const snap = {
+    id: '__snap__',
+    cart: JSON.parse(JSON.stringify(st.cart || [])),
+    idCounter: st.idCounter,
+    client: Object.assign({}, st.client, {
+      caratteristiche: (typeof estimly3GetCaratteristiche === 'function') ? estimly3GetCaratteristiche() : null,
+      stima: (typeof estimly3State !== 'undefined' && estimly3State) ? estimly3State.stima : null
+    })
+  };
+  const prevEditing = editingQuoteId, prevLead = pendingQuoteLeadId;
+  try{
+    loadQuoteById(id, { silent:true });
+    const res = await generateStudioPdf();
+    showPdfReadyDialog(res);
+  }catch(err){
+    console.error('Errore generazione PDF del preventivo salvato', err);
+    alert('Non sono riuscito a creare il PDF. Riprova; se continua, apri il preventivo con "Modifica" e usa "Stampa / Salva PDF".');
+  }finally{
+    savedQuotes.push(snap);
+    try{ loadQuoteById('__snap__', { silent:true }); }catch(e){ console.error('Ripristino editor', e); }
+    savedQuotes = savedQuotes.filter(x=>x.id !== '__snap__');
+    editingQuoteId = prevEditing; pendingQuoteLeadId = prevLead;
+    updateEditingQuoteBar();
+    quotePdfBusy = false;
+    if(btn){ btn.disabled = false; btn.textContent = label; }
+  }
+}
+
 
 async function deleteQuoteById(id){
   if(!confirm('Eliminare questo preventivo salvato?')) return;
@@ -7439,8 +7486,8 @@ function scheduleSave(){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveDraft, 400);
 }
-async function saveDraft(){
-  const state = {
+function captureEditorState(){
+  return {
     cart, idCounter,
     client:{
       cliente: document.getElementById('fCliente').value,
@@ -7469,6 +7516,9 @@ async function saveDraft(){
       hidePrices: document.getElementById('fHidePrices').checked
     }
   };
+}
+async function saveDraft(){
+  const state = captureEditorState();
   try{
     await window.storage.set('preventivo-draft', JSON.stringify(state), false);
   }catch(e){ console.error('Errore salvataggio bozza', e); }
